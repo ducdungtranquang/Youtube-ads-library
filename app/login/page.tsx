@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -19,13 +19,19 @@ export default function LoginPage() {
   const [redirecting, setRedirecting] = useState(false)
   const { signIn, signInWithOAuth, user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const hasRedirected = useRef(false)
 
   // Redirect if already logged in
-  if (!authLoading && user) {
-    if (!redirecting) {
+  useEffect(() => {
+    if (!authLoading && user && !hasRedirected.current) {
+      hasRedirected.current = true
       setRedirecting(true)
       router.push('/dashboard')
     }
+  }, [user, authLoading, router])
+
+  // Show redirecting state
+  if (!authLoading && user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">

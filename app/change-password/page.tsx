@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,11 +25,23 @@ export default function ChangePasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const hasRedirected = useRef(false)
 
   // Redirect if not logged in
+  useEffect(() => {
+    if (!authLoading && !user && !hasRedirected.current) {
+      hasRedirected.current = true
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
+
+  // Show loading if not authenticated
   if (!authLoading && !user) {
-    router.push('/login')
-    return null
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
