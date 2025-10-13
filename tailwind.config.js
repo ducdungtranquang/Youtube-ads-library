@@ -29,6 +29,7 @@ module.exports = {
         'mobile': {'max': '991px'},
         'tablet': '992px',
         'desktop': '1200px',
+        'xl': '1024px', // Override default xl breakpoint to 1024px
       },
     },
   },

@@ -24,17 +24,23 @@ export default function HomePage() {
               Analyze competitor ads, find profitable offers, and research successful campaigns. The ultimate tool for
               marketers and affiliate marketers.
             </p>
-            <div className="flex flex-col gap-4 tablet:flex-row tablet:justify-center mobile:flex-col">
+            <div className="flex flex-col gap-4 xl:flex-row xl:justify-center">
+              <Link href="/quicksearch">
+                <Button size="lg" className="w-full xl:w-auto">
+                  <Search className="mr-2 h-5 w-5" />
+                  Quick Search
+                </Button>
+              </Link>
               <Link href="/mkt">
-                <Button size="lg" className="w-full tablet:w-auto">
+                <Button size="lg" variant="outline" className="w-full xl:w-auto bg-transparent">
                   <TrendingUp className="mr-2 h-5 w-5" />
-                  Start Marketing Search
+                  Marketing Mode
                 </Button>
               </Link>
               <Link href="/aff">
-                <Button size="lg" variant="outline" className="w-full tablet:w-auto bg-transparent">
-                  <Search className="mr-2 h-5 w-5" />
-                  Explore Affiliate Offers
+                <Button size="lg" variant="outline" className="w-full xl:w-auto bg-transparent">
+                  <Video className="mr-2 h-5 w-5" />
+                  Affiliate Mode
                 </Button>
               </Link>
             </div>
@@ -44,13 +50,52 @@ export default function HomePage() {
         {/* Features Section */}
         <section className="container py-20">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-foreground">Two Powerful Modes</h2>
+            <h2 className="mb-4 text-3xl font-bold text-foreground">Three Powerful Modes</h2>
             <p className="text-lg text-muted-foreground">
-              Built for marketers and affiliate marketers with specialized tools for each
+              Built for marketers and affiliate marketers with quick search and specialized tools
             </p>
           </div>
 
-          <div className="grid gap-8 tablet:grid-cols-2 mobile:grid-cols-1">
+          <div className="grid gap-8 tablet:grid-cols-2 desktop:grid-cols-3 mobile:grid-cols-1">
+            <Card className="border-2 hover:border-accent/50 transition-colors">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
+                  <Search className="h-6 w-6 text-accent-foreground" />
+                </div>
+                <CardTitle className="text-2xl">Quick Search</CardTitle>
+                <CardDescription className="text-base">
+                  Fast search across all ads and offers with featured content
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Search className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">Universal Search</p>
+                    <p className="text-sm text-muted-foreground">Search both marketing ads and affiliate offers instantly</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Video className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">Featured Content</p>
+                    <p className="text-sm text-muted-foreground">Discover trending ads and top-performing offers</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-foreground">Quick Insights</p>
+                    <p className="text-sm text-muted-foreground">Get instant stats and platform insights</p>
+                  </div>
+                </div>
+                <Link href="/quicksearch" className="block pt-4">
+                  <Button className="w-full" variant="outline">
+                    Try Quick Search
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
             <Card className="border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
