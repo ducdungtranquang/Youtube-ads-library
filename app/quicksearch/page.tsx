@@ -6,17 +6,56 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Search, Video, TrendingUp, Play, ExternalLink, Star, Eye, Clock } from "lucide-react"
+import { useVidTaoSearch } from "@/hooks/use-vidtao-search"
+import { Search, Video, TrendingUp, Play, ExternalLink, Star, Eye, Clock, Loader2, AlertTriangle } from "lucide-react"
+import { toast } from "sonner"
 import Image from "next/image"
 
 export default function QuickSearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchType, setSearchType] = useState<"marketing" | "affiliate">("marketing")
+  const [searchResults, setSearchResults] = useState<any>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  
+  const { searchAds, searchOffers, loading, error } = useVidTaoSearch()
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement search functionality
-    console.log("Searching for:", searchQuery, "Type:", searchType)
+    
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a search query")
+      return
+    }
+
+    setIsSearching(true)
+    setSearchResults(null)
+
+    try {
+      const searchParams = {
+        query: searchQuery.trim(),
+        page: 1,
+        limit: 20
+      }
+
+      let result
+      if (searchType === "marketing") {
+        result = await searchAds(searchParams)
+      } else {
+        result = await searchOffers(searchParams)
+      }
+
+      if (result.success) {
+        setSearchResults(result.data)
+        toast.success(`Found ${result.data?.total || 0} results`)
+      } else {
+        toast.error(result.error || "Search failed")
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred")
+      console.error("Search error:", err)
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   // Sample featured content
@@ -145,9 +184,18 @@ export default function QuickSearchPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1"
               />
-              <Button type="submit" disabled={!searchQuery.trim()} className="mobile:w-full tablet:w-auto">
-                <Search className="h-4 w-4 mr-2" />
-                Search
+              <Button type="submit" disabled={!searchQuery.trim() || isSearching} className="mobile:w-full tablet:w-auto">
+                {isSearching ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Search
+                  </>
+                )}
               </Button>
             </form>
 
@@ -168,31 +216,144 @@ export default function QuickSearchPage() {
           </CardContent>
         </Card>
 
-        {/* Promotional Banners */}
-        <div className="mb-8 grid gap-6 mobile:grid-cols-1 tablet:grid-cols-2">
-          {banners.map((banner, index) => (
-            <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="relative mobile:h-40 tablet:h-48">
-                <Image
-                  src={banner.image}
-                  alt={banner.title}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 flex items-end">
-                  <div className="p-4 tablet:p-6 text-white">
-                    <h3 className="mobile:text-lg tablet:text-xl font-bold mb-2">{banner.title}</h3>
-                    <p className="text-white/90 mb-4 mobile:text-sm tablet:text-base">{banner.description}</p>
-                    <Button variant="secondary" size="sm" className="mobile:text-xs tablet:text-sm">
-                      {banner.cta}
-                      <ExternalLink className="h-4 w-4 ml-2" />
+        {/* Search Results */}
+        {searchResults && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Search Results</span>
+                <Badge variant="secondary">
+                  {searchResults.pagination?.total || 0} results found
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                Results for "{searchQuery}" in {searchType === "marketing" ? "Marketing Ads" : "Affiliate Offers"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {searchType === "marketing" ? (
+                <div className="grid gap-4 mobile:grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3">
+                  {searchResults.ads?.map((ad: any, index: number) => (
+                    <Card key={index} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="relative w-full h-32 bg-accent rounded-lg overflow-hidden">
+                            {ad.thumbnail ? (
+                              <Image
+                                src={ad.thumbnail}
+                                alt={ad.title}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-full">
+                                <Video className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <Play className="h-6 w-6 text-white" />
+                            </div>
+                            {ad.duration && (
+                              <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1 rounded">
+                                {ad.duration}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-foreground line-clamp-2">{ad.title}</h3>
+                            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                              {ad.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {ad.category}
+                                </Badge>
+                              )}
+                              {ad.views && (
+                                <span className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  {ad.views}
+                                </span>
+                              )}
+                              {ad.ctr && (
+                                <span className="flex items-center gap-1">
+                                  <TrendingUp className="h-3 w-3" />
+                                  {ad.ctr} CTR
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {searchResults.offers?.map((offer: any, index: number) => (
+                    <Card key={index} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-medium text-foreground">{offer.name}</h3>
+                            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                              {offer.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {offer.category}
+                                </Badge>
+                              )}
+                              {offer.network && <span>{offer.network}</span>}
+                              {offer.conversion && (
+                                <span className="flex items-center gap-1">
+                                  <Star className="h-3 w-3" />
+                                  {offer.conversion}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-primary">
+                              {offer.payout || offer.commission || 'N/A'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Payout</div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {searchResults.pagination && searchResults.pagination.totalPages > 1 && (
+                <div className="mt-6 flex justify-center">
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" disabled>
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Page {searchResults.pagination.page} of {searchResults.pagination.totalPages}
+                    </span>
+                    <Button variant="outline" size="sm" disabled>
+                      Next
                     </Button>
                   </div>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <Card className="mb-8 border-destructive">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="font-medium">Search Error</span>
               </div>
-            </Card>
-          ))}
-        </div>
+              <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Featured Content */}
         <div className="grid gap-8 mobile:grid-cols-1 desktop:grid-cols-2">

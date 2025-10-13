@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { CacheStatusCard } from "@/components/cache-status-card"
 import { Video, DollarSign, Eye, Heart, Globe, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -310,6 +311,9 @@ export default function DashboardPage() {
           </TabsContent>
 
           <TabsContent value="affiliate" className="space-y-6">
+            {/* Cache Status Card */}
+            <CacheStatusCard />
+
             {/* Top Offers */}
             <Card>
               <CardHeader>
