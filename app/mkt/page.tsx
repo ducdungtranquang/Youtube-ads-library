@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, memo, useEffect } from "react";
-import type { MKTSearchFilters } from "@/types/mkt-search";
 import { Header } from "@/components/header";
-import { SearchFilters } from "@/components/search-filters";
 import { VideoCard } from "@/components/video-card";
 import { BrandCard } from "@/components/brand-card";
 import { CompanyCard } from "@/components/company-card";
@@ -27,12 +25,38 @@ import { Search, Calendar, Globe, Filter, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useMKTSearch } from "@/hooks/use-mkt-search";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
-import type { DateRange } from "react-day-picker";
-// Import countries data
-import countriesList from "@/data/countries.json";
+// Import optimized async select components
+import { SimpleAsyncCountrySelect, SimpleAsyncLanguageSelect } from "@/components/simple-async-select";
 
-// Memoized Select components for better performance
-const CountrySelect = memo(
+// Pre-process static data once at module level for better performance
+const categoryOptions = [
+  { id: "all", name: "All Categories" },
+  { id: "1", name: "Automotive" },
+  { id: "2", name: "Beauty & Personal Care" },
+  { id: "3", name: "Electronics" },
+  { id: "4", name: "Fashion & Apparel" },
+  { id: "5", name: "Food & Beverage" },
+  { id: "6", name: "Health & Fitness" },
+  { id: "7", name: "Home & Garden" },
+  { id: "8", name: "Sports & Recreation" },
+  { id: "9", name: "Technology" },
+  { id: "10", name: "Travel & Tourism" },
+];
+
+const sortOptions = [
+  { value: "date", label: "Date" },
+  { value: "totalSpend", label: "Total Spend" },
+  { value: "views", label: "Views" },
+  { value: "relevance", label: "Relevance" },
+];
+
+const showVideosOptions = [
+  { value: "unlisted", label: "Unlisted Only" },
+  { value: "all", label: "All Videos" },
+  { value: "public", label: "Public Only" },
+];
+
+const CategorySelect = memo(
   ({
     value,
     onValueChange,
@@ -42,113 +66,17 @@ const CountrySelect = memo(
   }) => (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger>
-        <Globe className="w-4 h-4 mr-2" />
-        <SelectValue placeholder="All Countries" />
+        <SelectValue placeholder="All Categories" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="0">All Countries</SelectItem>
-        {countriesList.map((country) => (
-          <SelectItem
-            key={country.countryId}
-            value={country.countryId.toString()}
-          >
-            {country.name}
+        {categoryOptions.map((category) => (
+          <SelectItem key={category.id} value={category.id}>
+            {category.name}
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
   )
-);
-CountrySelect.displayName = "CountrySelect";
-
-const LanguageSelect = memo(
-  ({
-    value,
-    onValueChange,
-  }: {
-    value: string;
-    onValueChange: (value: string) => void;
-  }) => {
-    const languages = useMemo(
-      () => [
-        { code: "all", name: "All Languages" },
-        { code: "en", name: "English" },
-        { code: "es", name: "Spanish" },
-        { code: "fr", name: "French" },
-        { code: "de", name: "German" },
-        { code: "it", name: "Italian" },
-        { code: "pt", name: "Portuguese" },
-        { code: "ru", name: "Russian" },
-        { code: "ja", name: "Japanese" },
-        { code: "ko", name: "Korean" },
-        { code: "zh", name: "Chinese" },
-        { code: "ar", name: "Arabic" },
-        { code: "hi", name: "Hindi" },
-        { code: "th", name: "Thai" },
-        { code: "vi", name: "Vietnamese" },
-        { code: "id", name: "Indonesian" },
-      ],
-      []
-    );
-
-    return (
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="All Languages" />
-        </SelectTrigger>
-        <SelectContent>
-          {languages.map((lang) => (
-            <SelectItem key={lang.code} value={lang.code}>
-              {lang.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    );
-  }
-);
-LanguageSelect.displayName = "LanguageSelect";
-
-const CategorySelect = memo(
-  ({
-    value,
-    onValueChange,
-  }: {
-    value: string;
-    onValueChange: (value: string) => void;
-  }) => {
-    const categories = useMemo(
-      () => [
-        { id: "all", name: "All Categories" },
-        { id: "1", name: "Automotive" },
-        { id: "2", name: "Beauty & Personal Care" },
-        { id: "3", name: "Electronics" },
-        { id: "4", name: "Fashion & Apparel" },
-        { id: "5", name: "Food & Beverage" },
-        { id: "6", name: "Health & Fitness" },
-        { id: "7", name: "Home & Garden" },
-        { id: "8", name: "Sports & Recreation" },
-        { id: "9", name: "Technology" },
-        { id: "10", name: "Travel & Tourism" },
-      ],
-      []
-    );
-
-    return (
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="All Categories" />
-        </SelectTrigger>
-        <SelectContent>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>
-              {category.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    );
-  }
 );
 CategorySelect.displayName = "CategorySelect";
 
@@ -165,10 +93,11 @@ const SortSelect = memo(
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="date">Date</SelectItem>
-        <SelectItem value="totalSpend">Total Spend</SelectItem>
-        <SelectItem value="views">Views</SelectItem>
-        <SelectItem value="relevance">Relevance</SelectItem>
+        {sortOptions.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   )
@@ -188,9 +117,11 @@ const ShowVideosSelect = memo(
         <SelectValue placeholder="Show videos" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="unlisted">Unlisted Only</SelectItem>
-        <SelectItem value="all">All Videos</SelectItem>
-        <SelectItem value="public">Public Only</SelectItem>
+        {showVideosOptions.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   )
@@ -198,17 +129,14 @@ const ShowVideosSelect = memo(
 ShowVideosSelect.displayName = "ShowVideosSelect";
 
 export default function MKTPage() {
-  // Use refs for form values to avoid unnecessary re-renders
   const searchQueryRef = useRef<HTMLInputElement>(null);
-  const selectedCountryRef = useRef("0");
-  const selectedLanguageRef = useRef("all");
-  const dateFromRef = useRef("");
-  const dateToRef = useRef("");
-  const showVideosRef = useRef("unlisted");
-  const selectedCategoryRef = useRef("all");
-  const sortByRef = useRef<"date" | "totalSpend" | "views" | "relevance">(
-    "date"
-  );
+  const [selectedCountry, setSelectedCountry] = useState("0");
+  const [selectedLanguage, setSelectedLanguage] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [showVideos, setShowVideos] = useState("unlisted");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState<"date" | "totalSpend" | "views" | "relevance">("date");
 
   // Tab management state
   const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">("ads");
@@ -253,23 +181,8 @@ export default function MKTPage() {
     }
   }, [activeTab, status, data, error]);
 
-  // Categories data
-  const categories = [
-    { id: "all", name: "All Categories" },
-    { id: "1", name: "Health & Fitness" },
-    { id: "2", name: "Finance & Investment" },
-    { id: "3", name: "Beauty & Skincare" },
-    { id: "4", name: "Technology & Software" },
-    { id: "5", name: "Food & Nutrition" },
-    { id: "6", name: "Education & Learning" },
-    { id: "7", name: "Entertainment" },
-    { id: "8", name: "Fashion & Lifestyle" },
-    { id: "9", name: "Home & Garden" },
-    { id: "10", name: "Travel & Tourism" },
-  ];
-
-  // Mock data for brands and companies
-  const mockBrands = [
+  // Memoized mock data for better performance
+  const mockBrands = useMemo(() => [
     {
       name: "Nike",
       description: "Global sports apparel and equipment brand",
@@ -306,9 +219,9 @@ export default function MKTPage() {
       activeMonths: 30,
       topCategories: ["E-commerce", "Technology", "Services"],
     },
-  ];
+  ], []);
 
-  const mockCompanies = [
+  const mockCompanies = useMemo(() => [
     {
       name: "Unilever",
       description:
@@ -337,7 +250,7 @@ export default function MKTPage() {
       estimatedSpend: "$9.2M",
       topBrands: ["Maybelline", "Garnier", "Lancôme"],
     },
-  ];
+  ], []);
 
   // Tab change handler
   const handleTabChange = useCallback((value: string) => {
@@ -374,21 +287,21 @@ export default function MKTPage() {
           page: 1, // Always use page 1 since API returns 1000 results
           limit: 1000, // Get more results for FE pagination
           filters: {
-            countryId: parseInt(selectedCountryRef.current),
+            countryId: parseInt(selectedCountry),
             language:
-              selectedLanguageRef.current &&
-              selectedLanguageRef.current !== "all"
-                ? selectedLanguageRef.current
+              selectedLanguage &&
+              selectedLanguage !== "all"
+                ? selectedLanguage
                 : "",
             categoryIds:
-              selectedCategoryRef.current &&
-              selectedCategoryRef.current !== "all"
-                ? [parseInt(selectedCategoryRef.current)]
+              selectedCategory &&
+              selectedCategory !== "all"
+                ? [parseInt(selectedCategory)]
                 : [],
-            dateFrom: dateFromRef.current || "",
-            dateTo: dateToRef.current || "",
-            showVideos: showVideosRef.current as "unlisted" | "all" | "public",
-            sortProp: sortByRef.current,
+            dateFrom: dateFrom || "",
+            dateTo: dateTo || "",
+            showVideos: showVideos as "unlisted" | "all" | "public",
+            sortProp: sortBy,
             orderAsc: false,
           },
         });
@@ -421,7 +334,7 @@ export default function MKTPage() {
         setAdsSearchResults(null);
       }
     },
-    [searchMKTAds]
+    [searchMKTAds, selectedCountry, selectedLanguage, selectedCategory, dateFrom, dateTo, showVideos, sortBy]
   );
 
   // Brands search function (placeholder - implement with actual API)
@@ -587,114 +500,82 @@ export default function MKTPage() {
           </Button>
         </form>
 
-        <div className="grid gap-6 tablet:grid-cols-[320px_1fr] mobile:grid-cols-1">
-          <aside className="space-y-6 mobile:order-2">
-            {/* Advanced Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Filter className="h-4 w-4" />
-                  Advanced Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Country Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Country
-                  </label>
-                  <CountrySelect
-                    value={selectedCountryRef.current}
-                    onValueChange={(value) =>
-                      (selectedCountryRef.current = value)
-                    }
+        {/* Advanced Filters - Horizontal on Desktop, Vertical on Tablet */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Filter className="h-4 w-4" />
+              Advanced Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 desktop:grid-cols-2 tablet:grid-cols-2 mobile:grid-cols-1">
+              {/* Row 1 - Country & Language */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Country
+                </label>
+                <SimpleAsyncCountrySelect
+                  value={selectedCountry}
+                  onValueChange={setSelectedCountry}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Language</label>
+                <SimpleAsyncLanguageSelect
+                  value={selectedLanguage}
+                  onValueChange={setSelectedLanguage}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Row 2 - Category & Video Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <CategorySelect
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Video Type</label>
+                <ShowVideosSelect
+                  value={showVideos}
+                  onValueChange={setShowVideos}
+                />
+              </div>
+
+              {/* Row 3 - Date Range (spans 2 columns) */}
+              <div className="space-y-2 desktop:col-span-2 tablet:col-span-2 mobile:col-span-1">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Date Range
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="date"
+                    placeholder="From date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                  <Input
+                    type="date"
+                    placeholder="To date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
                   />
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                {/* Language Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Language</label>
-                  <LanguageSelect
-                    value={selectedLanguageRef.current}
-                    onValueChange={(value) =>
-                      (selectedLanguageRef.current = value)
-                    }
-                  />
-                </div>
-
-                {/* Category Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <CategorySelect
-                    value={selectedCategoryRef.current}
-                    onValueChange={(value) =>
-                      (selectedCategoryRef.current = value)
-                    }
-                  />
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Date Range */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Date Range
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="date"
-                      placeholder="From date"
-                      onChange={(e) => (dateFromRef.current = e.target.value)}
-                    />
-                    <Input
-                      type="date"
-                      placeholder="To date"
-                      onChange={(e) => (dateToRef.current = e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Show Videos Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Video Type</label>
-                  <ShowVideosSelect
-                    value={showVideosRef.current}
-                    onValueChange={(value) => (showVideosRef.current = value)}
-                  />
-                </div>
-
-                {/* Sort Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Sort By</label>
-                  <SortSelect
-                    value={sortByRef.current}
-                    onValueChange={(value) =>
-                      (sortByRef.current = value as
-                        | "date"
-                        | "totalSpend"
-                        | "views"
-                        | "relevance")
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </aside>
-
-          <div className="mobile:order-1">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <div className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
                 <TabsTrigger value="ads" className="mobile:text-xs">
                   Ads Search
@@ -736,7 +617,7 @@ export default function MKTPage() {
                           {adsPagination.currentItems.map(
                             (video: any, index: number) => (
                               <VideoCard
-                                key={video.ytVideoId || index}
+                                key={video.ytVideoId || `video-${index}`}
                                 {...video}
                                 onClick={() => setSelectedVideo(video)}
                                 onCompanyClick={() => {
@@ -880,23 +761,20 @@ export default function MKTPage() {
                   </>
                 )}
               </TabsContent>
-            </Tabs>
+          </Tabs>
 
-
-
-            {/* Error State */}
-            {error && (
-              <Card className="p-8 text-center border-destructive">
-                <h3 className="text-lg font-semibold mb-2 text-destructive">
-                  Search Error
-                </h3>
-                <p className="text-muted-foreground mb-4">{error}</p>
-                <Button onClick={() => handleSearch(null)} variant="outline">
-                  Try Again
-                </Button>
-              </Card>
-            )}
-          </div>
+          {/* Error State */}
+          {error && (
+            <Card className="p-8 text-center border-destructive">
+              <h3 className="text-lg font-semibold mb-2 text-destructive">
+                Search Error
+              </h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => handleSearch(null)} variant="outline">
+                Try Again
+              </Button>
+            </Card>
+          )}
         </div>
       </main>
 
