@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { VideoCard } from "@/components/video-card"
-import { useVidTaoSearch } from "@/hooks/use-vidtao-search"
-import { Search, Video, TrendingUp, Play, ExternalLink, Eye, Clock, Loader2, AlertTriangle, Filter, RefreshCw, Calendar, Globe } from "lucide-react"
+import { FrontendPagination } from "@/components/frontend-pagination"
+import { SearchLoadingState } from "@/components/search-loading-state"
+import { useQuickSearchAds } from "@/hooks/use-quicksearch-ads"
+import { useFrontendPagination } from "@/hooks/use-frontend-pagination"
+import { Search, TrendingUp, Eye, Loader2, AlertTriangle, Globe } from "lucide-react"
 import { toast } from "sonner"
-import Image from "next/image"
 
 function QuickSearchPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -18,9 +20,11 @@ function QuickSearchPage() {
   const [hasInputValue, setHasInputValue] = useState(false)
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isSearching, setIsSearching] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
   
-  const { searchAds, loading, error } = useVidTaoSearch()
+  // Frontend pagination for search results
+  const pagination = useFrontendPagination(searchResults || [], { itemsPerPage: 20 })
+  
+  const { searchAds, loading, error, data, status } = useQuickSearchAds()
 
   // Memoize quick tags to prevent re-creation (marketing only)
   const marketingTags = useMemo(() => 
@@ -43,65 +47,58 @@ function QuickSearchPage() {
     setIsSearching(true)
     if (page === 1) {
       setSearchResults(null)
-      setCurrentPage(1)
+      // setCurrentPage(1)
     }
 
     try {
       const result = await searchAds({
         query: currentQuery,
-        page: page,
-        limit: 20
+        page: 1, // Always use page 1 since API returns 1000 results
+        limit: 1000
       })
 
-      if (result) {
+      if (result?.pending) {
+        console.log('Search is pending, polling will start automatically...')
+        // Don't show any toast for pending - polling will handle it
+        setSearchResults(null) // Clear previous results
+      } else if (result?.success && result?.data) {
         console.log('Search API result:', result)
         
-        if (page === 1) {
-          setSearchResults(result.data?.ads || (result as any)?.data?.videos)
-        } else {
-          // Handle different data structures for pagination
-          setSearchResults((prev: any) => {
-            const prevData = prev?.data?.ads || (prev as any)?.data?.videos || []
-            const newData = result.data?.ads || (result as any)?.data?.videos || []
-            
-            return {
-              ...result.data?.ads,
-              data: [...prevData, ...newData]
-            }
-          })
-        }
-        setCurrentPage(page)
+        // Handle cached result
+        const videos = result.data?.data || result.data?.ads || result.data?.videos || []
+        setSearchResults(videos)
         
-        // Get count from different possible structures
-        const resultCount = result.data?.ads?.length || (result as any)?.data?.videos?.length || (result as any)?.total || 0
-        toast.success(`Found ${resultCount} results`)
+        // Only show success toast for completed results
+        const resultCount = Array.isArray(videos) ? videos.length : 0
+        if (resultCount > 0) {
+          toast.success(`Found ${resultCount} results`)
+        } else {
+          toast.info('No results found')
+        }
       } else {
         console.log('No result returned from search API')
         toast.info('No results found')
+        setSearchResults(null)
       }
     } catch (error) {
       console.error("Search error:", error)
       toast.error("Search failed. Please try again.")
+      setSearchResults(null)
     } finally {
       setIsSearching(false)
     }
   }, [searchAds])
 
-  const handlePageChange = useCallback(async (newPage: number) => {
-    if (newPage < 1 || (searchResults?.pagination?.totalPages && newPage > searchResults.pagination.totalPages)) {
-      return
-    }
-    
-    setIsSearching(true)
-    await handleSearch(null as any, newPage)
-    setIsSearching(false)
+  // Handle page changes for frontend pagination
+  const handlePageChange = useCallback((newPage: number) => {
+    pagination.goToPage(newPage)
     
     // Scroll to top of results
     const resultsElement = document.querySelector('[data-search-results]')
     if (resultsElement) {
       resultsElement.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [handleSearch])
+  }, [pagination])
 
   // Removed loadFeaturedContent - using static content for better performance
 
@@ -112,24 +109,44 @@ function QuickSearchPage() {
     }
   }, [searchQuery])
 
+  // Handle polling results
+  useEffect(() => {
+    if (status === 'completed' && data) {
+      console.log('Polling completed, updating results:', data)
+      
+      // Handle the completed polling result
+      const videos = data?.data || data?.ads || data?.videos || []
+      setSearchResults(videos)
+      setIsSearching(false)
+      
+      // Show success toast for completed polling
+      const resultCount = Array.isArray(videos) ? videos.length : 0
+      if (resultCount > 0) {
+        toast.success(`Found ${resultCount} results`)
+      } else {
+        toast.info('No results found')
+      }
+    } else if (status === 'error') {
+      console.log('Polling failed with error:', error)
+      setSearchResults(null)
+      setIsSearching(false)
+      toast.error(error || 'Search failed')
+    }
+  }, [status, data, error])
+
 
   
   const renderedSearchResults = useMemo(() => {
-    if (!searchResults) return null
+    if (!searchResults || pagination.totalItems === 0) return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No results found</p>
+      </div>
+    )
 
-    // Handle different API response structures
-    const videos = searchResults.data || searchResults.ads || searchResults.videos || searchResults || []
-    
-    if (!Array.isArray(videos) || videos.length === 0) {
-      return (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No results found</p>
-        </div>
-      )
-    }
-      return (
+    return (
+      <div className="space-y-6">
         <div className="grid gap-6 mobile:grid-cols-1 tablet:grid-cols-1 desktop:grid-cols-2">
-          {videos.map((video: any, index: number) => (
+          {pagination.currentItems.map((video: any, index: number) => (
             <VideoCard
               key={video.ytVideoId || index}
               title={video.title || 'Untitled Video'}
@@ -151,8 +168,23 @@ function QuickSearchPage() {
             />
           ))}
         </div>
-      )
-  }, [searchResults])
+        
+        {/* Frontend Pagination */}
+        <FrontendPagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={20}
+          hasNextPage={pagination.hasNextPage}
+          hasPrevPage={pagination.hasPrevPage}
+          onNextPage={pagination.nextPage}
+          onPrevPage={pagination.prevPage}
+          onGoToPage={handlePageChange}
+          className="mt-8"
+        />
+      </div>
+    )
+  }, [searchResults, pagination, handlePageChange])
 
   return (
     <div className="min-h-screen bg-background">
@@ -241,6 +273,14 @@ function QuickSearchPage() {
           </CardContent>
         </Card>
 
+        {/* Loading State */}
+        <SearchLoadingState 
+          isSearching={isSearching}
+          isPending={status === 'pending'}
+          searchType="ads"
+          className="mb-8"
+        />
+
         {/* Search Results */}
         {searchResults && (
           <Card className="mb-8" data-search-results>
@@ -248,13 +288,13 @@ function QuickSearchPage() {
               <CardTitle className="flex items-center justify-between">
                 <span>Search Results</span>
                 <Badge variant="secondary">
-                  {searchResults.pagination?.total || searchResults.total || (Array.isArray(searchResults.data) ? searchResults.data.length : 0) || 0} results found
+                  {pagination.totalItems} results found
                 </Badge>
               </CardTitle>
               <CardDescription>
                 Results for "{searchQuery}" in Marketing Ads
-                {searchResults.pagination?.totalPages > 1 && (
-                  <span> - Page {currentPage} of {searchResults.pagination.totalPages}</span>
+                {pagination.totalPages > 1 && (
+                  <span> - Page {pagination.currentPage} of {pagination.totalPages}</span>
                 )}
               </CardDescription>
             </CardHeader>

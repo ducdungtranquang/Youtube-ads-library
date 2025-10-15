@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useMKTSearchWithCache } from './use-cache-polling'
 import { 
   MKTSearchParams, 
   MKTSearchResponse, 
@@ -6,19 +7,26 @@ import {
   TransformedVideoResult 
 } from '@/types/mkt-search'
 
-export function useMKTSearch() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+interface MKTSearchResult {
+  success: boolean
+  data?: MKTSearchResponse
+  error?: string
+  pending?: boolean
+  cacheId?: string
+}
 
-  const searchMKTAds = useCallback(async (params: MKTSearchParams): Promise<MKTSearchResponse | null> => {
-    setLoading(true)
-    setError(null)
+export function useMKTSearch() {
+  const { searchWithCache, loading, data, error, status } = useMKTSearchWithCache()
+  const [searchError, setSearchError] = useState<string | null>(null)
+
+  const searchMKTAds = useCallback(async (params: MKTSearchParams): Promise<MKTSearchResult> => {
+    setSearchError(null)
 
     try {
       const payload = {
         searchTerm: params.searchTerm,
         page: params.page || 1,
-        limit: params.limit || 20,
+        limit: params.limit || 1000, // Use 1000 for better FE pagination
         countryId: params.filters?.countryId || 0,
         language: params.filters?.language || '',
         categoryIds: params.filters?.categoryIds || [],
@@ -31,44 +39,48 @@ export function useMKTSearch() {
 
       console.log('MKT Search Hook: Sending request with payload:', payload)
 
-      const response = await fetch('/api/search/mkt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      const result = await searchWithCache(payload)
+      
+      if (result.pending) {
+        // Don't show "Found" toast when pending - just return pending status
+        console.log('MKT Search Hook: Request is pending, polling will start automatically')
+        return { 
+          success: true, 
+          pending: true, 
+          cacheId: result.cacheId 
+        }
+      } else {
+        // Return cached result
+        console.log('MKT Search Hook: Received cached result:', {
+          success: result?.data?.success,
+          total_results: result?.data?.total_results,
+          total_available: result?.data?.total_available,
+          results_count: result?.data?.data?.results?.length || 0
+        })
+        
+        return { 
+          success: true, 
+          data: result.data 
+        }
       }
 
-      const data: MKTSearchResponse = await response.json()
-      
-      console.log('MKT Search Hook: Received response:', {
-        success: data.success,
-        total_results: data.total_results,
-        total_available: data.total_available,
-        results_count: data.data?.results?.length || 0
-      })
-
-      return data
-
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
+      const errorMessage = err instanceof Error ? err.message : 'Search failed'
       console.error('MKT Search Hook: Error:', errorMessage)
-      setError(errorMessage)
-      return null
-    } finally {
-      setLoading(false)
+      setSearchError(errorMessage)
+      return {
+        success: false,
+        error: errorMessage
+      }
     }
-  }, [])
+  }, [searchWithCache])
 
   return {
     searchMKTAds,
     loading,
-    error,
-    clearError: () => setError(null)
+    error: searchError || error,
+    data, // Cache polling data
+    status, // Cache polling status
+    clearError: () => setSearchError(null)
   }
 }

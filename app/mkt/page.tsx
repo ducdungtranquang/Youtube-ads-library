@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo, memo } from "react";
+import { useState, useCallback, useRef, useMemo, memo, useEffect } from "react";
 import type { MKTSearchFilters } from "@/types/mkt-search";
 import { Header } from "@/components/header";
 import { SearchFilters } from "@/components/search-filters";
 import { VideoCard } from "@/components/video-card";
 import { BrandCard } from "@/components/brand-card";
 import { CompanyCard } from "@/components/company-card";
+import { FrontendPagination } from "@/components/frontend-pagination";
+import { SearchLoadingState } from "@/components/search-loading-state";
 import { VideoDetailModal } from "@/components/video-detail-modal";
 import { BrandDetailModal } from "@/components/brand-detail-modal";
 import { CompanyDetailModal } from "@/components/company-detail-modal";
@@ -24,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Calendar, Globe, Filter, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useMKTSearch } from "@/hooks/use-mkt-search";
+import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
 import type { DateRange } from "react-day-picker";
 // Import countries data
 import countriesList from "@/data/countries.json";
@@ -215,17 +218,40 @@ export default function MKTPage() {
   const [brandsSearchResults, setBrandsSearchResults] = useState<any>(null);
   const [companiesSearchResults, setCompaniesSearchResults] = useState<any>(null);
   
-  // Current page for each tab
-  const [adsCurrentPage, setAdsCurrentPage] = useState(1);
-  const [brandsCurrentPage, setBrandsCurrentPage] = useState(1);
-  const [companiesCurrentPage, setCompaniesCurrentPage] = useState(1);
+  // Frontend pagination for each tab
+  const adsPagination = useFrontendPagination(adsSearchResults?.data?.results || [], { itemsPerPage: 20 });
+  const brandsPagination = useFrontendPagination(brandsSearchResults?.data?.results || [], { itemsPerPage: 20 });
+  const companiesPagination = useFrontendPagination(companiesSearchResults?.data?.results || [], { itemsPerPage: 20 });
   
   // Modal states
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
 
-  const { searchMKTAds, loading, error } = useMKTSearch();
+  const { searchMKTAds, loading, error, data, status } = useMKTSearch();
+
+  // Handle polling results for ads
+  useEffect(() => {
+    if (activeTab === 'ads' && status === 'completed' && data) {
+      console.log('MKT Ads Polling completed, updating results:', data)
+      
+      setAdsSearchResults(data);
+      
+      // Show success toast for completed polling
+      const resultCount = data?.data?.results?.length || 0;
+      if (resultCount > 0) {
+        toast.success(
+          `Found ${resultCount} ads from ${data.total_available} available`
+        );
+      } else {
+        toast.info('No results found');
+      }
+    } else if (activeTab === 'ads' && status === 'error') {
+      console.log('MKT Ads Polling failed with error:', error)
+      setAdsSearchResults(null);
+      toast.error(error || 'Search failed');
+    }
+  }, [activeTab, status, data, error]);
 
   // Categories data
   const categories = [
@@ -320,13 +346,10 @@ export default function MKTPage() {
     // Reset search results when switching tabs
     if (newTab === "ads") {
       setAdsSearchResults(null);
-      setAdsCurrentPage(1);
     } else if (newTab === "brands") {
       setBrandsSearchResults(null);
-      setBrandsCurrentPage(1);
     } else if (newTab === "companies") {
       setCompaniesSearchResults(null);
-      setCompaniesCurrentPage(1);
     }
   }, []);
 
@@ -343,14 +366,13 @@ export default function MKTPage() {
 
       if (page === 1) {
         setAdsSearchResults(null);
-        setAdsCurrentPage(1);
       }
 
       try {
         const result = await searchMKTAds({
           searchTerm: searchQuery,
-          page: page,
-          limit: 20,
+          page: 1, // Always use page 1 since API returns 1000 results
+          limit: 1000, // Get more results for FE pagination
           filters: {
             countryId: parseInt(selectedCountryRef.current),
             language:
@@ -371,33 +393,32 @@ export default function MKTPage() {
           },
         });
 
-        if (result && result.success) {
-          if (page === 1) {
-            setAdsSearchResults(result);
-          } else {
-            setAdsSearchResults((prev: any) => ({
-              ...result,
-              data: {
-                ...result.data,
-                results: [
-                  ...(prev?.data?.results || []),
-                  ...(result.data?.results || []),
-                ],
-              },
-            }));
-          }
-          setAdsCurrentPage(page);
+        if (result?.pending) {
+          console.log('MKT Search is pending, polling will start automatically...')
+          // Don't show any toast for pending - polling will handle it
+          setAdsSearchResults(null) // Clear previous results
+        } else if (result?.success && result?.data) {
+          console.log('MKT Search completed:', result)
+          
+          setAdsSearchResults(result.data);
 
-          const resultCount = result.data?.results?.length || 0;
-          toast.success(
-            `Found ${resultCount} ads from ${result.total_available} available`
-          );
+          // Only show success toast for completed results
+          const resultCount = result.data?.data?.results?.length || 0;
+          if (resultCount > 0) {
+            toast.success(
+              `Found ${resultCount} ads from ${result.data.total_available} available`
+            );
+          } else {
+            toast.info("No results found");
+          }
         } else {
-          toast.error("No results found");
+          toast.info("No results found");
+          setAdsSearchResults(null);
         }
       } catch (error) {
         console.error("Ads Search error:", error);
         toast.error("Search failed. Please try again.");
+        setAdsSearchResults(null);
       }
     },
     [searchMKTAds]
@@ -416,7 +437,6 @@ export default function MKTPage() {
 
       if (page === 1) {
         setBrandsSearchResults(null);
-        setBrandsCurrentPage(1);
       }
 
       try {
@@ -437,7 +457,6 @@ export default function MKTPage() {
 
         if (result.success) {
           setBrandsSearchResults(result);
-          setBrandsCurrentPage(1);
           toast.success(`Found ${mockResults.length} brands`);
         } else {
           toast.error("No brands found");
@@ -463,7 +482,6 @@ export default function MKTPage() {
 
       if (page === 1) {
         setCompaniesSearchResults(null);
-        setCompaniesCurrentPage(1);
       }
 
       try {
@@ -484,7 +502,6 @@ export default function MKTPage() {
 
         if (result.success) {
           setCompaniesSearchResults(result);
-          setCompaniesCurrentPage(1);
           toast.success(`Found ${mockResults.length} companies`);
         } else {
           toast.error("No companies found");
@@ -508,18 +525,26 @@ export default function MKTPage() {
     }
   }, [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]);
 
-  // Load more handler for each tab
-  const loadMore = useCallback(() => {
-    if (loading) return;
-    
-    if (activeTab === "ads" && adsSearchResults?.data?.pagination?.hasNextPage) {
-      handleAdsSearch(null, adsCurrentPage + 1);
-    } else if (activeTab === "brands" && brandsSearchResults?.data?.pagination?.hasNextPage) {
-      handleBrandsSearch(null, brandsCurrentPage + 1);
-    } else if (activeTab === "companies" && companiesSearchResults?.data?.pagination?.hasNextPage) {
-      handleCompaniesSearch(null, companiesCurrentPage + 1);
+  // Handle polling results for ads
+  useEffect(() => {
+    if (activeTab === 'ads' && status === 'completed' && data) {
+      console.log('MKT Ads polling completed, updating results:', data)
+      
+      setAdsSearchResults(data)
+      
+      // Show success toast for completed polling
+      const resultCount = data?.data?.results?.length || 0
+      if (resultCount > 0) {
+        toast.success(`Found ${resultCount} ads from ${data.total_available} available`)
+      } else {
+        toast.info('No ads found')
+      }
+    } else if (activeTab === 'ads' && status === 'error') {
+      console.log('MKT Ads polling failed with error:', error)
+      setAdsSearchResults(null)
+      toast.error(error || 'Ads search failed')
     }
-  }, [loading, activeTab, adsSearchResults, brandsSearchResults, companiesSearchResults, adsCurrentPage, brandsCurrentPage, companiesCurrentPage, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]);
+  }, [activeTab, status, data, error])
 
   return (
     <div className="min-h-screen bg-background">
@@ -683,22 +708,32 @@ export default function MKTPage() {
               </TabsList>
 
               <TabsContent value="ads" className="space-y-4">
+                {/* Loading State */}
+                <SearchLoadingState 
+                  isSearching={loading}
+                  isPending={activeTab === 'ads' && status === 'pending'}
+                  searchType="ads"
+                  className="mb-6"
+                />
+
                 {/* Ads Search Results */}
                 {adsSearchResults ? (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h2 className="text-2xl font-bold">Ads Search Results</h2>
                       <p className="text-sm text-muted-foreground">
-                        Found {adsSearchResults.data?.results?.length || 0} ads (
+                        Found {adsPagination.totalItems} ads (
                         {adsSearchResults.total_available || 0} total available)
+                        {adsPagination.totalPages > 1 && (
+                          <span> - Page {adsPagination.currentPage} of {adsPagination.totalPages}</span>
+                        )}
                       </p>
                     </div>
 
-                    {adsSearchResults.data?.results &&
-                    adsSearchResults.data.results.length > 0 ? (
+                    {adsPagination.totalItems > 0 ? (
                       <>
                         <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                          {adsSearchResults.data.results.map(
+                          {adsPagination.currentItems.map(
                             (video: any, index: number) => (
                               <VideoCard
                                 key={video.ytVideoId || index}
@@ -715,26 +750,19 @@ export default function MKTPage() {
                           )}
                         </div>
 
-                        {/* Load More Button */}
-                        {adsSearchResults.data?.pagination?.hasNextPage && (
-                          <div className="text-center">
-                            <Button
-                              onClick={loadMore}
-                              disabled={loading}
-                              variant="outline"
-                              size="lg"
-                            >
-                              {loading ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Loading...
-                                </>
-                              ) : (
-                                "Load More"
-                              )}
-                            </Button>
-                          </div>
-                        )}
+                        {/* Frontend Pagination */}
+                        <FrontendPagination
+                          currentPage={adsPagination.currentPage}
+                          totalPages={adsPagination.totalPages}
+                          totalItems={adsPagination.totalItems}
+                          itemsPerPage={20}
+                          hasNextPage={adsPagination.hasNextPage}
+                          hasPrevPage={adsPagination.hasPrevPage}
+                          onNextPage={adsPagination.nextPage}
+                          onPrevPage={adsPagination.prevPage}
+                          onGoToPage={adsPagination.goToPage}
+                          className="mt-8"
+                        />
                       </>
                     ) : (
                       <Card className="p-8 text-center">
@@ -854,15 +882,7 @@ export default function MKTPage() {
               </TabsContent>
             </Tabs>
 
-            {/* Loading State */}
-            {loading && !adsSearchResults && !brandsSearchResults && !companiesSearchResults && (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                <p className="text-muted-foreground">
-                  Searching for {activeTab}...
-                </p>
-              </div>
-            )}
+
 
             {/* Error State */}
             {error && (
