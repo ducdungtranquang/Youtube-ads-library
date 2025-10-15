@@ -6,16 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { VideoCard } from "@/components/video-card"
 import { useVidTaoSearch } from "@/hooks/use-vidtao-search"
 import { Search, Video, TrendingUp, Play, ExternalLink, Eye, Clock, Loader2, AlertTriangle, Filter, RefreshCw, Calendar, Globe } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
-// Import countries as JSON for better performance
-import countriesList from '@/data/countries.json';
 
 function QuickSearchPage() {
-  // Use useRef for search input to prevent lag on typing
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [hasInputValue, setHasInputValue] = useState(false)
@@ -23,13 +20,8 @@ function QuickSearchPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   
-  // Removed all filter states for better performance
-  
   const { searchAds, loading, error } = useVidTaoSearch()
 
-  // Memoize countries list to prevent re-rendering - using JSON for better performance
-  const countries = useMemo(() => countriesList, [])
-  
   // Memoize quick tags to prevent re-creation (marketing only)
   const marketingTags = useMemo(() => 
     ["Weight Loss", "Make Money", "Crypto", "Health", "Finance", "Software", "Beauty", "Fitness"], []
@@ -38,7 +30,6 @@ function QuickSearchPage() {
   const handleSearch = useCallback(async (e: React.FormEvent | null, page: number = 1) => {
     if (e) e.preventDefault()
     
-    // Get current value from input ref
     const currentQuery = searchInputRef.current?.value?.trim() || ""
     
     if (!currentQuery) {
@@ -56,7 +47,6 @@ function QuickSearchPage() {
     }
 
     try {
-      // Simple search without filters
       const result = await searchAds({
         query: currentQuery,
         page: page,
@@ -130,9 +120,6 @@ function QuickSearchPage() {
     // Handle different API response structures
     const videos = searchResults.data || searchResults.ads || searchResults.videos || searchResults || []
     
-    console.log('Search results structure:', searchResults)
-    console.log('Videos array:', videos)
-    
     if (!Array.isArray(videos) || videos.length === 0) {
       return (
         <div className="text-center py-8">
@@ -141,83 +128,27 @@ function QuickSearchPage() {
       )
     }
       return (
-        <div className="grid gap-6 mobile:grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
+        <div className="grid gap-6 mobile:grid-cols-1 tablet:grid-cols-1 desktop:grid-cols-2">
           {videos.map((video: any, index: number) => (
-            <Card key={video.ytVideoId || index} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative w-full h-48 bg-accent rounded-lg overflow-hidden">
-                    {video.thumbnail ? (
-                      <Image
-                        src={video.thumbnail}
-                        alt={video.title || 'Video thumbnail'}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Video className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                      <Play className="h-6 w-6 text-white" />
-                    </div>
-                    {video.ytVideoId && (
-                      <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                        <ExternalLink className="h-3 w-3 inline mr-1" />
-                        YouTube
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground line-clamp-2 text-lg mb-3">
-                      {video.title || 'Untitled Video'}
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {video.totalSpend && (
-                          <Badge variant="default" className="bg-green-100 text-green-800 font-medium">
-                            ${video.totalSpend.toLocaleString()} spent
-                          </Badge>
-                        )}
-                        {video.ytVideoId && (
-                          <Badge variant="secondary" className="font-mono">
-                            {video.ytVideoId.substring(0, 11)}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {video.firstSeen && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(video.firstSeen).toLocaleDateString()}
-                            </span>
-                          )}
-                          {video.lastSeen && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {new Date(video.lastSeen).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-                        {video.ytVideoId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 px-3"
-                            onClick={() => window.open(`https://youtube.com/watch?v=${video.ytVideoId}`, '_blank')}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Watch Video
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <VideoCard
+              key={video.ytVideoId || index}
+              title={video.title || 'Untitled Video'}
+              channel={video.channel || 'Unknown Channel'}
+              views={video.views || '0'}
+              ctr={video.ctr || 'N/A'}
+              date={video.firstSeen ? new Date(video.firstSeen).toLocaleDateString() : 'Unknown'}
+              thumbnail={video.thumbnail || '/placeholder.svg'}
+              url={video.ytVideoId ? `https://youtube.com/watch?v=${video.ytVideoId}` : undefined}
+              companyName={video.companyName}
+              onClick={() => {
+                // Handle video click if needed
+                console.log('Video clicked:', video)
+              }}
+              onCompanyClick={() => {
+                // Handle company click if needed
+                console.log('Company clicked:', video.companyName)
+              }}
+            />
           ))}
         </div>
       )
@@ -228,7 +159,6 @@ function QuickSearchPage() {
       <Header />
 
       <main className="container py-8">
-        {/* Hero Banner - Increased height */}
         <div className="relative mb-12 overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-12 md:p-16 lg:p-20">
           <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-10" />
           <div className="relative z-10 mx-auto max-w-4xl text-center text-white">

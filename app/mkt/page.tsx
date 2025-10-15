@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useMemo, memo } from "react";
+import type { MKTSearchFilters } from "@/types/mkt-search";
 import { Header } from "@/components/header";
 import { SearchFilters } from "@/components/search-filters";
 import { VideoCard } from "@/components/video-card";
@@ -22,32 +23,209 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Calendar, Globe, Filter, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useVidTaoSearch } from "@/hooks/use-vidtao-search";
+import { useMKTSearch } from "@/hooks/use-mkt-search";
 import type { DateRange } from "react-day-picker";
 // Import countries data
 import countriesList from "@/data/countries.json";
 
+// Memoized Select components for better performance
+const CountrySelect = memo(
+  ({
+    value,
+    onValueChange,
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger>
+        <Globe className="w-4 h-4 mr-2" />
+        <SelectValue placeholder="All Countries" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="0">All Countries</SelectItem>
+        {countriesList.map((country) => (
+          <SelectItem
+            key={country.countryId}
+            value={country.countryId.toString()}
+          >
+            {country.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+);
+CountrySelect.displayName = "CountrySelect";
+
+const LanguageSelect = memo(
+  ({
+    value,
+    onValueChange,
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => {
+    const languages = useMemo(
+      () => [
+        { code: "all", name: "All Languages" },
+        { code: "en", name: "English" },
+        { code: "es", name: "Spanish" },
+        { code: "fr", name: "French" },
+        { code: "de", name: "German" },
+        { code: "it", name: "Italian" },
+        { code: "pt", name: "Portuguese" },
+        { code: "ru", name: "Russian" },
+        { code: "ja", name: "Japanese" },
+        { code: "ko", name: "Korean" },
+        { code: "zh", name: "Chinese" },
+        { code: "ar", name: "Arabic" },
+        { code: "hi", name: "Hindi" },
+        { code: "th", name: "Thai" },
+        { code: "vi", name: "Vietnamese" },
+        { code: "id", name: "Indonesian" },
+      ],
+      []
+    );
+
+    return (
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="All Languages" />
+        </SelectTrigger>
+        <SelectContent>
+          {languages.map((lang) => (
+            <SelectItem key={lang.code} value={lang.code}>
+              {lang.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+);
+LanguageSelect.displayName = "LanguageSelect";
+
+const CategorySelect = memo(
+  ({
+    value,
+    onValueChange,
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => {
+    const categories = useMemo(
+      () => [
+        { id: "all", name: "All Categories" },
+        { id: "1", name: "Automotive" },
+        { id: "2", name: "Beauty & Personal Care" },
+        { id: "3", name: "Electronics" },
+        { id: "4", name: "Fashion & Apparel" },
+        { id: "5", name: "Food & Beverage" },
+        { id: "6", name: "Health & Fitness" },
+        { id: "7", name: "Home & Garden" },
+        { id: "8", name: "Sports & Recreation" },
+        { id: "9", name: "Technology" },
+        { id: "10", name: "Travel & Tourism" },
+      ],
+      []
+    );
+
+    return (
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="All Categories" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((category) => (
+            <SelectItem key={category.id} value={category.id}>
+              {category.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  }
+);
+CategorySelect.displayName = "CategorySelect";
+
+const SortSelect = memo(
+  ({
+    value,
+    onValueChange,
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Sort by" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="date">Date</SelectItem>
+        <SelectItem value="totalSpend">Total Spend</SelectItem>
+        <SelectItem value="views">Views</SelectItem>
+        <SelectItem value="relevance">Relevance</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+);
+SortSelect.displayName = "SortSelect";
+
+const ShowVideosSelect = memo(
+  ({
+    value,
+    onValueChange,
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+  }) => (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="Show videos" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="unlisted">Unlisted Only</SelectItem>
+        <SelectItem value="all">All Videos</SelectItem>
+        <SelectItem value="public">Public Only</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+);
+ShowVideosSelect.displayName = "ShowVideosSelect";
+
 export default function MKTPage() {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  // Use refs for form values to avoid unnecessary re-renders
+  const searchQueryRef = useRef<HTMLInputElement>(null);
+  const selectedCountryRef = useRef("0");
+  const selectedLanguageRef = useRef("all");
+  const dateFromRef = useRef("");
+  const dateToRef = useRef("");
+  const showVideosRef = useRef("unlisted");
+  const selectedCategoryRef = useRef("all");
+  const sortByRef = useRef<"date" | "totalSpend" | "views" | "relevance">(
+    "date"
+  );
 
-  // Advanced filters
-  const [selectedCountry, setSelectedCountry] = useState("0");
-  const [selectedLanguage, setSelectedLanguage] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [showVideos, setShowVideos] = useState("unlisted");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("date");
-
+  // Tab management state
+  const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">("ads");
+  
+  // Search results for each tab
+  const [adsSearchResults, setAdsSearchResults] = useState<any>(null);
+  const [brandsSearchResults, setBrandsSearchResults] = useState<any>(null);
+  const [companiesSearchResults, setCompaniesSearchResults] = useState<any>(null);
+  
+  // Current page for each tab
+  const [adsCurrentPage, setAdsCurrentPage] = useState(1);
+  const [brandsCurrentPage, setBrandsCurrentPage] = useState(1);
+  const [companiesCurrentPage, setCompaniesCurrentPage] = useState(1);
+  
+  // Modal states
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
 
-  const { searchAds, loading, error } = useVidTaoSearch();
+  const { searchMKTAds, loading, error } = useMKTSearch();
 
   // Categories data
   const categories = [
@@ -64,176 +242,7 @@ export default function MKTPage() {
     { id: "10", name: "Travel & Tourism" },
   ];
 
-  // Languages data from countries
-  const languages = [
-    { code: "all", name: "All Languages" },
-    ...countriesList.map(country => ({
-      code: country.alpha2Code.toLowerCase(),
-      name: `${country.name} (${country.alpha2Code})`
-    }))
-  ];
-
-  // Handle search with proper VidTao payload
-  const handleSearch = useCallback(
-    async (e: React.FormEvent | null, page: number = 1) => {
-      if (e) e.preventDefault();
-
-      if (!searchQuery.trim()) {
-        toast.error("Please enter a search keyword");
-        return;
-      }
-
-      setIsSearching(true);
-      if (page === 1) {
-        setSearchResults(null);
-        setCurrentPage(1);
-      }
-
-      try {
-        const payload = {
-          affiliateCountryId: 0,
-          affiliateNetworkIds: [],
-          categoryIds:
-            selectedCategory && selectedCategory !== "all"
-              ? [parseInt(selectedCategory)]
-              : [],
-          countryId: parseInt(selectedCountry),
-          dateFrom: dateFrom || "",
-          dateTo: dateTo || "",
-          isAffiliate: false,
-          language:
-            selectedLanguage && selectedLanguage !== "all"
-              ? selectedLanguage
-              : "",
-          limit: 20,
-          offerIds: [],
-          orderAsc: false,
-          page: page,
-          searchTerm: searchQuery.trim(),
-          showVideos: showVideos as "unlisted" | "all" | "public",
-          softwareIds: [],
-          sortProp: sortBy,
-        };
-
-        console.log("MKT Search payload:", payload);
-
-        const result = await searchAds({
-          query: searchQuery.trim(),
-          page: page,
-          limit: 20,
-          filters: {
-            countryId: parseInt(selectedCountry),
-            language:
-              selectedLanguage && selectedLanguage !== "all"
-                ? selectedLanguage
-                : "",
-            dateFrom: dateFrom,
-            dateTo: dateTo,
-            category:
-              selectedCategory && selectedCategory !== "all"
-                ? selectedCategory
-                : "",
-            sortBy: sortBy,
-            isAffiliate: false,
-          },
-        });
-
-        if (result) {
-          if (page === 1) {
-            setSearchResults(result);
-          } else {
-            setSearchResults((prev: any) => ({
-              ...result,
-              data: [...(prev?.data || []), ...(result.data || [])],
-            }));
-          }
-          setCurrentPage(page);
-
-          const resultCount = result.data?.length || 0;
-          toast.success(`Found ${resultCount} results`);
-        }
-      } catch (error) {
-        console.error("MKT Search error:", error);
-        toast.error("Search failed. Please try again.");
-      } finally {
-        setIsSearching(false);
-      }
-    },
-    [
-      searchQuery,
-      selectedCountry,
-      selectedLanguage,
-      dateFrom,
-      dateTo,
-      selectedCategory,
-      showVideos,
-      sortBy,
-      searchAds,
-    ]
-  );
-
-  const loadMore = useCallback(() => {
-    if (!isSearching && searchResults?.pagination?.hasNextPage) {
-      handleSearch(null, currentPage + 1);
-    }
-  }, [isSearching, searchResults, currentPage, handleSearch]);
-
-  // Mock data for demonstration
-  const mockVideos = [
-    {
-      title: "How to Boost Your Sales with This Simple Marketing Trick",
-      channel: "Marketing Pro",
-      views: "1.2M",
-      ctr: "8.5%",
-      date: "2 weeks ago",
-      thumbnail: "/marketing-video-thumbnail.png",
-      url: "https://youtube.com",
-      companyName: "Unilever",
-      description:
-        "Learn the proven marketing strategies that top brands use to increase their sales by 300%. This comprehensive guide covers everything from audience targeting to conversion optimization.",
-      duration: "12:45",
-    },
-    {
-      title: "The Ultimate Guide to Facebook Ads in 2025",
-      channel: "Digital Marketing Hub",
-      views: "850K",
-      ctr: "7.2%",
-      date: "1 month ago",
-      thumbnail: "/facebook-ads-tutorial.jpg",
-      url: "https://youtube.com",
-      companyName: "Procter & Gamble",
-      description:
-        "Master Facebook advertising with this complete tutorial covering campaign setup, audience targeting, creative best practices, and ROI optimization.",
-      duration: "18:30",
-    },
-    {
-      title: "Instagram Marketing Strategy That Actually Works",
-      channel: "Social Media Experts",
-      views: "620K",
-      ctr: "6.8%",
-      date: "3 weeks ago",
-      thumbnail: "/instagram-marketing-concept.png",
-      url: "https://youtube.com",
-      companyName: "L'Oréal",
-      description:
-        "Discover the Instagram marketing tactics that drive real results. From content creation to influencer partnerships and paid advertising strategies.",
-      duration: "15:20",
-    },
-    {
-      title: "Email Marketing Secrets from Top Brands",
-      channel: "Growth Marketing",
-      views: "450K",
-      ctr: "5.9%",
-      date: "1 week ago",
-      thumbnail: "/email-marketing-concept.png",
-      url: "https://youtube.com",
-      companyName: "Unilever",
-      description:
-        "Unlock the email marketing strategies used by Fortune 500 companies to achieve open rates above 40% and conversion rates that exceed industry standards.",
-      duration: "10:15",
-    },
-  ];
-
+  // Mock data for brands and companies
   const mockBrands = [
     {
       name: "Nike",
@@ -304,6 +313,214 @@ export default function MKTPage() {
     },
   ];
 
+  // Tab change handler
+  const handleTabChange = useCallback((value: string) => {
+    const newTab = value as "ads" | "brands" | "companies";
+    setActiveTab(newTab);
+    // Reset search results when switching tabs
+    if (newTab === "ads") {
+      setAdsSearchResults(null);
+      setAdsCurrentPage(1);
+    } else if (newTab === "brands") {
+      setBrandsSearchResults(null);
+      setBrandsCurrentPage(1);
+    } else if (newTab === "companies") {
+      setCompaniesSearchResults(null);
+      setCompaniesCurrentPage(1);
+    }
+  }, []);
+
+  // Ads search function
+  const handleAdsSearch = useCallback(
+    async (e: React.FormEvent | null, page: number = 1) => {
+      if (e) e.preventDefault();
+
+      const searchQuery = searchQueryRef.current?.value?.trim();
+      if (!searchQuery) {
+        toast.error("Please enter a search keyword");
+        return;
+      }
+
+      if (page === 1) {
+        setAdsSearchResults(null);
+        setAdsCurrentPage(1);
+      }
+
+      try {
+        const result = await searchMKTAds({
+          searchTerm: searchQuery,
+          page: page,
+          limit: 20,
+          filters: {
+            countryId: parseInt(selectedCountryRef.current),
+            language:
+              selectedLanguageRef.current &&
+              selectedLanguageRef.current !== "all"
+                ? selectedLanguageRef.current
+                : "",
+            categoryIds:
+              selectedCategoryRef.current &&
+              selectedCategoryRef.current !== "all"
+                ? [parseInt(selectedCategoryRef.current)]
+                : [],
+            dateFrom: dateFromRef.current || "",
+            dateTo: dateToRef.current || "",
+            showVideos: showVideosRef.current as "unlisted" | "all" | "public",
+            sortProp: sortByRef.current,
+            orderAsc: false,
+          },
+        });
+
+        if (result && result.success) {
+          if (page === 1) {
+            setAdsSearchResults(result);
+          } else {
+            setAdsSearchResults((prev: any) => ({
+              ...result,
+              data: {
+                ...result.data,
+                results: [
+                  ...(prev?.data?.results || []),
+                  ...(result.data?.results || []),
+                ],
+              },
+            }));
+          }
+          setAdsCurrentPage(page);
+
+          const resultCount = result.data?.results?.length || 0;
+          toast.success(
+            `Found ${resultCount} ads from ${result.total_available} available`
+          );
+        } else {
+          toast.error("No results found");
+        }
+      } catch (error) {
+        console.error("Ads Search error:", error);
+        toast.error("Search failed. Please try again.");
+      }
+    },
+    [searchMKTAds]
+  );
+
+  // Brands search function (placeholder - implement with actual API)
+  const handleBrandsSearch = useCallback(
+    async (e: React.FormEvent | null, page: number = 1) => {
+      if (e) e.preventDefault();
+
+      const searchQuery = searchQueryRef.current?.value?.trim();
+      if (!searchQuery) {
+        toast.error("Please enter a search keyword");
+        return;
+      }
+
+      if (page === 1) {
+        setBrandsSearchResults(null);
+        setBrandsCurrentPage(1);
+      }
+
+      try {
+        // TODO: Replace with actual brands search API
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+        
+        // Mock brands search results
+        const mockResults = mockBrands.filter(brand => 
+          brand.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          brand.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        const result = {
+          success: true,
+          data: { results: mockResults },
+          total_available: mockResults.length
+        };
+
+        if (result.success) {
+          setBrandsSearchResults(result);
+          setBrandsCurrentPage(1);
+          toast.success(`Found ${mockResults.length} brands`);
+        } else {
+          toast.error("No brands found");
+        }
+      } catch (error) {
+        console.error("Brands Search error:", error);
+        toast.error("Brands search failed. Please try again.");
+      }
+    },
+    [mockBrands]
+  );
+
+  // Companies search function (placeholder - implement with actual API)
+  const handleCompaniesSearch = useCallback(
+    async (e: React.FormEvent | null, page: number = 1) => {
+      if (e) e.preventDefault();
+
+      const searchQuery = searchQueryRef.current?.value?.trim();
+      if (!searchQuery) {
+        toast.error("Please enter a search keyword");
+        return;
+      }
+
+      if (page === 1) {
+        setCompaniesSearchResults(null);
+        setCompaniesCurrentPage(1);
+      }
+
+      try {
+        // TODO: Replace with actual companies search API
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+        
+        // Mock companies search results
+        const mockResults = mockCompanies.filter(company => 
+          company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          company.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        const result = {
+          success: true,
+          data: { results: mockResults },
+          total_available: mockResults.length
+        };
+
+        if (result.success) {
+          setCompaniesSearchResults(result);
+          setCompaniesCurrentPage(1);
+          toast.success(`Found ${mockResults.length} companies`);
+        } else {
+          toast.error("No companies found");
+        }
+      } catch (error) {
+        console.error("Companies Search error:", error);
+        toast.error("Companies search failed. Please try again.");
+      }
+    },
+    [mockCompanies]
+  );
+
+  // Generic search handler that delegates to the appropriate search function
+  const handleSearch = useCallback((e: React.FormEvent | null, page: number = 1) => {
+    if (activeTab === "ads") {
+      return handleAdsSearch(e, page);
+    } else if (activeTab === "brands") {
+      return handleBrandsSearch(e, page);
+    } else if (activeTab === "companies") {
+      return handleCompaniesSearch(e, page);
+    }
+  }, [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]);
+
+  // Load more handler for each tab
+  const loadMore = useCallback(() => {
+    if (loading) return;
+    
+    if (activeTab === "ads" && adsSearchResults?.data?.pagination?.hasNextPage) {
+      handleAdsSearch(null, adsCurrentPage + 1);
+    } else if (activeTab === "brands" && brandsSearchResults?.data?.pagination?.hasNextPage) {
+      handleBrandsSearch(null, brandsCurrentPage + 1);
+    } else if (activeTab === "companies" && companiesSearchResults?.data?.pagination?.hasNextPage) {
+      handleCompaniesSearch(null, companiesCurrentPage + 1);
+    }
+  }, [loading, activeTab, adsSearchResults, brandsSearchResults, companiesSearchResults, adsCurrentPage, brandsCurrentPage, companiesCurrentPage, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -325,18 +542,13 @@ export default function MKTPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              ref={searchQueryRef}
               placeholder="Search by keyword, URL or brand name..."
               className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button
-            type="submit"
-            disabled={isSearching}
-            className="mobile:w-full"
-          >
-            {isSearching ? (
+          <Button type="submit" disabled={loading} className="mobile:w-full">
+            {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Searching...
@@ -367,54 +579,35 @@ export default function MKTPage() {
                     <Globe className="h-4 w-4" />
                     Country
                   </label>
-                  <Select
-                    value={selectedCountry}
-                    onValueChange={setSelectedCountry}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">All Countries</SelectItem>
-                      {countriesList.map((country) => (
-                        <SelectItem
-                          key={country.countryId}
-                          value={country.countryId.toString()}
-                        >
-                          {country.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CountrySelect
+                    value={selectedCountryRef.current}
+                    onValueChange={(value) =>
+                      (selectedCountryRef.current = value)
+                    }
+                  />
                 </div>
 
                 {/* Language Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Language</label>
-                  <Select
-                    value={selectedLanguage}
-                    onValueChange={setSelectedLanguage}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map((lang) => (
-                        <SelectItem key={lang.code} value={lang.code}>
-                          {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <LanguageSelect
+                    value={selectedLanguageRef.current}
+                    onValueChange={(value) =>
+                      (selectedLanguageRef.current = value)
+                    }
+                  />
                 </div>
 
                 {/* Category Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
+                  <CategorySelect
+                    value={selectedCategoryRef.current}
+                    onValueChange={(value) =>
+                      (selectedCategoryRef.current = value)
+                    }
+                  />
+                  <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -438,14 +631,12 @@ export default function MKTPage() {
                     <Input
                       type="date"
                       placeholder="From date"
-                      value={dateFrom}
-                      onChange={(e) => setDateFrom(e.target.value)}
+                      onChange={(e) => (dateFromRef.current = e.target.value)}
                     />
                     <Input
                       type="date"
                       placeholder="To date"
-                      value={dateTo}
-                      onChange={(e) => setDateTo(e.target.value)}
+                      onChange={(e) => (dateToRef.current = e.target.value)}
                     />
                   </div>
                 </div>
@@ -453,182 +644,222 @@ export default function MKTPage() {
                 {/* Show Videos Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Video Type</label>
-                  <Select value={showVideos} onValueChange={setShowVideos}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unlisted">Unlisted</SelectItem>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="public">Public</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <ShowVideosSelect
+                    value={showVideosRef.current}
+                    onValueChange={(value) => (showVideosRef.current = value)}
+                  />
                 </div>
-                
-                {/* Sort By */}
+
+                {/* Sort Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Sort By</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date">Date Created</SelectItem>
-                      <SelectItem value="totalSpend">Ad Spend</SelectItem>
-                      <SelectItem value="views">Views</SelectItem>
-                      <SelectItem value="relevance">Relevance</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SortSelect
+                    value={sortByRef.current}
+                    onValueChange={(value) =>
+                      (sortByRef.current = value as
+                        | "date"
+                        | "totalSpend"
+                        | "views"
+                        | "relevance")
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>
           </aside>
 
           <div className="mobile:order-1">
-            {/* Search Results */}
-            {searchResults ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">
-                    Search Results
-                    {searchQuery && (
-                      <span className="ml-2 text-lg font-normal text-muted-foreground">
-                        for "{searchQuery}"
-                      </span>
-                    )}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Found {searchResults.data?.length || 0} ads
-                  </p>
-                </div>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
+                <TabsTrigger value="ads" className="mobile:text-xs">
+                  Ads Search
+                </TabsTrigger>
+                <TabsTrigger value="brands" className="mobile:text-xs">
+                  Brands
+                </TabsTrigger>
+                <TabsTrigger value="companies" className="mobile:text-xs">
+                  Companies
+                </TabsTrigger>
+              </TabsList>
 
-                {searchResults.data && searchResults.data.length > 0 ? (
-                  <>
-                    <div className="grid gap-4 tablet:grid-cols-2 desktop:grid-cols-3">
-                      {searchResults.data.map((video: any, index: number) => (
-                        <VideoCard
-                          key={video.ytVideoId || index}
-                          {...video}
-                          onClick={() => setSelectedVideo(video)}
-                          onCompanyClick={() => {
-                            const company = mockCompanies.find(
-                              (c) => c.name === video.companyName
-                            );
-                            if (company) setSelectedCompany(company);
-                          }}
-                        />
-                      ))}
+              <TabsContent value="ads" className="space-y-4">
+                {/* Ads Search Results */}
+                {adsSearchResults ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Ads Search Results</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Found {adsSearchResults.data?.results?.length || 0} ads (
+                        {adsSearchResults.total_available || 0} total available)
+                      </p>
                     </div>
 
-                    {/* Load More Button */}
-                    {searchResults.pagination?.hasNextPage && (
-                      <div className="text-center">
-                        <Button
-                          onClick={loadMore}
-                          disabled={isSearching}
-                          variant="outline"
-                          size="lg"
-                        >
-                          {isSearching ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Loading...
-                            </>
-                          ) : (
-                            "Load More"
+                    {adsSearchResults.data?.results &&
+                    adsSearchResults.data.results.length > 0 ? (
+                      <>
+                        <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+                          {adsSearchResults.data.results.map(
+                            (video: any, index: number) => (
+                              <VideoCard
+                                key={video.ytVideoId || index}
+                                {...video}
+                                onClick={() => setSelectedVideo(video)}
+                                onCompanyClick={() => {
+                                  const company = mockCompanies.find(
+                                    (c) => c.name === video.companyName
+                                  );
+                                  if (company) setSelectedCompany(company);
+                                }}
+                              />
+                            )
                           )}
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <Card className="p-8 text-center">
-                    <p className="text-lg text-muted-foreground">
-                      No results found
-                    </p>
-                  </Card>
-                )}
-              </div>
-            ) : (
-              // Default tabs when no search
-              <Tabs defaultValue="ads" className="w-full">
-                <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
-                  <TabsTrigger value="ads" className="mobile:text-xs">
-                    Ads Search
-                  </TabsTrigger>
-                  <TabsTrigger value="brands" className="mobile:text-xs">
-                    Brands
-                  </TabsTrigger>
-                  <TabsTrigger value="companies" className="mobile:text-xs">
-                    Companies
-                  </TabsTrigger>
-                </TabsList>
+                        </div>
 
-                <TabsContent value="ads" className="space-y-4">
+                        {/* Load More Button */}
+                        {adsSearchResults.data?.pagination?.hasNextPage && (
+                          <div className="text-center">
+                            <Button
+                              onClick={loadMore}
+                              disabled={loading}
+                              variant="outline"
+                              size="lg"
+                            >
+                              {loading ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Loading...
+                                </>
+                              ) : (
+                                "Load More"
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Card className="p-8 text-center">
+                        <p className="text-lg text-muted-foreground">
+                          No ads found
+                        </p>
+                      </Card>
+                    )}
+                  </div>
+                ) : (
                   <div className="mb-4 flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
                       Enter keyword to search for ads
                     </p>
                   </div>
-                  <div className="grid gap-4 tablet:grid-cols-3 mobile:grid-cols-1 md:grid-cols-2">
-                    {mockVideos.map((video, index) => (
-                      <VideoCard
-                        key={index}
-                        {...video}
-                        onClick={() => setSelectedVideo(video)}
-                        onCompanyClick={() => {
-                          const company = mockCompanies.find(
-                            (c) => c.name === video.companyName
-                          );
-                          if (company) setSelectedCompany(company);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </TabsContent>
+                )}
+              </TabsContent>
 
-                <TabsContent value="brands" className="space-y-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Found 456 brands
-                    </p>
-                  </div>
-                  <div className="grid gap-4 tablet:grid-cols-3 mobile:grid-cols-1 md:grid-cols-2">
-                    {mockBrands.map((brand, index) => (
-                      <BrandCard
-                        key={index}
-                        {...brand}
-                        onClick={() => setSelectedBrand(brand)}
-                      />
-                    ))}
-                  </div>
-                </TabsContent>
+              <TabsContent value="brands" className="space-y-4">
+                {/* Brands Search Results */}
+                {brandsSearchResults ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Brands Search Results</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Found {brandsSearchResults.data?.results?.length || 0} brands
+                      </p>
+                    </div>
 
-                <TabsContent value="companies" className="space-y-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Found 89 companies
-                    </p>
+                    {brandsSearchResults.data?.results &&
+                    brandsSearchResults.data.results.length > 0 ? (
+                      <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                        {brandsSearchResults.data.results.map((brand: any, index: number) => (
+                          <BrandCard
+                            key={index}
+                            {...brand}
+                            onClick={() => setSelectedBrand(brand)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="p-8 text-center">
+                        <p className="text-lg text-muted-foreground">
+                          No brands found
+                        </p>
+                      </Card>
+                    )}
                   </div>
-                  <div className="grid gap-4 tablet:grid-cols-3 mobile:grid-cols-1 md:grid-cols-2">
-                    {mockCompanies.map((company, index) => (
-                      <CompanyCard
-                        key={index}
-                        {...company}
-                        onClick={() => setSelectedCompany(company)}
-                      />
-                    ))}
+                ) : (
+                  <>
+                    <div className="mb-4 flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Enter keyword to search for brands or browse all brands below
+                      </p>
+                    </div>
+                    <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                      {mockBrands.map((brand, index) => (
+                        <BrandCard
+                          key={index}
+                          {...brand}
+                          onClick={() => setSelectedBrand(brand)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+
+              <TabsContent value="companies" className="space-y-4">
+                {/* Companies Search Results */}
+                {companiesSearchResults ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold">Companies Search Results</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Found {companiesSearchResults.data?.results?.length || 0} companies
+                      </p>
+                    </div>
+
+                    {companiesSearchResults.data?.results &&
+                    companiesSearchResults.data.results.length > 0 ? (
+                      <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                        {companiesSearchResults.data.results.map((company: any, index: number) => (
+                          <CompanyCard
+                            key={index}
+                            {...company}
+                            onClick={() => setSelectedCompany(company)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="p-8 text-center">
+                        <p className="text-lg text-muted-foreground">
+                          No companies found
+                        </p>
+                      </Card>
+                    )}
                   </div>
-                </TabsContent>
-              </Tabs>
-            )}
+                ) : (
+                  <>
+                    <div className="mb-4 flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Enter keyword to search for companies or browse all companies below
+                      </p>
+                    </div>
+                    <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                      {mockCompanies.map((company, index) => (
+                        <CompanyCard
+                          key={index}
+                          {...company}
+                          onClick={() => setSelectedCompany(company)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+            </Tabs>
 
             {/* Loading State */}
-            {isSearching && !searchResults && (
+            {loading && !adsSearchResults && !brandsSearchResults && !companiesSearchResults && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin mb-4" />
                 <p className="text-muted-foreground">
-                  Searching for ads...
+                  Searching for {activeTab}...
                 </p>
               </div>
             )}
