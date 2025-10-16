@@ -24,12 +24,12 @@ interface UseAsyncSelectResult {
 }
 
 export function useAsyncSelect(
-  type: 'countries' | 'languages',
+  type: 'countries' | 'languages' | 'categories',
   options: UseAsyncSelectOptions = {}
 ): UseAsyncSelectResult {
   const {
     searchDelay = 300,
-    pageSize = 50,
+    pageSize = 1000,
     minSearchLength = 0
   } = options
 
@@ -62,16 +62,21 @@ export function useAsyncSelect(
       setError(null)
 
       const params = new URLSearchParams({
-        type,
         limit: pageSize.toString(),
-        offset: currentOffset.toString()
+        page: Math.floor(currentOffset / pageSize + 1).toString()
       })
 
       if (search.trim()) {
         params.set('search', search.trim())
       }
 
-      const response = await fetch(`/api/countries?${params}`)
+      // Determine API endpoint based on type
+      const apiEndpoint = type === 'categories' ? '/api/categories' : '/api/countries'
+      if (type !== 'categories') {
+        params.set('type', type)
+      }
+
+      const response = await fetch(`${apiEndpoint}?${params}`)
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -79,18 +84,28 @@ export function useAsyncSelect(
 
       const result = await response.json()
 
-      if (result.success) {
-        if (reset) {
-          setData(result.data)
-          setOffset(pageSize)
-        } else {
-          setData(prev => [...prev, ...result.data])
-          setOffset(prev => prev + pageSize)
-        }
-        setHasMore(result.pagination.hasMore)
+      // Handle different response formats
+      let responseData, total
+      
+      if (type === 'categories') {
+        responseData = result.categories || []
+        total = result.total || 0
+      } else if (result.success) {
+        responseData = result.data || []
+        total = result.pagination?.total || 0
       } else {
         throw new Error(result.error || 'Failed to fetch data')
       }
+
+      if (reset) {
+        setData(responseData)
+        setOffset(pageSize)
+      } else {
+        setData(prev => [...prev, ...responseData])
+        setOffset(prev => prev + pageSize)
+      }
+      
+      setHasMore(currentOffset + responseData.length < total)
     } catch (err) {
       console.error(`Failed to fetch ${type}:`, err)
       setError(err instanceof Error ? err.message : 'Unknown error')

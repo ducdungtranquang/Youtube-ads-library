@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
@@ -26,6 +27,7 @@ import { toast } from "sonner"
 export function Header() {
   const { user, signOut, loading } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   const handleSignOut = async () => {
     try {
@@ -62,11 +64,16 @@ export function Header() {
           <nav className="hidden xl:flex items-center gap-6">
             {navigationItems.map((item) => {
               const Icon = item.icon
+              const isActive = pathname === item.href
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                    isActive 
+                      ? 'text-primary border-b-2 border-primary pb-1' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -98,11 +105,16 @@ export function Header() {
                 {/* Navigation Items */}
                 {navigationItems.map((item) => {
                   const Icon = item.icon
+                  const isActive = pathname === item.href
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      className={`flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'text-primary bg-primary/10 border border-primary/20'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                      }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Icon className="h-5 w-5" />

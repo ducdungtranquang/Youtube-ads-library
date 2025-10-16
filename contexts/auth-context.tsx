@@ -45,8 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
 
       if (event === 'SIGNED_IN') {
-        // Redirect to dashboard after successful sign in
-        router.push('/dashboard')
+        // Only redirect to dashboard if coming from login/register pages
+        const currentPath = window.location.pathname
+        const isAuthPage = ['/login', '/register', '/'].includes(currentPath)
+        
+        if (isAuthPage) {
+          router.push('/dashboard')
+        }
+        // Otherwise, stay on current page
       } else if (event === 'SIGNED_OUT') {
         // Redirect to home after sign out
         router.push('/')

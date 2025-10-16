@@ -21,28 +21,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Calendar, Globe, Filter, Loader2 } from "lucide-react";
+import { Search, Calendar, Globe, Filter, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useMKTSearch } from "@/hooks/use-mkt-search";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
 // Import optimized async select components
-import { SimpleAsyncCountrySelect, SimpleAsyncLanguageSelect } from "@/components/simple-async-select";
+import {
+  SimpleAsyncCountrySelect,
+  SimpleAsyncLanguageSelect,
+  SimpleAsyncCategorySelect,
+} from "@/components/simple-async-select";
 
 // Pre-process static data once at module level for better performance
-const categoryOptions = [
-  { id: "all", name: "All Categories" },
-  { id: "1", name: "Automotive" },
-  { id: "2", name: "Beauty & Personal Care" },
-  { id: "3", name: "Electronics" },
-  { id: "4", name: "Fashion & Apparel" },
-  { id: "5", name: "Food & Beverage" },
-  { id: "6", name: "Health & Fitness" },
-  { id: "7", name: "Home & Garden" },
-  { id: "8", name: "Sports & Recreation" },
-  { id: "9", name: "Technology" },
-  { id: "10", name: "Travel & Tourism" },
-];
-
 const sortOptions = [
   { value: "date", label: "Date" },
   { value: "totalSpend", label: "Total Spend" },
@@ -55,30 +45,6 @@ const showVideosOptions = [
   { value: "all", label: "All Videos" },
   { value: "public", label: "Public Only" },
 ];
-
-const CategorySelect = memo(
-  ({
-    value,
-    onValueChange,
-  }: {
-    value: string;
-    onValueChange: (value: string) => void;
-  }) => (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
-        <SelectValue placeholder="All Categories" />
-      </SelectTrigger>
-      <SelectContent>
-        {categoryOptions.map((category) => (
-          <SelectItem key={category.id} value={category.id}>
-            {category.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  )
-);
-CategorySelect.displayName = "CategorySelect";
 
 const SortSelect = memo(
   ({
@@ -128,6 +94,82 @@ const ShowVideosSelect = memo(
 );
 ShowVideosSelect.displayName = "ShowVideosSelect";
 
+// Cute No Data Component
+const NoDataDisplay = memo(
+  ({ type, hasSearched }: { type: "ads" | "brands" | "companies"; hasSearched: boolean }) => {
+    const getDisplayText = () => {
+      if (!hasSearched) {
+        switch (type) {
+          case "ads":
+            return {
+              title: "🎬 Ready to discover amazing ads?",
+              subtitle: "Enter a keyword above to start searching for competitor ads and campaigns",
+            };
+          case "brands":
+            return {
+              title: "🏢 Explore brand strategies",
+              subtitle: "Search for brands to analyze their advertising approach and performance",
+            };
+          case "companies":
+            return {
+              title: "🏭 Company intelligence awaits",
+              subtitle: "Discover companies and their marketing strategies across multiple brands",
+            };
+        }
+      } else {
+        switch (type) {
+          case "ads":
+            return {
+              title: "🔍 No ads found",
+              subtitle: "Try adjusting your search terms or filters to find more results",
+            };
+          case "brands":
+            return {
+              title: "🔍 No brands found",
+              subtitle: "Try different keywords or browse our growing brand database",
+            };
+          case "companies":
+            return {
+              title: "🔍 No companies found",
+              subtitle: "Adjust your search criteria to discover more companies",
+            };
+        }
+      }
+    };
+
+    const { title, subtitle } = getDisplayText();
+
+    return (
+      <Card className="p-12 text-center border-dashed border-2 border-muted-foreground/20 bg-gradient-to-br from-muted/10 to-muted/5">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-primary/60" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+              <span className="text-xs">✨</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+              {subtitle}
+            </p>
+          </div>
+          {!hasSearched && (
+            <div className="mt-4 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
+              <span className="text-sm text-primary font-medium">
+                💡 Pro tip: Use specific keywords for better results
+              </span>
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  }
+);
+NoDataDisplay.displayName = "NoDataDisplay";
+
 export default function MKTPage() {
   const searchQueryRef = useRef<HTMLInputElement>(null);
   const [selectedCountry, setSelectedCountry] = useState("0");
@@ -135,22 +177,36 @@ export default function MKTPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showVideos, setShowVideos] = useState("unlisted");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [sortBy, setSortBy] = useState<"date" | "totalSpend" | "views" | "relevance">("date");
+  const [selectedCategory, setSelectedCategory] = useState("0");
+  const [sortBy, setSortBy] = useState<
+    "date" | "totalSpend" | "views" | "relevance"
+  >("date");
 
   // Tab management state
-  const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">("ads");
-  
+  const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">(
+    "ads"
+  );
+
   // Search results for each tab
   const [adsSearchResults, setAdsSearchResults] = useState<any>(null);
   const [brandsSearchResults, setBrandsSearchResults] = useState<any>(null);
-  const [companiesSearchResults, setCompaniesSearchResults] = useState<any>(null);
-  
+  const [companiesSearchResults, setCompaniesSearchResults] =
+    useState<any>(null);
+
   // Frontend pagination for each tab
-  const adsPagination = useFrontendPagination(adsSearchResults?.data?.results || [], { itemsPerPage: 20 });
-  const brandsPagination = useFrontendPagination(brandsSearchResults?.data?.results || [], { itemsPerPage: 20 });
-  const companiesPagination = useFrontendPagination(companiesSearchResults?.data?.results || [], { itemsPerPage: 20 });
-  
+  const adsPagination = useFrontendPagination(
+    adsSearchResults?.data?.results || [],
+    { itemsPerPage: 20 }
+  );
+  const brandsPagination = useFrontendPagination(
+    brandsSearchResults?.data?.results || [],
+    { itemsPerPage: 20 }
+  );
+  const companiesPagination = useFrontendPagination(
+    companiesSearchResults?.data?.results || [],
+    { itemsPerPage: 20 }
+  );
+
   // Modal states
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
@@ -160,11 +216,11 @@ export default function MKTPage() {
 
   // Handle polling results for ads
   useEffect(() => {
-    if (activeTab === 'ads' && status === 'completed' && data) {
-      console.log('MKT Ads Polling completed, updating results:', data)
-      
+    if (activeTab === "ads" && status === "completed" && data) {
+      console.log("MKT Ads Polling completed, updating results:", data);
+
       setAdsSearchResults(data);
-      
+
       // Show success toast for completed polling
       const resultCount = data?.data?.results?.length || 0;
       if (resultCount > 0) {
@@ -172,85 +228,16 @@ export default function MKTPage() {
           `Found ${resultCount} ads from ${data.total_available} available`
         );
       } else {
-        toast.info('No results found');
+        toast.info("No results found");
       }
-    } else if (activeTab === 'ads' && status === 'error') {
-      console.log('MKT Ads Polling failed with error:', error)
+    } else if (activeTab === "ads" && status === "error") {
+      console.log("MKT Ads Polling failed with error:", error);
       setAdsSearchResults(null);
-      toast.error(error || 'Search failed');
+      toast.error(error || "Search failed");
     }
   }, [activeTab, status, data, error]);
 
-  // Memoized mock data for better performance
-  const mockBrands = useMemo(() => [
-    {
-      name: "Nike",
-      description: "Global sports apparel and equipment brand",
-      logo: "/nike-swoosh.png",
-      totalAds: 342,
-      totalViews: "45M",
-      activeMonths: 24,
-      topCategories: ["Sports", "Lifestyle", "Fashion"],
-    },
-    {
-      name: "Apple",
-      description: "Technology company known for innovative products",
-      logo: "/apple-logo-minimalist.png",
-      totalAds: 289,
-      totalViews: "38M",
-      activeMonths: 36,
-      topCategories: ["Technology", "Innovation", "Lifestyle"],
-    },
-    {
-      name: "Coca-Cola",
-      description: "Leading beverage company worldwide",
-      logo: "/coca-cola-logo.png",
-      totalAds: 256,
-      totalViews: "32M",
-      activeMonths: 18,
-      topCategories: ["Beverages", "Lifestyle", "Entertainment"],
-    },
-    {
-      name: "Amazon",
-      description: "E-commerce and cloud computing giant",
-      logo: "/amazon-logo.png",
-      totalAds: 412,
-      totalViews: "52M",
-      activeMonths: 30,
-      topCategories: ["E-commerce", "Technology", "Services"],
-    },
-  ], []);
 
-  const mockCompanies = useMemo(() => [
-    {
-      name: "Unilever",
-      description:
-        "Multinational consumer goods company with diverse brand portfolio",
-      totalBrands: 12,
-      totalAds: 1850,
-      markets: ["US", "UK", "EU", "APAC"],
-      estimatedSpend: "$12.5M",
-      topBrands: ["Dove", "Axe", "Lipton", "Ben & Jerry's"],
-    },
-    {
-      name: "Procter & Gamble",
-      description: "American multinational consumer goods corporation",
-      totalBrands: 15,
-      totalAds: 2100,
-      markets: ["US", "CA", "EU", "LATAM"],
-      estimatedSpend: "$15.8M",
-      topBrands: ["Tide", "Gillette", "Pampers", "Oral-B"],
-    },
-    {
-      name: "L'Oréal",
-      description: "World's largest cosmetics and beauty company",
-      totalBrands: 8,
-      totalAds: 1420,
-      markets: ["US", "EU", "APAC"],
-      estimatedSpend: "$9.2M",
-      topBrands: ["Maybelline", "Garnier", "Lancôme"],
-    },
-  ], []);
 
   // Tab change handler
   const handleTabChange = useCallback((value: string) => {
@@ -289,13 +276,11 @@ export default function MKTPage() {
           filters: {
             countryId: parseInt(selectedCountry),
             language:
-              selectedLanguage &&
-              selectedLanguage !== "all"
+              selectedLanguage && selectedLanguage !== "all"
                 ? selectedLanguage
                 : "",
             categoryIds:
-              selectedCategory &&
-              selectedCategory !== "all"
+              selectedCategory && selectedCategory !== "0"
                 ? [parseInt(selectedCategory)]
                 : [],
             dateFrom: dateFrom || "",
@@ -307,12 +292,14 @@ export default function MKTPage() {
         });
 
         if (result?.pending) {
-          console.log('MKT Search is pending, polling will start automatically...')
+          console.log(
+            "MKT Search is pending, polling will start automatically..."
+          );
           // Don't show any toast for pending - polling will handle it
-          setAdsSearchResults(null) // Clear previous results
+          setAdsSearchResults(null); // Clear previous results
         } else if (result?.success && result?.data) {
-          console.log('MKT Search completed:', result)
-          
+          console.log("MKT Search completed:", result);
+
           setAdsSearchResults(result.data);
 
           // Only show success toast for completed results
@@ -334,7 +321,16 @@ export default function MKTPage() {
         setAdsSearchResults(null);
       }
     },
-    [searchMKTAds, selectedCountry, selectedLanguage, selectedCategory, dateFrom, dateTo, showVideos, sortBy]
+    [
+      searchMKTAds,
+      selectedCountry,
+      selectedLanguage,
+      selectedCategory,
+      dateFrom,
+      dateTo,
+      showVideos,
+      sortBy,
+    ]
   );
 
   // Brands search function (placeholder - implement with actual API)
@@ -354,32 +350,23 @@ export default function MKTPage() {
 
       try {
         // TODO: Replace with actual brands search API
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-        
-        // Mock brands search results
-        const mockResults = mockBrands.filter(brand => 
-          brand.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          brand.description.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
 
+        // Return empty results for now
         const result = {
           success: true,
-          data: { results: mockResults },
-          total_available: mockResults.length
+          data: { results: [] },
+          total_available: 0,
         };
 
-        if (result.success) {
-          setBrandsSearchResults(result);
-          toast.success(`Found ${mockResults.length} brands`);
-        } else {
-          toast.error("No brands found");
-        }
+        setBrandsSearchResults(result);
+        toast.info("No brands found");
       } catch (error) {
         console.error("Brands Search error:", error);
         toast.error("Brands search failed. Please try again.");
       }
     },
-    [mockBrands]
+    []
   );
 
   // Companies search function (placeholder - implement with actual API)
@@ -399,65 +386,61 @@ export default function MKTPage() {
 
       try {
         // TODO: Replace with actual companies search API
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-        
-        // Mock companies search results
-        const mockResults = mockCompanies.filter(company => 
-          company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          company.description.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
 
+        // Return empty results for now
         const result = {
           success: true,
-          data: { results: mockResults },
-          total_available: mockResults.length
+          data: { results: [] },
+          total_available: 0,
         };
 
-        if (result.success) {
-          setCompaniesSearchResults(result);
-          toast.success(`Found ${mockResults.length} companies`);
-        } else {
-          toast.error("No companies found");
-        }
+        setCompaniesSearchResults(result);
+        toast.info("No companies found");
       } catch (error) {
         console.error("Companies Search error:", error);
         toast.error("Companies search failed. Please try again.");
       }
     },
-    [mockCompanies]
+    []
   );
 
   // Generic search handler that delegates to the appropriate search function
-  const handleSearch = useCallback((e: React.FormEvent | null, page: number = 1) => {
-    if (activeTab === "ads") {
-      return handleAdsSearch(e, page);
-    } else if (activeTab === "brands") {
-      return handleBrandsSearch(e, page);
-    } else if (activeTab === "companies") {
-      return handleCompaniesSearch(e, page);
-    }
-  }, [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]);
+  const handleSearch = useCallback(
+    (e: React.FormEvent | null, page: number = 1) => {
+      if (activeTab === "ads") {
+        return handleAdsSearch(e, page);
+      } else if (activeTab === "brands") {
+        return handleBrandsSearch(e, page);
+      } else if (activeTab === "companies") {
+        return handleCompaniesSearch(e, page);
+      }
+    },
+    [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]
+  );
 
   // Handle polling results for ads
   useEffect(() => {
-    if (activeTab === 'ads' && status === 'completed' && data) {
-      console.log('MKT Ads polling completed, updating results:', data)
-      
-      setAdsSearchResults(data)
-      
+    if (activeTab === "ads" && status === "completed" && data) {
+      console.log("MKT Ads polling completed, updating results:", data);
+
+      setAdsSearchResults(data);
+
       // Show success toast for completed polling
-      const resultCount = data?.data?.results?.length || 0
+      const resultCount = data?.data?.results?.length || 0;
       if (resultCount > 0) {
-        toast.success(`Found ${resultCount} ads from ${data.total_available} available`)
+        toast.success(
+          `Found ${resultCount} ads from ${data.total_available} available`
+        );
       } else {
-        toast.info('No ads found')
+        toast.info("No ads found");
       }
-    } else if (activeTab === 'ads' && status === 'error') {
-      console.log('MKT Ads polling failed with error:', error)
-      setAdsSearchResults(null)
-      toast.error(error || 'Ads search failed')
+    } else if (activeTab === "ads" && status === "error") {
+      console.log("MKT Ads polling failed with error:", error);
+      setAdsSearchResults(null);
+      toast.error(error || "Ads search failed");
     }
-  }, [activeTab, status, data, error])
+  }, [activeTab, status, data, error]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -509,7 +492,7 @@ export default function MKTPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 desktop:grid-cols-2 tablet:grid-cols-2 mobile:grid-cols-1">
+            <div className="grid gap-4 lg:grid-cols-2 md:grid-cols-2 grid-cols-1">
               {/* Row 1 - Country & Language */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
@@ -535,9 +518,10 @@ export default function MKTPage() {
               {/* Row 2 - Category & Video Type */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
-                <CategorySelect
+                <SimpleAsyncCategorySelect
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
+                  className="w-full"
                 />
               </div>
 
@@ -549,11 +533,10 @@ export default function MKTPage() {
                 />
               </div>
 
-              {/* Row 3 - Date Range (spans 2 columns) */}
-              <div className="space-y-2 desktop:col-span-2 tablet:col-span-2 mobile:col-span-1">
+              <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Date Range
+                  Start Date Range
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
@@ -562,6 +545,14 @@ export default function MKTPage() {
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
                   />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  End Date Range
+                </label>
+                <div className="grid grid-cols-2 gap-2">
                   <Input
                     type="date"
                     placeholder="To date"
@@ -575,192 +566,162 @@ export default function MKTPage() {
         </Card>
 
         <div className="w-full">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
-                <TabsTrigger value="ads" className="mobile:text-xs">
-                  Ads Search
-                </TabsTrigger>
-                <TabsTrigger value="brands" className="mobile:text-xs">
-                  Brands
-                </TabsTrigger>
-                <TabsTrigger value="companies" className="mobile:text-xs">
-                  Companies
-                </TabsTrigger>
-              </TabsList>
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="w-full"
+          >
+            <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
+              <TabsTrigger value="ads" className="mobile:text-xs">
+                Ads Search
+              </TabsTrigger>
+              <TabsTrigger value="brands" className="mobile:text-xs">
+                Brands
+              </TabsTrigger>
+              <TabsTrigger value="companies" className="mobile:text-xs">
+                Companies
+              </TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="ads" className="space-y-4">
-                {/* Loading State */}
-                <SearchLoadingState 
-                  isSearching={loading}
-                  isPending={activeTab === 'ads' && status === 'pending'}
-                  searchType="ads"
-                  className="mb-6"
-                />
+            <TabsContent value="ads" className="space-y-4">
+              {/* Loading State */}
+              <SearchLoadingState
+                isSearching={loading}
+                isPending={activeTab === "ads" && status === "pending"}
+                searchType="ads"
+                className="mb-6"
+              />
 
-                {/* Ads Search Results */}
-                {adsSearchResults ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold">Ads Search Results</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Found {adsPagination.totalItems} ads (
-                        {adsSearchResults.total_available || 0} total available)
-                        {adsPagination.totalPages > 1 && (
-                          <span> - Page {adsPagination.currentPage} of {adsPagination.totalPages}</span>
-                        )}
-                      </p>
-                    </div>
-
-                    {adsPagination.totalItems > 0 ? (
-                      <>
-                        <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                          {adsPagination.currentItems.map(
-                            (video: any, index: number) => (
-                              <VideoCard
-                                key={video.ytVideoId || `video-${index}`}
-                                {...video}
-                                onClick={() => setSelectedVideo(video)}
-                                onCompanyClick={() => {
-                                  const company = mockCompanies.find(
-                                    (c) => c.name === video.companyName
-                                  );
-                                  if (company) setSelectedCompany(company);
-                                }}
-                              />
-                            )
-                          )}
-                        </div>
-
-                        {/* Frontend Pagination */}
-                        <FrontendPagination
-                          currentPage={adsPagination.currentPage}
-                          totalPages={adsPagination.totalPages}
-                          totalItems={adsPagination.totalItems}
-                          itemsPerPage={20}
-                          hasNextPage={adsPagination.hasNextPage}
-                          hasPrevPage={adsPagination.hasPrevPage}
-                          onNextPage={adsPagination.nextPage}
-                          onPrevPage={adsPagination.prevPage}
-                          onGoToPage={adsPagination.goToPage}
-                          className="mt-8"
-                        />
-                      </>
-                    ) : (
-                      <Card className="p-8 text-center">
-                        <p className="text-lg text-muted-foreground">
-                          No ads found
-                        </p>
-                      </Card>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mb-4 flex items-center justify-between">
+              {/* Ads Search Results */}
+              {adsSearchResults ? (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">Ads Search Results</h2>
                     <p className="text-sm text-muted-foreground">
-                      Enter keyword to search for ads
+                      Found {adsPagination.totalItems} ads (
+                      {adsSearchResults.total_available || 0} total available)
+                      {adsPagination.totalPages > 1 && (
+                        <span>
+                          {" "}
+                          - Page {adsPagination.currentPage} of{" "}
+                          {adsPagination.totalPages}
+                        </span>
+                      )}
                     </p>
                   </div>
-                )}
-              </TabsContent>
 
-              <TabsContent value="brands" className="space-y-4">
-                {/* Brands Search Results */}
-                {brandsSearchResults ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold">Brands Search Results</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Found {brandsSearchResults.data?.results?.length || 0} brands
-                      </p>
-                    </div>
+                  {adsPagination.totalItems > 0 ? (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+                        {adsPagination.currentItems.map(
+                          (video: any, index: number) => (
+                            <VideoCard
+                              key={video.ytVideoId || `video-${index}`}
+                              {...video}
+                              onClick={() => setSelectedVideo(video)}
+                              onCompanyClick={() => {
+                                // Company click disabled for now
+                                toast.info("Company details coming soon!");
+                              }}
+                            />
+                          )
+                        )}
+                      </div>
 
-                    {brandsSearchResults.data?.results &&
-                    brandsSearchResults.data.results.length > 0 ? (
-                      <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
-                        {brandsSearchResults.data.results.map((brand: any, index: number) => (
+                      {/* Frontend Pagination */}
+                      <FrontendPagination
+                        currentPage={adsPagination.currentPage}
+                        totalPages={adsPagination.totalPages}
+                        totalItems={adsPagination.totalItems}
+                        itemsPerPage={20}
+                        hasNextPage={adsPagination.hasNextPage}
+                        hasPrevPage={adsPagination.hasPrevPage}
+                        onNextPage={adsPagination.nextPage}
+                        onPrevPage={adsPagination.prevPage}
+                        onGoToPage={adsPagination.goToPage}
+                        className="mt-8"
+                      />
+                    </>
+                  ) : (
+                    <NoDataDisplay type="ads" hasSearched={true} />
+                  )}
+                </div>
+              ) : (
+                <NoDataDisplay type="ads" hasSearched={false} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="brands" className="space-y-4">
+              {/* Brands Search Results */}
+              {brandsSearchResults ? (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">
+                      Brands Search Results
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Found {brandsSearchResults.data?.results?.length || 0}{" "}
+                      brands
+                    </p>
+                  </div>
+
+                  {brandsSearchResults.data?.results &&
+                  brandsSearchResults.data.results.length > 0 ? (
+                    <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                      {brandsSearchResults.data.results.map(
+                        (brand: any, index: number) => (
                           <BrandCard
                             key={index}
                             {...brand}
                             onClick={() => setSelectedBrand(brand)}
                           />
-                        ))}
-                      </div>
-                    ) : (
-                      <Card className="p-8 text-center">
-                        <p className="text-lg text-muted-foreground">
-                          No brands found
-                        </p>
-                      </Card>
-                    )}
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <NoDataDisplay type="brands" hasSearched={true} />
+                  )}
+                </div>
+              ) : (
+                <NoDataDisplay type="brands" hasSearched={false} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="companies" className="space-y-4">
+              {/* Companies Search Results */}
+              {companiesSearchResults ? (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">
+                      Companies Search Results
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Found {companiesSearchResults.data?.results?.length || 0}{" "}
+                      companies
+                    </p>
                   </div>
-                ) : (
-                  <>
-                    <div className="mb-4 flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Enter keyword to search for brands or browse all brands below
-                      </p>
-                    </div>
+
+                  {companiesSearchResults.data?.results &&
+                  companiesSearchResults.data.results.length > 0 ? (
                     <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
-                      {mockBrands.map((brand, index) => (
-                        <BrandCard
-                          key={index}
-                          {...brand}
-                          onClick={() => setSelectedBrand(brand)}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </TabsContent>
-
-              <TabsContent value="companies" className="space-y-4">
-                {/* Companies Search Results */}
-                {companiesSearchResults ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold">Companies Search Results</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Found {companiesSearchResults.data?.results?.length || 0} companies
-                      </p>
-                    </div>
-
-                    {companiesSearchResults.data?.results &&
-                    companiesSearchResults.data.results.length > 0 ? (
-                      <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
-                        {companiesSearchResults.data.results.map((company: any, index: number) => (
+                      {companiesSearchResults.data.results.map(
+                        (company: any, index: number) => (
                           <CompanyCard
                             key={index}
                             {...company}
                             onClick={() => setSelectedCompany(company)}
                           />
-                        ))}
-                      </div>
-                    ) : (
-                      <Card className="p-8 text-center">
-                        <p className="text-lg text-muted-foreground">
-                          No companies found
-                        </p>
-                      </Card>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-4 flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Enter keyword to search for companies or browse all companies below
-                      </p>
+                        )
+                      )}
                     </div>
-                    <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
-                      {mockCompanies.map((company, index) => (
-                        <CompanyCard
-                          key={index}
-                          {...company}
-                          onClick={() => setSelectedCompany(company)}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </TabsContent>
+                  ) : (
+                    <NoDataDisplay type="companies" hasSearched={true} />
+                  )}
+                </div>
+              ) : (
+                <NoDataDisplay type="companies" hasSearched={false} />
+              )}
+            </TabsContent>
           </Tabs>
 
           {/* Error State */}
@@ -783,15 +744,8 @@ export default function MKTPage() {
         onOpenChange={(open) => !open && setSelectedVideo(null)}
         video={selectedVideo || {}}
         onCompanyClick={() => {
-          if (selectedVideo?.companyName) {
-            const company = mockCompanies.find(
-              (c) => c.name === selectedVideo.companyName
-            );
-            if (company) {
-              setSelectedVideo(null);
-              setSelectedCompany(company);
-            }
-          }
+          // Company details coming soon
+          toast.info("Company details coming soon!");
         }}
       />
 

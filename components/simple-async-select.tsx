@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { ChevronDown, Search as SearchIcon, Globe, Loader2 } from 'lucide-react'
+import { ChevronDown, Search as SearchIcon, Globe, Loader2, Grid3X3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,7 +19,7 @@ import {
 import { useAsyncSelect } from '@/hooks/use-async-select'
 
 interface SimpleAsyncSelectProps {
-  type: 'countries' | 'languages'
+  type: 'countries' | 'languages' | 'categories'
   value: string
   onValueChange: (value: string) => void
   placeholder?: string
@@ -49,7 +49,7 @@ export function SimpleAsyncSelect({
     searchTerm
   } = useAsyncSelect(type, {
     searchDelay: 300,
-    pageSize: 50,
+    pageSize: type === 'categories' ? 1000 : 300, // Load more categories to show hierarchy
     minSearchLength: 0
   })
 
@@ -57,17 +57,22 @@ export function SimpleAsyncSelect({
   const selectedItem = data.find(item => 
     (item.code && item.code === value) || 
     (item.id && item.id === value) ||
-    (item.countryId && item.countryId.toString() === value)
+    (item.countryId && item.countryId.toString() === value) ||
+    (item.categoryId && item.categoryId.toString() === value)
   )
 
   const getDisplayValue = () => {
     if (type === 'countries') {
       if (value === '0') return 'All Countries'
       return selectedItem?.name || placeholder
-    } else {
+    } else if (type === 'languages') {
       if (value === 'all') return 'All Languages'  
       return selectedItem?.name || placeholder
+    } else if (type === 'categories') {
+      if (value === 'all' || value === '0') return 'All Categories'
+      return selectedItem?.name || placeholder
     }
+    return placeholder
   }
 
   // Add default option if not present
@@ -75,13 +80,16 @@ export function SimpleAsyncSelect({
     if (data.length > 0) {
       const hasDefault = data.some(item => 
         (type === 'countries' && (item.countryId?.toString() === '0' || item.name === 'All Countries')) ||
-        (type === 'languages' && (item.code === 'all' || item.name === 'All Languages'))
+        (type === 'languages' && (item.code === 'all' || item.name === 'All Languages')) ||
+        (type === 'categories' && (item.categoryId?.toString() === '0' || item.name === 'All Categories'))
       )
       
       if (!hasDefault) {
         const defaultOption = type === 'countries' 
           ? { countryId: 0, name: 'All Countries', alpha2Code: 'ALL' }
-          : { code: 'all', name: 'All Languages' }
+          : type === 'languages'
+          ? { code: 'all', name: 'All Languages' }
+          : { categoryId: 0, name: 'All Categories' }
         
         data.unshift(defaultOption as any)
       }
@@ -142,14 +150,24 @@ export function SimpleAsyncSelect({
                 {data.map((item, index) => {
                   const itemValue = type === 'countries' 
                     ? (item.countryId?.toString() || '0')
-                    : (item.code || 'all')
+                    : type === 'languages'
+                    ? (item.code || 'all')
+                    : (item.categoryId?.toString() || 'all')
+                  
+                  // Check if this is a child category (starts with indentation)
+                  const isChildCategory = type === 'categories' && item.name.startsWith('  ↳')
+                  const isAllCategories = type === 'categories' && item.categoryId === 0
                   
                   return (
                     <CommandItem
                       key={`${itemValue}-${index}`}
                       value={itemValue}
                       onSelect={() => handleSelect(itemValue)}
-                      className="cursor-pointer"
+                      className={cn(
+                        "cursor-pointer",
+                        isChildCategory && "text-muted-foreground text-sm pl-6 border-l-2 border-l-muted ml-2",
+                        isAllCategories && "font-medium border-b border-border"
+                      )}
                     >
                       <span className="truncate">{item.name}</span>
                     </CommandItem>
@@ -191,6 +209,18 @@ export function SimpleAsyncLanguageSelect(props: Omit<SimpleAsyncSelectProps, 't
       type="languages"
       placeholder="All Languages"
       searchPlaceholder="Search languages..."
+    />
+  )
+}
+
+export function SimpleAsyncCategorySelect(props: Omit<SimpleAsyncSelectProps, 'type'>) {
+  return (
+    <SimpleAsyncSelect
+      {...props}
+      type="categories"
+      icon={<Grid3X3 className="w-4 h-4" />}
+      placeholder="All Categories"
+      searchPlaceholder="Search categories..."
     />
   )
 }

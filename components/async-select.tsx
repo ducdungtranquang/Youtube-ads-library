@@ -44,7 +44,7 @@ export function AsyncSelect({
     searchTerm
   } = useAsyncSelect(type, {
     searchDelay: 300,
-    pageSize: 50,
+    pageSize: 300,
     minSearchLength: 0
   })
 
