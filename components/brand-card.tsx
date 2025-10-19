@@ -33,23 +33,23 @@ export function BrandCard({ name, description, logo, totalAds, totalViews, activ
           <div className="rounded-lg bg-accent p-2 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <Video className="h-3 w-3" />
-              Ads
+              Quảng cáo
             </div>
             <p className="mt-1 font-semibold text-foreground">{totalAds}</p>
           </div>
           <div className="rounded-lg bg-accent p-2 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <Eye className="h-3 w-3" />
-              Views
+              Lượt xem
             </div>
             <p className="mt-1 font-semibold text-foreground">{totalViews}</p>
           </div>
           <div className="rounded-lg bg-accent p-2 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3" />
-              Active
+              Hoạt động
             </div>
-            <p className="mt-1 font-semibold text-foreground">{activeMonths}mo</p>
+            <p className="mt-1 font-semibold text-foreground">{activeMonths} tháng</p>
           </div>
         </div>
 
@@ -61,7 +61,7 @@ export function BrandCard({ name, description, logo, totalAds, totalViews, activ
             onClick?.()
           }}
         >
-          View All Ads
+          Xem tất cả quảng cáo
         </Button>
       </CardContent>
     </Card>

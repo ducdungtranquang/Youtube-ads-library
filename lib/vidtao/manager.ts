@@ -64,6 +64,20 @@ export class VidTaoManager {
   }
 
   /**
+   * Search Brands using VidTao Enhanced Brands API
+   */
+  async searchBrands(params: MKTSearchParams): Promise<VidTaoResponse> {
+    return this.apiService.searchBrands(params)
+  }
+
+  /**
+   * Search Companies using VidTao Enhanced Companies API
+   */
+  async searchCompanies(params: MKTSearchParams): Promise<VidTaoResponse> {
+    return this.apiService.searchCompanies(params)
+  }
+
+  /**
    * Get status of all accounts
    */
   getAccountsStatus() {

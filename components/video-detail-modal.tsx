@@ -48,7 +48,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-sm">
               <Eye className="mr-1.5 h-4 w-4" />
-              {video.views} views
+              {video.views} lượt xem
             </Badge>
             <Badge variant="secondary" className="text-sm">
               <TrendingUp className="mr-1.5 h-4 w-4" />
@@ -60,14 +60,14 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
             </Badge>
             {video.duration && (
               <Badge variant="outline" className="text-sm">
-                Duration: {video.duration}
+                Thời lượng: {video.duration}
               </Badge>
             )}
           </div>
 
           {video.companyName && (
             <div>
-              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Company</h3>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Doanh nghiệp</h3>
               <button
                 onClick={onCompanyClick}
                 className="flex items-center gap-2 rounded-lg border border-border p-3 hover:bg-accent transition-colors"
@@ -82,22 +82,22 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
 
           <div className="grid gap-4 tablet:grid-cols-3 mobile:grid-cols-1">
             <div className="rounded-lg bg-accent p-4">
-              <p className="text-sm text-muted-foreground">Engagement Rate</p>
+              <p className="text-sm text-muted-foreground">Tỷ lệ tương tác</p>
               <p className="mt-1 text-2xl font-bold text-foreground">{video.engagement || "12.5%"}</p>
             </div>
             <div className="rounded-lg bg-accent p-4">
-              <p className="text-sm text-muted-foreground">Avg View Duration</p>
+              <p className="text-sm text-muted-foreground">Thời lượng xem trung bình</p>
               <p className="mt-1 text-2xl font-bold text-foreground">{video.avgViewDuration || "3:45"}</p>
             </div>
             <div className="rounded-lg bg-accent p-4">
-              <p className="text-sm text-muted-foreground">Click-Through Rate</p>
+              <p className="text-sm text-muted-foreground">Tỷ lệ nhấp chuột</p>
               <p className="mt-1 text-2xl font-bold text-foreground">{video.ctr}</p>
             </div>
           </div>
 
           {video.description && (
             <div>
-              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Description</h3>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Mô tả</h3>
               <p className="text-sm text-foreground leading-relaxed">{video.description}</p>
             </div>
           )}
@@ -105,13 +105,13 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
           <div className="flex gap-3 mobile:flex-col">
             <Button className="flex-1">
               <Heart className="mr-2 h-4 w-4" />
-              Add to Favorites
+              Thêm vào yêu thích
             </Button>
             {video.url && (
               <Button variant="secondary" asChild className="mobile:w-full">
                 <a href={video.url} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Watch on YouTube
+                  Xem trên YouTube
                 </a>
               </Button>
             )}

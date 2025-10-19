@@ -230,6 +230,246 @@ export class VidTaoAPIService {
   }
 
   /**
+   * Search Brands using VidTao Enhanced Brands API
+   */
+  async searchBrands(params: MKTSearchParams): Promise<VidTaoResponse> {
+    const account = this.accountManager.getAvailableAccount()
+    if (!account) {
+      return {
+        success: false,
+        error: 'No available VidTao accounts'
+      }
+    }
+
+    // Ensure account has valid token
+    const hasValidToken = await VidTaoAuth.ensureValidToken(account)
+    if (!hasValidToken) {
+      // Block this account temporarily
+      account.isBlocked = true
+      account.blockUntil = Date.now() + (10 * 60 * 1000) // 10 minutes
+      return this.searchBrands(params) // Try with next account
+    }
+
+    try {
+      console.log(`Making Brands search request with account: ${account.id}`)
+      
+      // Map sort properties to VidTao brands API format
+      const mapBrandsSortProp = (sortProp: string): string | null => {
+        const sortMap: Record<string, string | null> = {
+          'date': null, // Use auto-detection for date
+          'totalSpend': 'totalSpend',
+          'views': 'totalSpend', // Use totalSpend as proxy for views
+          'relevance': 'similarity_score' // Use similarity_score for relevance
+        }
+        return sortMap[sortProp] !== undefined ? sortMap[sortProp] : null
+      }
+
+      // Prepare request body for VidTao API (using quickSearch format for brands)
+      const requestBody = {
+        searchTerm: params.searchTerm,
+        limit: params.limit || 1000,
+        page: params.page || 1,
+        sortProp: mapBrandsSortProp(params.sortProp || 'date'),
+        orderAsc: params.orderAsc || false,
+        countryId: params.countryId || 0,
+        isAffiliate: false,
+        affiliateNetworkIds: [],
+        affiliateCountryId: params.countryId || 0,
+        categoryIds: params.categoryIds || [],
+        softwareIds: [],
+        offerIds: [],
+        language: params.language || '',
+        showVideos: 'unlisted',
+        dateFrom: params.dateFrom || '',
+        dateTo: params.dateTo || ''
+      }
+
+      const response = await fetch('https://apiv2.vidtao.com/search/brands/enhanced', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${account.token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      // Update account usage
+      account.lastUsed = Date.now()
+      account.requestCount++
+
+      if (response.status === 401) {
+        console.warn(`Account ${account.id} received 401, attempting token refresh`)
+        const newToken = await VidTaoAuth.refreshToken(account)
+        if (newToken) {
+          return this.searchBrands(params)
+        } else {
+          account.isBlocked = true
+          account.blockUntil = Date.now() + (10 * 60 * 1000)
+          return this.searchBrands(params)
+        }
+      }
+
+      if (response.status === 429) {
+        console.warn(`Account ${account.id} hit rate limit, blocking temporarily`)
+        account.isBlocked = true
+        account.blockUntil = Date.now() + VIDTAO_CONFIG.BLOCK_TIME
+        return this.searchBrands(params)
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`Brands Search API error: ${response.status} ${response.statusText}`, errorText)
+        throw new Error(`Brands Search API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      return {
+        success: true,
+        data,
+        account: account.id
+      }
+
+    } catch (error) {
+      console.error(`Brands Search failed with account ${account.id}:`, error)
+      
+      // If error is network-related, try next account
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        account.isBlocked = true
+        account.blockUntil = Date.now() + (5 * 60 * 1000) // 5 minutes
+        return this.searchBrands(params)
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        account: account.id
+      }
+    }
+  }
+
+  /**
+   * Search Companies using VidTao Enhanced Companies API
+   */
+  async searchCompanies(params: MKTSearchParams): Promise<VidTaoResponse> {
+    const account = this.accountManager.getAvailableAccount()
+    if (!account) {
+      return {
+        success: false,
+        error: 'No available VidTao accounts'
+      }
+    }
+
+    // Ensure account has valid token
+    const hasValidToken = await VidTaoAuth.ensureValidToken(account)
+    if (!hasValidToken) {
+      // Block this account temporarily
+      account.isBlocked = true
+      account.blockUntil = Date.now() + (10 * 60 * 1000) // 10 minutes
+      return this.searchCompanies(params) // Try with next account
+    }
+
+    try {
+      console.log(`Making Companies search request with account: ${account.id}`)
+      
+      // Map sort properties to VidTao companies API format
+      const mapCompaniesSortProp = (sortProp: string): string | null => {
+        const sortMap: Record<string, string | null> = {
+          'date': null, // Use auto-detection for date
+          'totalSpend': 'totalSpend',
+          'views': 'totalSpend', // Use totalSpend as proxy for views
+          'relevance': 'similarity_score' // Use similarity_score for relevance
+        }
+        return sortMap[sortProp] !== undefined ? sortMap[sortProp] : null
+      }
+
+      // Prepare request body for VidTao API (using quickSearch format for companies)
+      const requestBody = {
+        searchTerm: params.searchTerm,
+        limit: params.limit || 1000,
+        page: params.page || 1,
+        sortProp: mapCompaniesSortProp(params.sortProp || 'date'),
+        orderAsc: params.orderAsc || false,
+        countryId: params.countryId || 0,
+        isAffiliate: false,
+        affiliateNetworkIds: [],
+        affiliateCountryId: params.countryId || 0,
+        categoryIds: params.categoryIds || [],
+        softwareIds: [],
+        offerIds: [],
+        language: params.language || '',
+        showVideos: 'unlisted',
+        dateFrom: params.dateFrom || '',
+        dateTo: params.dateTo || ''
+      }
+
+      const response = await fetch('https://apiv2.vidtao.com/search/companies/enhanced', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${account.token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      // Update account usage
+      account.lastUsed = Date.now()
+      account.requestCount++
+
+      if (response.status === 401) {
+        console.warn(`Account ${account.id} received 401, attempting token refresh`)
+        const newToken = await VidTaoAuth.refreshToken(account)
+        if (newToken) {
+          return this.searchCompanies(params)
+        } else {
+          account.isBlocked = true
+          account.blockUntil = Date.now() + (10 * 60 * 1000)
+          return this.searchCompanies(params)
+        }
+      }
+
+      if (response.status === 429) {
+        console.warn(`Account ${account.id} hit rate limit, blocking temporarily`)
+        account.isBlocked = true
+        account.blockUntil = Date.now() + VIDTAO_CONFIG.BLOCK_TIME
+        return this.searchCompanies(params)
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`Companies Search API error: ${response.status} ${response.statusText}`, errorText)
+        throw new Error(`Companies Search API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      return {
+        success: true,
+        data,
+        account: account.id
+      }
+
+    } catch (error) {
+      console.error(`Companies Search failed with account ${account.id}:`, error)
+      
+      // If error is network-related, try next account
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        account.isBlocked = true
+        account.blockUntil = Date.now() + (5 * 60 * 1000) // 5 minutes
+        return this.searchCompanies(params)
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        account: account.id
+      }
+    }
+  }
+
+  /**
    * MKT Search using VidTao Enhanced Search API
    */
   async mktSearch(params: MKTSearchParams): Promise<VidTaoResponse> {

@@ -83,7 +83,7 @@ export function VideoCard({
             <div className="flex gap-2">
               <Button size="sm" variant="outline" className="flex-1 bg-transparent h-7 text-xs" onClick={(e) => e.stopPropagation()}>
                 <Heart className="mr-1 h-2 w-2" />
-                Save
+                Lưu
               </Button>
               {url && (
                 <Button size="sm" variant="outline" className="bg-transparent h-7 px-2" asChild onClick={(e) => e.stopPropagation()}>

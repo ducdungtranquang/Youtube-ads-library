@@ -37,7 +37,7 @@ export default function RegisterPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
+          <p className="text-sm text-muted-foreground">Đang chuyển hướng đến bảng điều khiển...</p>
         </div>
       </div>
     )
@@ -50,12 +50,12 @@ export default function RegisterPage() {
     try {
       const { error } = await signUp(email, password, fullName)
       if (error) {
-        toast.error(error.message || 'Failed to create account')
+        toast.error(error.message || 'Tạo tài khoản thất bại')
       } else {
-        toast.success('Account created! Please check your email to verify your account.')
+        toast.success('Tài khoản đã được tạo! Vui lòng kiểm tra email để xác minh tài khoản.')
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      toast.error('Đã xảy ra lỗi không mong muốn')
     } finally {
       setLoading(false)
     }
@@ -66,14 +66,14 @@ export default function RegisterPage() {
     try {
       const { error } = await signInWithOAuth('google')
       if (error) {
-        toast.error(error.message || 'Failed to sign up with Google')
+        toast.error(error.message || 'Đăng ký bằng Google thất bại')
         setLoading(false)
       } else {
         // Keep loading state for redirect
         setRedirecting(true)
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      toast.error('Đã xảy ra lỗi không mong muốn')
       setLoading(false)
     }
   }
@@ -87,17 +87,17 @@ export default function RegisterPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
               <Video className="h-6 w-6 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl">Create an account</CardTitle>
-            <CardDescription>Start discovering winning ads and offers today</CardDescription>
+            <CardTitle className="text-2xl">Tạo tài khoản</CardTitle>
+            <CardDescription>Bắt đầu khám phá quảng cáo và offers thành công ngay hôm nay</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleEmailSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Họ và tên</Label>
                 <Input 
                   id="name" 
                   type="text" 
-                  placeholder="John Doe"
+                  placeholder="Nguyễn Văn A"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
@@ -108,18 +108,18 @@ export default function RegisterPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="name@example.com"
+                  placeholder="ten@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mật khẩu</Label>
                 <Input 
                   id="password" 
                   type="password" 
-                  placeholder="Create a strong password"
+                  placeholder="Tạo mật khẩu mạnh"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -130,15 +130,15 @@ export default function RegisterPage() {
                 {redirecting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Redirecting...
+                    Đang chuyển hướng...
                   </>
                 ) : loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
+                    Đang tạo tài khoản...
                   </>
                 ) : (
-                  'Create Account'
+                  'Tạo tài khoản'
                 )}
               </Button>
             </form>
@@ -148,7 +148,7 @@ export default function RegisterPage() {
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground">Hoặc tiếp tục với</span>
               </div>
             </div>
 
@@ -176,13 +176,13 @@ export default function RegisterPage() {
                   fill="#EA4335"
                 />
               </svg>
-              {redirecting ? 'Redirecting...' : loading ? 'Signing up...' : 'Sign up with Google'}
+              {redirecting ? 'Đang chuyển hướng...' : loading ? 'Đang đăng ký...' : 'Đăng ký bằng Google'}
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
+              Đã có tài khoản?{" "}
               <Link href="/login" className="text-primary hover:underline">
-                Sign in
+                Đăng nhập
               </Link>
             </div>
           </CardContent>

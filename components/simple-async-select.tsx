@@ -49,7 +49,7 @@ export function SimpleAsyncSelect({
     searchTerm
   } = useAsyncSelect(type, {
     searchDelay: 300,
-    pageSize: type === 'categories' ? 1000 : 300, // Load more categories to show hierarchy
+    pageSize: type === 'categories' ? 50 : 50, // Load more categories to show hierarchy
     minSearchLength: 0
   })
 

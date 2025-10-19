@@ -42,14 +42,14 @@ export function CompanyCard({
           <div className="rounded-lg bg-accent p-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Building2 className="h-3 w-3" />
-              Brands
+              Thương hiệu
             </div>
             <p className="mt-1 font-semibold text-foreground">{totalBrands}</p>
           </div>
           <div className="rounded-lg bg-accent p-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Video className="h-3 w-3" />
-              Total Ads
+              Tổng quảng cáo
             </div>
             <p className="mt-1 font-semibold text-foreground">{totalAds}</p>
           </div>
@@ -68,7 +68,7 @@ export function CompanyCard({
           </div>
           <div className="flex items-center gap-2 text-sm">
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Est. Spend:</span>
+            <span className="text-muted-foreground">Chi tiêu ước tính:</span>
             <span className="font-semibold text-foreground">{estimatedSpend}</span>
           </div>
         </div>
@@ -82,7 +82,7 @@ export function CompanyCard({
             onClick?.()
           }}
         >
-          View Company Details
+          Xem chi tiết doanh nghiệp
         </Button>
       </CardContent>
     </Card>

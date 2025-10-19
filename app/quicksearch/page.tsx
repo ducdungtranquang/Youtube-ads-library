@@ -37,7 +37,7 @@ function QuickSearchPage() {
     const currentQuery = searchInputRef.current?.value?.trim() || ""
     
     if (!currentQuery) {
-      toast.error("Please enter a search keyword")
+      toast.error("Vui lòng nhập từ khóa tìm kiếm")
       return
     }
 
@@ -71,18 +71,18 @@ function QuickSearchPage() {
         // Only show success toast for completed results
         const resultCount = Array.isArray(videos) ? videos.length : 0
         if (resultCount > 0) {
-          toast.success(`Found ${resultCount} results`)
+          toast.success(`Tìm thấy ${resultCount} kết quả`)
         } else {
-          toast.info('No results found')
+          toast.info('Không tìm thấy kết quả')
         }
       } else {
         console.log('No result returned from search API')
-        toast.info('No results found')
+        toast.info('Không tìm thấy kết quả')
         setSearchResults(null)
       }
     } catch (error) {
       console.error("Search error:", error)
-      toast.error("Search failed. Please try again.")
+      toast.error("Tìm kiếm thất bại. Vui lòng thử lại.")
       setSearchResults(null)
     } finally {
       setIsSearching(false)
@@ -122,15 +122,15 @@ function QuickSearchPage() {
       // Show success toast for completed polling
       const resultCount = Array.isArray(videos) ? videos.length : 0
       if (resultCount > 0) {
-        toast.success(`Found ${resultCount} results`)
+        toast.success(`Tìm thấy ${resultCount} kết quả`)
       } else {
-        toast.info('No results found')
+        toast.info('Không tìm thấy kết quả')
       }
     } else if (status === 'error') {
       console.log('Polling failed with error:', error)
       setSearchResults(null)
       setIsSearching(false)
-      toast.error(error || 'Search failed')
+      toast.error(error || 'Tìm kiếm thất bại')
     }
   }, [status, data, error])
 
@@ -139,7 +139,7 @@ function QuickSearchPage() {
   const renderedSearchResults = useMemo(() => {
     if (!searchResults || pagination.totalItems === 0) return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">No results found</p>
+        <p className="text-muted-foreground">Không tìm thấy kết quả</p>
       </div>
     )
 
@@ -200,13 +200,13 @@ function QuickSearchPage() {
               </div>
             </div>
             <h1 className="mb-8 text-3xl font-bold leading-tight md:text-3xl lg:text-5xl">
-              Quick Ad Search
+              Tìm kiếm quảng cáo nhanh
               <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                Fast & Efficient
+                Nhanh & Hiệu quả
               </span>
             </h1>
             <p className="mb-10 text-xl opacity-90 md:text-xl lg:text-2xl">
-              Discover millions of effective marketing ads from leading brands
+              Khám phá hàng triệu quảng cáo marketing hiệu quả từ các thương hiệu hàng đầu
             </p>
             
             {/* Search Form */}
@@ -216,7 +216,7 @@ function QuickSearchPage() {
                   <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder="Enter keyword, URL or brand name..."
+                    placeholder="Nhập từ khóa, URL hoặc tên thương hiệu..."
                     defaultValue={searchQuery}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -239,7 +239,7 @@ function QuickSearchPage() {
                   {isSearching ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
                   ) : (
-                    "Search"
+                    "Tìm kiếm"
                   )}
                 </Button>
               </div>
@@ -251,7 +251,7 @@ function QuickSearchPage() {
           <CardContent>
             {/* Quick Tags */}
             <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-muted-foreground mobile:w-full tablet:w-auto mb-2 tablet:mb-0">Quick searches:</span>
+              <span className="text-sm text-muted-foreground mobile:w-full tablet:w-auto mb-2 tablet:mb-0">Tìm kiếm nhanh:</span>
               {marketingTags.map((tag) => (
                 <Badge
                   key={tag}
@@ -286,15 +286,15 @@ function QuickSearchPage() {
           <Card className="mb-8" data-search-results>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Search Results</span>
+                <span>Kết quả tìm kiếm</span>
                 <Badge variant="secondary">
-                  {pagination.totalItems} results found
+                  Tìm thấy {pagination.totalItems} kết quả
                 </Badge>
               </CardTitle>
               <CardDescription>
-                Results for "{searchQuery}" in Marketing Ads
+                Kết quả cho "{searchQuery}" trong Quảng cáo Marketing
                 {pagination.totalPages > 1 && (
-                  <span> - Page {pagination.currentPage} of {pagination.totalPages}</span>
+                  <span> - Trang {pagination.currentPage} của {pagination.totalPages}</span>
                 )}
               </CardDescription>
             </CardHeader>
@@ -310,7 +310,7 @@ function QuickSearchPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <span className="font-medium">Search Error</span>
+                <span className="font-medium">Lỗi tìm kiếm</span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{error}</p>
             </CardContent>
@@ -324,31 +324,31 @@ function QuickSearchPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-primary" />
-                Quick Search
+                Tìm kiếm nhanh
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                QuickSearch helps you find and analyze the most effective marketing ads on YouTube quickly and accurately.
+                Tìm kiếm nhanh giúp bạn tìm và phân tích những quảng cáo marketing hiệu quả nhất trên YouTube một cách nhanh chóng và chính xác.
               </p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Badge variant="secondary" className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
                     ✓
                   </Badge>
-                  <span>Search by keyword, brand, product</span>
+                  <span>Tìm kiếm theo từ khóa, thương hiệu, sản phẩm</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Badge variant="secondary" className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
                     ✓
                   </Badge>
-                  <span>Filter by country, language, time</span>
+                  <span>Lọc theo quốc gia, ngôn ngữ, thời gian</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Badge variant="secondary" className="w-6 h-6 rounded-full p-0 flex items-center justify-center">
                     ✓
                   </Badge>
-                  <span>View detailed ad budget information</span>
+                  <span>Xem thông tin ngân sách quảng cáo chi tiết</span>
                 </div>
               </div>
             </CardContent>
@@ -359,7 +359,7 @@ function QuickSearchPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                Key Features
+                Tính năng chính
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -369,8 +369,8 @@ function QuickSearchPage() {
                     <Search className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">Smart Search</h4>
-                    <p className="text-xs text-muted-foreground">Use AI to find the most relevant ads</p>
+                    <h4 className="font-medium text-sm">Tìm kiếm thông minh</h4>
+                    <p className="text-xs text-muted-foreground">Sử dụng AI để tìm những quảng cáo liên quan nhất</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -378,8 +378,8 @@ function QuickSearchPage() {
                     <Globe className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">Global Coverage</h4>
-                    <p className="text-xs text-muted-foreground">Data from multiple countries and languages</p>
+                    <h4 className="font-medium text-sm">Phủ sóng toàn cầu</h4>
+                    <p className="text-xs text-muted-foreground">Dữ liệu từ nhiều quốc gia và ngôn ngữ</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -387,8 +387,8 @@ function QuickSearchPage() {
                     <Eye className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">Detailed Analysis</h4>
-                    <p className="text-xs text-muted-foreground">View budget, runtime, and ad performance</p>
+                    <h4 className="font-medium text-sm">Phân tích chi tiết</h4>
+                    <p className="text-xs text-muted-foreground">Xem ngân sách, thời gian chạy và hiệu suất quảng cáo</p>
                   </div>
                 </div>
               </div>

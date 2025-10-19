@@ -45,28 +45,28 @@ export function BrandDetailModal({ open, onOpenChange, brand }: BrandDetailModal
             <div className="rounded-lg bg-accent p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Video className="h-4 w-4" />
-                Total Ads
+                Tổng quảng cáo
               </div>
               <p className="mt-2 text-2xl font-bold text-foreground">{brand.totalAds}</p>
             </div>
             <div className="rounded-lg bg-accent p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Eye className="h-4 w-4" />
-                Total Views
+                Tổng lượt xem
               </div>
               <p className="mt-2 text-2xl font-bold text-foreground">{brand.totalViews}</p>
             </div>
             <div className="rounded-lg bg-accent p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <TrendingUp className="h-4 w-4" />
-                Active
+                Hoạt động
               </div>
-              <p className="mt-2 text-2xl font-bold text-foreground">{brand.activeMonths}mo</p>
+              <p className="mt-2 text-2xl font-bold text-foreground">{brand.activeMonths} tháng</p>
             </div>
             <div className="rounded-lg bg-accent p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <TrendingUp className="h-4 w-4" />
-                Avg CTR
+                CTR trung bình
               </div>
               <p className="mt-2 text-2xl font-bold text-foreground">{brand.avgCTR || "7.2%"}</p>
             </div>
@@ -76,7 +76,7 @@ export function BrandDetailModal({ open, onOpenChange, brand }: BrandDetailModal
 
           {topCategories.length > 0 && (
             <div>
-              <h3 className="mb-3 text-sm font-medium text-muted-foreground">Top Categories</h3>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">Danh mục hàng đầu</h3>
               <div className="flex flex-wrap gap-2">
                 {topCategories.map((category) => (
                   <Badge key={category} variant="secondary" className="text-sm">
@@ -90,19 +90,19 @@ export function BrandDetailModal({ open, onOpenChange, brand }: BrandDetailModal
           <div>
             <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              Recent Activity
+              Hoạt động gần đây
             </h3>
             <div className="rounded-lg border border-border p-4">
-              <p className="text-sm text-foreground">{brand.recentActivity || "Last ad published 3 days ago"}</p>
+              <p className="text-sm text-foreground">{brand.recentActivity || "Quảng cáo cuối được đăng 3 ngày trước"}</p>
             </div>
           </div>
 
           <div className="flex gap-3 mobile:flex-col">
             <Button className="flex-1">
               <Heart className="mr-2 h-4 w-4" />
-              Follow Brand
+              Theo dõi thương hiệu
             </Button>
-            <Button variant="secondary" className="mobile:w-full">View All Ads</Button>
+            <Button variant="secondary" className="mobile:w-full">Xem tất cả quảng cáo</Button>
           </div>
         </div>
       </DialogContent>

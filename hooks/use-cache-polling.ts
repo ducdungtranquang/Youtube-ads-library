@@ -146,8 +146,8 @@ export function useCachePolling<T = any>(
   }
 }
 
-// Specialized hook for MKT search with cache polling
-export function useMKTSearchWithCache() {
+// Generic hook for search with cache polling
+function useSearchWithCache(apiEndpoint: string) {
   const cachePolling = useCachePolling(3000, 300000) // 3s interval, 5min max
   const [loading, setLoading] = useState(false)
 
@@ -155,7 +155,7 @@ export function useMKTSearchWithCache() {
     try {
       setLoading(true)
       
-      const response = await fetch('/api/search/mkt', {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,10 +180,10 @@ export function useMKTSearchWithCache() {
       }
     } catch (error) {
       setLoading(false)
-      console.error('MKT search error:', error)
+      console.error('Search error:', error)
       throw error
     }
-  }, [cachePolling])
+  }, [cachePolling, apiEndpoint])
 
   // Update loading state based on polling
   useEffect(() => {
@@ -200,6 +200,21 @@ export function useMKTSearchWithCache() {
     status: cachePolling.status,
     stopPolling: cachePolling.stopPolling
   }
+}
+
+// Specialized hook for MKT search with cache polling
+export function useMKTSearchWithCache() {
+  return useSearchWithCache('/api/search/mkt')
+}
+
+// Specialized hook for Brands search with cache polling
+export function useBrandsSearchWithCache() {
+  return useSearchWithCache('/api/search/brands')
+}
+
+// Specialized hook for Companies search with cache polling
+export function useCompaniesSearchWithCache() {
+  return useSearchWithCache('/api/search/companies')
 }
 
 // Specialized hook for QuickSearch with cache polling

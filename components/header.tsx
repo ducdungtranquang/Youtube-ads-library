@@ -33,21 +33,21 @@ export function Header() {
     try {
       const { error } = await signOut()
       if (error) {
-        toast.error(error.message || 'Failed to sign out')
+        toast.error(error.message || 'Đăng xuất thất bại')
       } else {
-        toast.success('Successfully signed out')
+        toast.success('Đăng xuất thành công')
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      toast.error('Đã xảy ra lỗi không mong muốn')
     }
   }
 
   const navigationItems = [
-    { href: "/quicksearch", icon: Search, label: "Quick Search" },
+    { href: "/quicksearch", icon: Search, label: "Tìm kiếm nhanh" },
     { href: "/mkt", icon: TrendingUp, label: "Marketing" },
     { href: "/aff", icon: Video, label: "Affiliate" },
-    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/favorites", icon: Heart, label: "Favorites" },
+    { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
+    { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -89,7 +89,7 @@ export function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm" className="xl:hidden">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
+                <span className="sr-only">Mở menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80">
@@ -130,7 +130,7 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <TrendingUp className="h-5 w-5" />
-                    Pricing
+                    Bảng giá
                   </Link>
                 </div>
 
@@ -149,7 +149,7 @@ export function Header() {
                       </Avatar>
                       <div className="flex flex-col">
                         <p className="text-sm font-medium leading-none">
-                          {user.user_metadata?.full_name || 'User'}
+                          {user.user_metadata?.full_name || 'Người dùng'}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground mt-1">
                           {user.email}
@@ -162,7 +162,7 @@ export function Header() {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
-                      Change Password
+                      Đổi mật khẩu
                     </Link>
                     <button
                       onClick={() => {
@@ -172,7 +172,7 @@ export function Header() {
                       className="flex w-full items-center gap-3 rounded-lg p-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                     >
                       <LogOut className="h-5 w-5" />
-                      Sign out
+                      Đăng xuất
                     </button>
                   </div>
                 ) : (
@@ -182,14 +182,14 @@ export function Header() {
                       className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/80 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Sign In
+                      Đăng nhập
                     </Link>
                     <Link
                       href="/register"
                       className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Sign Up
+                      Đăng ký
                     </Link>
                   </div>
                 )}
@@ -200,7 +200,7 @@ export function Header() {
           {/* Desktop Pricing Link - Hidden on mobile */}
           <Link href="/pricing" className="hidden xl:block">
             <Button variant="ghost" size="sm">
-              Pricing
+              Bảng giá
             </Button>
           </Link>
 
@@ -226,7 +226,7 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user.user_metadata?.full_name || 'User'}
+                      {user.user_metadata?.full_name || 'Người dùng'}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user.email}
@@ -237,32 +237,32 @@ export function Header() {
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
+                    Bảng điều khiển
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/quicksearch">
                     <Search className="mr-2 h-4 w-4" />
-                    Quick Search
+                    Tìm kiếm nhanh
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/favorites">
                     <Heart className="mr-2 h-4 w-4" />
-                    Favorites
+                    Yêu thích
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/change-password">
                     <User className="mr-2 h-4 w-4" />
-                    Change Password
+                    Đổi mật khẩu
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
+                  Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -271,12 +271,12 @@ export function Header() {
             <div className="hidden xl:flex items-center gap-2">
               <Link href="/login">
                 <Button variant="ghost" size="sm">
-                  Sign In
+                  Đăng nhập
                 </Button>
               </Link>
               <Link href="/register">
                 <Button size="sm">
-                  Sign Up
+                  Đăng ký
                 </Button>
               </Link>
             </div>

@@ -36,7 +36,7 @@ export default function LoginPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Redirecting to dashboard...</p>
+          <p className="text-sm text-muted-foreground">Đang chuyển hướng đến bảng điều khiển...</p>
         </div>
       </div>
     )
@@ -49,9 +49,9 @@ export default function LoginPage() {
     try {
       const { error } = await signIn(email, password)
       if (error) {
-        toast.error(error.message || 'Failed to sign in')
+        toast.error(error.message || 'Đăng nhập thất bại')
       } else {
-        toast.success('Successfully signed in!')
+        toast.success('Đăng nhập thành công!')
         setRedirecting(true)
         // Explicit redirect to dashboard
         setTimeout(() => {
@@ -59,7 +59,7 @@ export default function LoginPage() {
         }, 1000)
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      toast.error('Đã xảy ra lỗi không mong muốn')
     } finally {
       setLoading(false)
     }
@@ -70,14 +70,14 @@ export default function LoginPage() {
     try {
       const { error } = await signInWithOAuth('google')
       if (error) {
-        toast.error(error.message || 'Failed to sign in with Google')
+        toast.error(error.message || 'Đăng nhập bằng Google thất bại')
         setLoading(false)
       } else {
         // Keep loading state for redirect
         setRedirecting(true)
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      toast.error('Đã xảy ra lỗi không mong muốn')
       setLoading(false)
     }
   }
@@ -91,8 +91,8 @@ export default function LoginPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
               <Video className="h-6 w-6 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
-            <CardDescription>Sign in to your account to continue</CardDescription>
+            <CardTitle className="text-2xl">Chào mừng trở lại</CardTitle>
+            <CardDescription>Đăng nhập vào tài khoản của bạn để tiếp tục</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleEmailLogin} className="space-y-4">
@@ -101,7 +101,7 @@ export default function LoginPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="name@example.com"
+                  placeholder="ten@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -109,15 +109,15 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Mật khẩu</Label>
                   <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot password?
+                    Quên mật khẩu?
                   </Link>
                 </div>
                 <Input 
                   id="password" 
                   type="password" 
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu của bạn"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -127,15 +127,15 @@ export default function LoginPage() {
                 {redirecting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Redirecting...
+                    Đang chuyển hướng...
                   </>
                 ) : loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Đang đăng nhập...
                   </>
                 ) : (
-                  'Sign In'
+                  'Đăng nhập'
                 )}
               </Button>
             </form>
@@ -145,7 +145,7 @@ export default function LoginPage() {
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-card px-2 text-muted-foreground">Hoặc tiếp tục với</span>
               </div>
             </div>
 
@@ -173,13 +173,13 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              {redirecting ? 'Redirecting...' : loading ? 'Signing in...' : 'Sign in with Google'}
+              {redirecting ? 'Đang chuyển hướng...' : loading ? 'Đang đăng nhập...' : 'Đăng nhập bằng Google'}
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Chưa có tài khoản?{" "}
               <Link href="/register" className="text-primary hover:underline">
-                Sign up
+                Đăng ký
               </Link>
             </div>
           </CardContent>

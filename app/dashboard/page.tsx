@@ -85,8 +85,8 @@ export default function DashboardPage() {
 
       <main className="container py-8">
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Analytics and insights for marketing and affiliate campaigns</p>
+          <h1 className="mb-2 text-3xl font-bold text-foreground">Bảng điều khiển</h1>
+          <p className="text-muted-foreground">Phân tích và thông tin chi tiết về các chiến dịch marketing và affiliate</p>
         </div>
 
         {/* Stats Overview */}
@@ -95,11 +95,11 @@ export default function DashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Ads Tracked</p>
+                  <p className="text-sm font-medium text-muted-foreground">Tổng quảng cáo theo dõi</p>
                   <p className="text-2xl font-bold text-foreground">24,567</p>
                   <p className="mt-1 flex items-center text-xs text-secondary">
                     <ArrowUpRight className="mr-1 h-3 w-3" />
-                    +12.5% from last month
+                    +12.5% so với tháng trước
                   </p>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -113,11 +113,11 @@ export default function DashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Offers</p>
+                  <p className="text-sm font-medium text-muted-foreground">Offers đang hoạt động</p>
                   <p className="text-2xl font-bold text-foreground">1,234</p>
                   <p className="mt-1 flex items-center text-xs text-secondary">
                     <ArrowUpRight className="mr-1 h-3 w-3" />
-                    +8.2% from last month
+                    +8.2% so với tháng trước
                   </p>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/10">
@@ -131,11 +131,11 @@ export default function DashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Views</p>
+                  <p className="text-sm font-medium text-muted-foreground">Tổng lượt xem</p>
                   <p className="text-2xl font-bold text-foreground">1.2B</p>
                   <p className="mt-1 flex items-center text-xs text-secondary">
                     <ArrowUpRight className="mr-1 h-3 w-3" />
-                    +15.3% from last month
+                    +15.3% so với tháng trước
                   </p>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent">
@@ -149,11 +149,11 @@ export default function DashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">My Favorites</p>
+                  <p className="text-sm font-medium text-muted-foreground">Yêu thích của tôi</p>
                   <p className="text-2xl font-bold text-foreground">47</p>
                   <p className="mt-1 flex items-center text-xs text-muted-foreground">
                     <Heart className="mr-1 h-3 w-3" />
-                    Saved items
+                    Mục đã lưu
                   </p>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -166,16 +166,16 @@ export default function DashboardPage() {
 
         <Tabs defaultValue="marketing" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="marketing">Marketing Analytics</TabsTrigger>
-            <TabsTrigger value="affiliate">Affiliate Analytics</TabsTrigger>
+            <TabsTrigger value="marketing">Phân tích Marketing</TabsTrigger>
+            <TabsTrigger value="affiliate">Phân tích Affiliate</TabsTrigger>
           </TabsList>
 
           <TabsContent value="marketing" className="space-y-6">
             {/* Trending Ads Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Trending Ads Over Time</CardTitle>
-                <CardDescription>Number of new ads discovered per month</CardDescription>
+                <CardTitle>Xu hướng quảng cáo theo thời gian</CardTitle>
+                <CardDescription>Số lượng quảng cáo mới được phát hiện mỗi tháng</CardDescription>
               </CardHeader>
               <CardContent>
                 <ChartContainer
@@ -210,8 +210,8 @@ export default function DashboardPage() {
               {/* Top Categories */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Categories</CardTitle>
-                  <CardDescription>Most active advertising categories</CardDescription>
+                  <CardTitle>Danh mục hàng đầu</CardTitle>
+                  <CardDescription>Các danh mục quảng cáo hoạt động nhiều nhất</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ChartContainer
@@ -239,8 +239,8 @@ export default function DashboardPage() {
               {/* Top Countries */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Countries</CardTitle>
-                  <CardDescription>Markets with most ad activity</CardDescription>
+                  <CardTitle>Quốc gia hàng đầu</CardTitle>
+                  <CardDescription>Thị trường có hoạt động quảng cáo nhiều nhất</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -252,7 +252,7 @@ export default function DashboardPage() {
                           </div>
                           <div>
                             <p className="font-medium text-foreground">{item.country}</p>
-                            <p className="text-sm text-muted-foreground">{item.ads.toLocaleString()} ads</p>
+                            <p className="text-sm text-muted-foreground">{item.ads.toLocaleString()} quảng cáo</p>
                           </div>
                         </div>
                         <Badge
@@ -278,11 +278,11 @@ export default function DashboardPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Top Performing Ads</CardTitle>
-                    <CardDescription>Highest CTR ads this month</CardDescription>
+                    <CardTitle>Quảng cáo hiệu suất cao nhất</CardTitle>
+                    <CardDescription>Quảng cáo có CTR cao nhất tháng này</CardDescription>
                   </div>
                   <Button variant="outline" size="sm" className="bg-transparent">
-                    View All
+                    Xem tất cả
                   </Button>
                 </div>
               </CardHeader>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                           <Badge variant="secondary" className="text-xs">
                             {ad.category}
                           </Badge>
-                          <span className="text-sm text-muted-foreground">{ad.views} views</span>
+                          <span className="text-sm text-muted-foreground">{ad.views} lượt xem</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -319,11 +319,11 @@ export default function DashboardPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Top Performing Offers</CardTitle>
-                    <CardDescription>Most promoted affiliate offers</CardDescription>
+                    <CardTitle>Offers hiệu suất cao nhất</CardTitle>
+                    <CardDescription>Offers affiliate được quảng bá nhiều nhất</CardDescription>
                   </div>
                   <Button variant="outline" size="sm" className="bg-transparent">
-                    View All
+                    Xem tất cả
                   </Button>
                 </div>
               </CardHeader>
@@ -337,13 +337,13 @@ export default function DashboardPage() {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">{offer.name}</p>
-                          <p className="text-sm text-muted-foreground">{offer.videos} videos promoting</p>
+                          <p className="text-sm text-muted-foreground">{offer.videos} video quảng bá</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <p className="text-lg font-bold text-foreground">{offer.payout}</p>
-                          <p className="text-xs text-muted-foreground">Payout</p>
+                          <p className="text-xs text-muted-foreground">Hoa hồng</p>
                         </div>
                         {offer.trend === "up" ? (
                           <ArrowUpRight className="h-5 w-5 text-secondary" />
@@ -361,8 +361,8 @@ export default function DashboardPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Network Distribution</CardTitle>
-                  <CardDescription>Offers by affiliate network</CardDescription>
+                  <CardTitle>Phân bố mạng lưới</CardTitle>
+                  <CardDescription>Offers theo mạng lưới affiliate</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -390,16 +390,16 @@ export default function DashboardPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Vertical Performance</CardTitle>
-                  <CardDescription>Top performing verticals by EPC</CardDescription>
+                  <CardTitle>Hiệu suất theo lĩnh vực</CardTitle>
+                  <CardDescription>Lĩnh vực có hiệu suất cao nhất theo EPC</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {[
-                      { vertical: "Finance", epc: "$3.20", color: "bg-chart-1" },
-                      { vertical: "Software/SaaS", epc: "$2.90", color: "bg-chart-2" },
-                      { vertical: "E-commerce", epc: "$2.45", color: "bg-chart-3" },
-                      { vertical: "Health", epc: "$1.85", color: "bg-chart-4" },
+                      { vertical: "Tài chính", epc: "$3.20", color: "bg-chart-1" },
+                      { vertical: "Phần mềm/SaaS", epc: "$2.90", color: "bg-chart-2" },
+                      { vertical: "Thương mại điện tử", epc: "$2.45", color: "bg-chart-3" },
+                      { vertical: "Sức khỏe", epc: "$1.85", color: "bg-chart-4" },
                     ].map((item, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
