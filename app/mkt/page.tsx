@@ -812,7 +812,14 @@ export default function MKTPage() {
                           (brand: any, index: number) => (
                             <BrandCard
                               key={brand.brandId || `brand-${index}`}
-                              {...brand}
+                              name={brand.name}
+                              description={brand.description || "Không có mô tả"}
+                              logo={brand.thumbnail}
+                              totalAds={brand.summary_data?.total_spend || brand.totalSpend || 0}
+                              totalViews={brand.summary_data?.total_views || "0"}
+                              activeMonths={Math.ceil((brand.summary_data?.spend_365 || 0) / 30) || 1}
+                              totalSpend={brand.summary_data?.total_spend || brand.totalSpend || 0}
+                              summaryDate={brand.summary_data?.summary_date}
                               onClick={() => setSelectedBrand(brand)}
                             />
                           )
@@ -929,7 +936,17 @@ export default function MKTPage() {
       <BrandDetailModal
         open={!!selectedBrand}
         onOpenChange={(open) => !open && setSelectedBrand(null)}
-        brand={selectedBrand || {}}
+        brand={{
+          name: selectedBrand?.name || "",
+          description: selectedBrand?.description || "Không có mô tả",
+          logo: selectedBrand?.thumbnail || "",
+          totalAds: selectedBrand?.summary_data?.total_spend || selectedBrand?.totalSpend || 0,
+          totalViews: selectedBrand?.summary_data?.total_views || "0",
+          activeMonths: Math.ceil((selectedBrand?.summary_data?.spend_365 || 0) / 30) || 1,
+          avgCTR: "N/A",
+          topCategories: [],
+          recentActivity: `Hoạt động gần đây: Chi tiêu 30 ngày: $${selectedBrand?.summary_data?.spend_30 || 0}`
+        }}
       />
 
       <CompanyDetailModal
