@@ -806,7 +806,7 @@ export default function MKTPage() {
 
                   {brandsPagination.totalItems > 0 ? (
                     <>
-                      <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
                         {brandsPagination.currentItems.map(
                           (brand: any, index: number) => (
                             <BrandCard
@@ -871,7 +871,7 @@ export default function MKTPage() {
 
                   {companiesPagination.totalItems > 0 ? (
                     <>
-                      <div className="grid gap-4 tablet:grid-cols-1 desktop:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
                         {companiesPagination.currentItems.map(
                           (company: any, index: number) => (
                             <CompanyCard
