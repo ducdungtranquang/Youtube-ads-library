@@ -23,7 +23,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Calendar, Globe, Filter, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { useMKTSearch } from "@/hooks/use-mkt-search";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
 // Import optimized async select components
 import {
@@ -877,7 +876,14 @@ export default function MKTPage() {
                           (company: any, index: number) => (
                             <CompanyCard
                               key={company.companyId || `company-${index}`}
-                              {...company}
+                              name={company.legalName || company.summary_data?.legal_name || "Tên không xác định"}
+                              description={`Doanh nghiệp ${company.isAffiliate ? 'Affiliate' : 'Marketing'} - ID: ${company.companyId}`}
+                              totalBrands={1} // Companies API không trả về totalBrands, default 1
+                              totalAds={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000)} // Estimate ads from spend
+                              markets={[`Quốc gia ID: ${company.countryId || company.summary_data?.country_id || 'N/A'}`]}
+                              estimatedSpend={`$${((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000).toFixed(1)}M`}
+                              totalSpend={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000)}
+                              summaryDate={company.summary_data?.summary_date}
                               onClick={() => setSelectedCompany(company)}
                             />
                           )
@@ -926,7 +932,21 @@ export default function MKTPage() {
       <VideoDetailModal
         open={!!selectedVideo}
         onOpenChange={(open) => !open && setSelectedVideo(null)}
-        video={selectedVideo || {}}
+        video={{
+          title: selectedVideo?.title || "",
+          channel: selectedVideo?.channel || "",
+          views: selectedVideo?.views || "0",
+          ctr: selectedVideo?.ctr || "0%",
+          date: selectedVideo?.date || "",
+          thumbnail: selectedVideo?.thumbnail || "",
+          url: selectedVideo?.url || "",
+          companyName: selectedVideo?.companyName || "",
+          description: selectedVideo?.description || "",
+          duration: selectedVideo?.duration || "",
+          engagement: selectedVideo?.engagement || "",
+          avgViewDuration: selectedVideo?.avgViewDuration || "",
+          ytVideoId: selectedVideo?.ytVideoId || selectedVideo?.videoId || ""
+        }}
         onCompanyClick={() => {
           // Company details coming soon
           toast.info("Thông tin doanh nghiệp sắp ra mắt!");
@@ -952,7 +972,17 @@ export default function MKTPage() {
       <CompanyDetailModal
         open={!!selectedCompany}
         onOpenChange={(open) => !open && setSelectedCompany(null)}
-        company={selectedCompany || {}}
+        company={{
+          name: selectedCompany?.legalName || selectedCompany?.summary_data?.legal_name || "Tên không xác định",
+          description: `Doanh nghiệp ${selectedCompany?.isAffiliate ? 'Affiliate' : 'Marketing'} hoạt động tại quốc gia ID ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}. Danh mục: ${selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id || 'N/A'}`,
+          totalBrands: 1, // Companies API không có thông tin totalBrands
+          totalAds: Math.floor((selectedCompany?.summary_data?.total_spend || selectedCompany?.totalSpend || 0) / 1000),
+          markets: [`Quốc gia ID: ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}`],
+          estimatedSpend: `$${((selectedCompany?.summary_data?.total_spend || selectedCompany?.totalSpend || 0) / 1000000).toFixed(1)}M`,
+          topBrands: [], // Không có thông tin brands
+          recentCampaigns: Math.floor((selectedCompany?.summary_data?.spend_30 || 0) / 1000000),
+          avgCTR: "N/A"
+        }}
       />
     </div>
   );

@@ -9,10 +9,14 @@ import { VidTaoAuth } from './auth'
 export class VidTaoManager {
   private accountManager: VidTaoAccountManager
   private apiService: VidTaoAPIService
+  private isInitialized: boolean = false
 
   constructor() {
     this.accountManager = new VidTaoAccountManager(DEFAULT_ACCOUNTS)
     this.apiService = new VidTaoAPIService(this.accountManager)
+
+    // Initialize accounts on first construction
+    this.initializeAccounts()
 
     // Auto refresh tokens every 30 minutes
     setInterval(() => {
@@ -23,6 +27,27 @@ export class VidTaoManager {
     setInterval(() => {
       this.accountManager.resetRequestCounts()
     }, 60 * 60 * 1000)
+  }
+
+  /**
+   * Initialize all accounts with authentication
+   */
+  private async initializeAccounts(): Promise<void> {
+    if (this.isInitialized) return
+
+    console.log('Initializing VidTao accounts...')
+    
+    const accounts = this.accountManager.getAccounts()
+    for (const account of accounts) {
+      if (account.email && account.password) {
+        await VidTaoAuth.loginToVidTao(account)
+        // Small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      }
+    }
+    
+    this.isInitialized = true
+    console.log('VidTao accounts initialization completed')
   }
 
   /**
@@ -75,6 +100,18 @@ export class VidTaoManager {
    */
   async searchCompanies(params: MKTSearchParams): Promise<VidTaoResponse> {
     return this.apiService.searchCompanies(params)
+  }
+
+  /**
+   * Get Video Details using VidTao Video API
+   */
+  async getVideoDetails(videoId: string): Promise<VidTaoResponse> {
+    // Ensure accounts are initialized
+    if (!this.isInitialized) {
+      await this.initializeAccounts()
+    }
+    
+    return this.apiService.getVideoDetails(videoId)
   }
 
   /**

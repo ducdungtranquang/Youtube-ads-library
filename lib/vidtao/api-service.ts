@@ -578,4 +578,110 @@ export class VidTaoAPIService {
       }
     }
   }
+
+  /**
+   * Get Video Details using VidTao Video API
+   */
+  async getVideoDetails(videoId: string): Promise<VidTaoResponse> {
+    const account = this.accountManager.getAvailableAccount()
+    if (!account) {
+      return {
+        success: false,
+        error: 'No available VidTao accounts'
+      }
+    }
+
+    // Ensure account has valid token
+    const hasValidToken = await VidTaoAuth.ensureValidToken(account)
+    if (!hasValidToken) {
+      // Block this account temporarily
+      account.isBlocked = true
+      account.blockUntil = Date.now() + (10 * 60 * 1000) // 10 minutes
+      return this.getVideoDetails(videoId) // Try with next account
+    }
+
+    try {
+      console.log(`Making Video Details request with account: ${account.id} for video: ${videoId}`)
+      
+      // Use token (preferred) or accessToken as fallback
+      const authToken = account.token || account.accessToken
+      if (!authToken) {
+        throw new Error('No valid token found for account')
+      }
+
+      const response = await fetch(`https://apiv1.vidtao.com/api/videos/${videoId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json',
+        },
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      })
+
+      // Update account usage
+      account.lastUsed = Date.now()
+      account.requestCount++
+      if (account.lastRequestTime !== undefined) {
+        account.lastRequestTime = Date.now()
+      }
+
+      if (response.status === 401) {
+        console.warn(`Account ${account.id} received 401, attempting token refresh`)
+        const newToken = await VidTaoAuth.refreshToken(account)
+        if (newToken) {
+          return this.getVideoDetails(videoId)
+        } else {
+          account.isBlocked = true
+          account.blockUntil = Date.now() + (10 * 60 * 1000)
+          return this.getVideoDetails(videoId)
+        }
+      }
+
+      if (response.status === 403) {
+        console.warn(`Account ${account.id} received 403 Forbidden - insufficient permissions`)
+        account.isBlocked = true
+        account.blockUntil = Date.now() + (15 * 60 * 1000) // Block for longer on 403
+        return this.getVideoDetails(videoId)
+      }
+
+      if (response.status === 429) {
+        console.warn(`Account ${account.id} hit rate limit, blocking temporarily`)
+        account.isBlocked = true
+        account.blockUntil = Date.now() + VIDTAO_CONFIG.BLOCK_TIME
+        return this.getVideoDetails(videoId)
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`Video Details API error: ${response.status} ${response.statusText}`, errorText)
+        throw new Error(`Video Details API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      return {
+        success: true,
+        data,
+        account: account.id
+      }
+
+    } catch (error) {
+      console.error(`Video Details failed with account ${account.id}:`, error)
+      
+      // If error is network-related, try next account
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        account.isBlocked = true
+        account.blockUntil = Date.now() + (5 * 60 * 1000) // 5 minutes
+        return this.getVideoDetails(videoId)
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        account: account.id
+      }
+    }
+  }
 }

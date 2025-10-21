@@ -11,6 +11,8 @@ export interface VidTaoAccount {
   requestCount: number
   isBlocked: boolean
   blockUntil?: number
+  accessToken?: string // Alias for token to support both naming conventions
+  lastRequestTime?: number // Optional for backward compatibility
 }
 
 export interface VidTaoResponse {
