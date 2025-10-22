@@ -3,7 +3,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { FavoriteButton } from "@/components/favorite-button"
 import { Video, Eye, TrendingUp, DollarSign, Calendar } from "lucide-react"
+import { BrandFavoriteData } from "@/lib/favorites"
 
 interface BrandCardProps {
   name: string
@@ -18,6 +20,17 @@ interface BrandCardProps {
 }
 
 export function BrandCard({ name, description, logo, totalAds, totalViews, activeMonths, totalSpend, summaryDate, onClick }: BrandCardProps) {
+  const favoriteData: BrandFavoriteData = {
+    name,
+    description,
+    logo,
+    totalAds,
+    totalViews,
+    activeMonths,
+    totalSpend: totalSpend || 0,
+    summaryDate
+  }
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return ""
     try {
@@ -86,16 +99,27 @@ export function BrandCard({ name, description, logo, totalAds, totalViews, activ
           </div>
         </div>
 
-        <Button
-          className="w-full"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation()
-            onClick?.()
-          }}
-        >
-          Xem tất cả quảng cáo
-        </Button>
+        <div className="flex gap-2">
+          <FavoriteButton
+            itemType="brand"
+            itemId={name}
+            itemData={favoriteData}
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            showText
+          />
+          <Button
+            className="flex-1"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              onClick?.()
+            }}
+          >
+            Xem chi tiết
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

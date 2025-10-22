@@ -3,7 +3,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { FavoriteButton } from "@/components/favorite-button"
 import { Video, Eye, TrendingUp, ExternalLink } from "lucide-react"
+import { AffiliateFavoriteData } from "@/lib/favorites"
 
 interface AffiliateCardProps {
   name: string
@@ -13,6 +15,7 @@ interface AffiliateCardProps {
   successRate: string
   topOffers: string[]
   avatar: string
+  description?: string
   onClick?: () => void
 }
 
@@ -24,8 +27,19 @@ export function AffiliateCard({
   successRate,
   topOffers,
   avatar,
+  description,
   onClick,
 }: AffiliateCardProps) {
+  const favoriteData: AffiliateFavoriteData = {
+    name,
+    channelUrl,
+    totalVideos,
+    totalViews,
+    successRate,
+    topOffers,
+    avatar,
+    description
+  }
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
       <CardHeader className="pb-3">
@@ -84,17 +98,28 @@ export function AffiliateCard({
           </div>
         </div>
 
-        <Button
-          className="w-full"
-          size="sm"
-          variant="secondary"
-          onClick={(e) => {
-            e.stopPropagation()
-            onClick?.()
-          }}
-        >
-          View Profile
-        </Button>
+        <div className="flex gap-2">
+          <FavoriteButton
+            itemType="affiliate"
+            itemId={name}
+            itemData={favoriteData}
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            showText
+          />
+          <Button
+            className="flex-1"
+            size="sm"
+            variant="secondary"
+            onClick={(e) => {
+              e.stopPropagation()
+              onClick?.()
+            }}
+          >
+            Xem hồ sơ
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

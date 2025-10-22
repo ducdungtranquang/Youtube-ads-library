@@ -1,0 +1,97 @@
+"use client"
+
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Heart } from 'lucide-react'
+import { useFavorites, scheduleFavoriteCheck } from '@/hooks/use-favorites'
+import { useAuth } from '@/contexts/auth-context'
+import { 
+  FavoriteType,
+  VideoFavoriteData,
+  OfferFavoriteData,
+  AffiliateFavoriteData,
+  BrandFavoriteData,
+  CompanyFavoriteData
+} from '@/lib/favorites'
+import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+
+interface FavoriteButtonProps {
+  itemType: FavoriteType
+  itemId: string
+  itemData: VideoFavoriteData | OfferFavoriteData | AffiliateFavoriteData | BrandFavoriteData | CompanyFavoriteData
+  variant?: 'default' | 'ghost' | 'outline'
+  size?: 'sm' | 'default' | 'lg'
+  showText?: boolean
+  className?: string
+  onToggle?: (isFavorited: boolean) => void
+}
+
+export function FavoriteButton({
+  itemType,
+  itemId,
+  itemData,
+  variant = 'ghost',
+  size = 'default',
+  showText = false,
+  className,
+  onToggle
+}: FavoriteButtonProps) {
+  const [isFavorited, setIsFavorited] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
+  const { toggleFavorite, loading } = useFavorites()
+  const { user } = useAuth()
+
+  // Check initial favorite status using batched scheduler
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (!user) {
+        setIsChecking(false)
+        return
+      }
+      
+      setIsChecking(true)
+      const favorited = await scheduleFavoriteCheck({ type: itemType, id: itemId })
+      setIsFavorited(favorited)
+      setIsChecking(false)
+    }
+
+    checkStatus()
+  }, [itemType, itemId, user])
+
+  const handleToggle = async () => {
+    if (!user) {
+      toast.error('Bạn cần đăng nhập để sử dụng tính năng yêu thích')
+      return
+    }
+
+    const newStatus = await toggleFavorite(itemType, itemId, itemData)
+    setIsFavorited(newStatus)
+    onToggle?.(newStatus)
+  }
+
+  const isLoading = loading || isChecking
+
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      onClick={handleToggle}
+      disabled={isLoading}
+      className={cn(
+        'transition-colors',
+        isFavorited && 'text-red-500 hover:text-red-600',
+        className
+      )}
+    >
+      <Heart 
+        className={cn(
+          'h-4 w-4',
+          showText && 'mr-2',
+          isFavorited && 'fill-current'
+        )} 
+      />
+      {showText && (isFavorited ? 'Đã yêu thích' : 'Yêu thích')}
+    </Button>
+  )
+}

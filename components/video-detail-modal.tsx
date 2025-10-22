@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Eye, Calendar, TrendingUp, Heart, ExternalLink, Building2, Play, DollarSign, Clock, AlertTriangle } from "lucide-react"
+import { FavoriteButton } from "@/components/favorite-button"
+import { Eye, Calendar, TrendingUp, ExternalLink, Building2, Play, DollarSign, Clock, AlertTriangle } from "lucide-react"
 import { useVideoDetails } from "@/hooks/use-video-details"
 import { toast } from "sonner"
+import { VideoFavoriteData } from "@/lib/favorites"
 
 interface VideoDetailModalProps {
   open: boolean
@@ -267,10 +269,26 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
 
               {/* Action Buttons */}
               <div className="flex gap-3 mobile:flex-col">
-                <Button className="flex-1">
-                  <Heart className="mr-2 h-4 w-4" />
-                  Thêm vào yêu thích
-                </Button>
+                <FavoriteButton
+                  itemType="video"
+                  itemId={displayData.ytVideoId || video.ytVideoId || video.title}
+                  itemData={{
+                    title: displayData.title,
+                    channel: displayData.channel,
+                    views: video.views,
+                    ctr: video.ctr,
+                    date: displayData.publishedAt,
+                    thumbnail: displayData.thumbnail,
+                    url: video.url,
+                    ytVideoId: displayData.ytVideoId,
+                    description: displayData.description,
+                    duration: displayData.duration,
+                    companyName: video.companyName
+                  } as VideoFavoriteData}
+                  variant="default"
+                  showText
+                  className="flex-1"
+                />
                 {displayData.ytVideoId && (
                   <Button variant="secondary" asChild className="mobile:w-full">
                     <a href={`https://youtube.com/watch?v=${displayData.ytVideoId}`} target="_blank" rel="noopener noreferrer">

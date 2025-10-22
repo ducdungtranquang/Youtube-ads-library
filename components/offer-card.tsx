@@ -3,7 +3,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DollarSign, Video, Globe, TrendingUp, Heart } from "lucide-react"
+import { FavoriteButton } from "@/components/favorite-button"
+import { DollarSign, Video, Globe, TrendingUp } from "lucide-react"
+import { OfferFavoriteData } from "@/lib/favorites"
 
 interface OfferCardProps {
   name: string
@@ -13,10 +15,23 @@ interface OfferCardProps {
   epc: string
   countries: string[]
   totalVideos: number
+  description?: string
+  landingPageUrl?: string
   onClick?: () => void
 }
 
-export function OfferCard({ name, network, vertical, payout, epc, countries, totalVideos, onClick }: OfferCardProps) {
+export function OfferCard({ name, network, vertical, payout, epc, countries, totalVideos, description, landingPageUrl, onClick }: OfferCardProps) {
+  const favoriteData: OfferFavoriteData = {
+    name,
+    network,
+    vertical,
+    payout,
+    epc,
+    countries,
+    totalVideos,
+    description,
+    landingPageUrl
+  }
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
       <CardHeader className="pb-3">
@@ -72,10 +87,15 @@ export function OfferCard({ name, network, vertical, payout, epc, countries, tot
         </div>
 
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="flex-1 bg-transparent" onClick={(e) => e.stopPropagation()}>
-            <Heart className="mr-1 h-3 w-3" />
-            Save Offer
-          </Button>
+          <FavoriteButton
+            itemType="offer"
+            itemId={name}
+            itemData={favoriteData}
+            size="sm"
+            variant="outline"
+            className="flex-1 bg-transparent"
+            showText
+          />
           <Button
             size="sm"
             variant="secondary"
@@ -84,7 +104,7 @@ export function OfferCard({ name, network, vertical, payout, epc, countries, tot
               onClick?.()
             }}
           >
-            View Videos
+            Xem video
           </Button>
         </div>
       </CardContent>

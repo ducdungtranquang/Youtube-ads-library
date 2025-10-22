@@ -3,16 +3,22 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { FavoriteButton } from "@/components/favorite-button"
 import { Building2, Video, Globe, TrendingUp, DollarSign, Calendar } from "lucide-react"
+import { CompanyFavoriteData } from "@/lib/favorites"
 
 interface CompanyCardProps {
   name: string
   description: string
-  totalBrands: number
-  totalAds: number
-  markets: string[]
-  estimatedSpend: string
+  legalName?: string
+  companyId: string
+  isAffiliate: boolean
+  totalVideos?: number
   totalSpend?: number
+  totalBrands?: number
+  totalAds?: number
+  markets?: string[]
+  estimatedSpend?: string
   summaryDate?: string
   onClick?: () => void
 }
@@ -20,14 +26,28 @@ interface CompanyCardProps {
 export function CompanyCard({
   name,
   description,
+  legalName,
+  companyId,
+  isAffiliate,
+  totalVideos,
+  totalSpend,
   totalBrands,
   totalAds,
   markets,
   estimatedSpend,
-  totalSpend,
   summaryDate,
   onClick,
 }: CompanyCardProps) {
+  const favoriteData: CompanyFavoriteData = {
+    name,
+    description,
+    legalName,
+    companyId,
+    isAffiliate,
+    totalVideos,
+    totalSpend
+  }
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return ""
     try {
@@ -65,66 +85,44 @@ export function CompanyCard({
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="rounded-lg bg-accent p-2 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-              <Building2 className="h-3 w-3" />
-              Thương hiệu
+              <Video className="h-3 w-3" />
+              Video
             </div>
-            <p className="mt-1 font-semibold text-foreground">{totalBrands}</p>
+            <p className="mt-1 font-semibold text-foreground">{totalVideos || totalAds || 0}</p>
           </div>
           <div className="rounded-lg bg-accent p-2 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-              <Video className="h-3 w-3" />
-              Tổng quảng cáo
+              <DollarSign className="h-3 w-3" />
+              Chi tiêu
             </div>
-            <p className="mt-1 font-semibold text-foreground">{totalAds}</p>
-          </div>
-        </div>
-        
-        {totalSpend !== undefined && (
-          <div className="grid grid-cols-1 gap-2 mb-3">
-            <div className="rounded-lg bg-accent p-2 text-center">
-              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                <DollarSign className="h-3 w-3" />
-                Chi tiêu tổng
-              </div>
-              <p className="mt-1 font-semibold text-foreground">${totalSpend}</p>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm">
-            <Globe className="h-4 w-4 text-muted-foreground" />
-            <div className="flex flex-wrap gap-1">
-              {(markets || []).slice(0, 3).map((market) => (
-                <Badge key={market} variant="outline" className="text-xs">
-                  {market}
-                </Badge>
-              ))}
-              {(markets || []).length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{(markets || []).length - 3}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Chi tiêu ước tính:</span>
-            <span className="font-semibold text-foreground">{estimatedSpend}</span>
+            <p className="mt-1 font-semibold text-foreground">
+              ${totalSpend || estimatedSpend || "N/A"}
+            </p>
           </div>
         </div>
 
-        <Button
-          className="w-full"
-          size="sm"
-          variant="secondary"
-          onClick={(e) => {
-            e.stopPropagation()
-            onClick?.()
-          }}
-        >
-          Xem chi tiết doanh nghiệp
-        </Button>
+        <div className="flex gap-2">
+          <FavoriteButton
+            itemType="company"
+            itemId={companyId}
+            itemData={favoriteData}
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            showText
+          />
+          <Button
+            className="flex-1"
+            size="sm"
+            variant="secondary"
+            onClick={(e) => {
+              e.stopPropagation()
+              onClick?.()
+            }}
+          >
+            Xem chi tiết
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

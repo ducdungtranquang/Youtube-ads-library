@@ -3,7 +3,9 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Calendar, TrendingUp, Heart, ExternalLink, Building2 } from "lucide-react"
+import { FavoriteButton } from "@/components/favorite-button"
+import { Eye, Calendar, TrendingUp, ExternalLink, Building2 } from "lucide-react"
+import { VideoFavoriteData } from "@/lib/favorites"
 
 interface VideoCardProps {
   title: string
@@ -13,6 +15,9 @@ interface VideoCardProps {
   date: string
   thumbnail: string
   url?: string
+  ytVideoId?: string
+  description?: string
+  duration?: string
   companyName?: string
   onCompanyClick?: () => void
   onClick?: () => void
@@ -26,10 +31,26 @@ export function VideoCard({
   date,
   thumbnail,
   url,
+  ytVideoId,
+  description,
+  duration,
   companyName,
   onCompanyClick,
   onClick,
 }: VideoCardProps) {
+  const favoriteData: VideoFavoriteData = {
+    title,
+    channel,
+    views,
+    ctr,
+    date,
+    thumbnail,
+    url,
+    ytVideoId,
+    description,
+    duration,
+    companyName
+  }
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
       <CardContent className="p-4">
@@ -81,10 +102,15 @@ export function VideoCard({
             </div>
 
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="flex-1 bg-transparent h-7 text-xs" onClick={(e) => e.stopPropagation()}>
-                <Heart className="mr-1 h-2 w-2" />
-                Lưu
-              </Button>
+              <FavoriteButton
+                itemType="video"
+                itemId={ytVideoId || title}
+                itemData={favoriteData}
+                size="sm"
+                variant="outline"
+                className="flex-1 bg-transparent h-7 text-xs"
+                showText
+              />
               {url && (
                 <Button size="sm" variant="outline" className="bg-transparent h-7 px-2" asChild onClick={(e) => e.stopPropagation()}>
                   <a href={url} target="_blank" rel="noopener noreferrer">

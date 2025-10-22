@@ -884,8 +884,7 @@ export default function MKTPage() {
                               estimatedSpend={`$${((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000).toFixed(1)}M`}
                               totalSpend={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000)}
                               summaryDate={company.summary_data?.summary_date}
-                              onClick={() => setSelectedCompany(company)}
-                            />
+                              onClick={() => setSelectedCompany(company)} companyId={""} isAffiliate={false}                            />
                           )
                         )}
                       </div>
