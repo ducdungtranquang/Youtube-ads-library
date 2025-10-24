@@ -684,4 +684,87 @@ export class VidTaoAPIService {
       }
     }
   }
+
+  /**
+   * Get Brand Details using VidTao Brand API
+   */
+  async getBrandDetails(brandId: string): Promise<VidTaoResponse> {
+    const account = this.accountManager.getAvailableAccount()
+    if (!account) {
+      return {
+        success: false,
+        error: 'No available VidTao accounts'
+      }
+    }
+
+    // Ensure account has valid token
+    const hasValidToken = await VidTaoAuth.ensureValidToken(account)
+    if (!hasValidToken) {
+      // Block this account temporarily
+      account.isBlocked = true
+      account.blockUntil = Date.now() + (10 * 60 * 1000) // 10 minutes
+      return this.getBrandDetails(brandId) // Try with next account
+    }
+
+    try {
+      const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/brands/${brandId}?basicInfo=undefined&encrypted`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${account.token}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      })
+
+      // Update account usage
+      account.lastUsed = Date.now()
+      account.requestCount++
+
+      if (response.status === 401) {
+        console.warn(`Account ${account.id} received 401, attempting token refresh`)
+        const newToken = await VidTaoAuth.refreshToken(account)
+        if (newToken) {
+          return this.getBrandDetails(brandId)
+        } else {
+          account.isBlocked = true
+          account.blockUntil = Date.now() + (10 * 60 * 1000)
+          return this.getBrandDetails(brandId)
+        }
+      }
+
+      if (response.status === 429) {
+        console.warn(`Account ${account.id} hit rate limit, blocking temporarily`)
+        account.isBlocked = true
+        account.blockUntil = Date.now() + VIDTAO_CONFIG.BLOCK_TIME
+        return this.getBrandDetails(brandId)
+      }
+
+      if (!response.ok) {
+        throw new Error(`Brand Details API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      
+      return {
+        success: true,
+        data,
+        account: account.id
+      }
+
+    } catch (error) {
+      console.error(`Brand Details failed with account ${account.id}:`, error)
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        account.isBlocked = true
+        account.blockUntil = Date.now() + (5 * 60 * 1000) // 5 minutes
+        return this.getBrandDetails(brandId)
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        account: account.id
+      }
+    }
+  }
 }

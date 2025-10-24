@@ -115,6 +115,18 @@ export class VidTaoManager {
   }
 
   /**
+   * Get Brand Details using VidTao Brand API
+   */
+  async getBrandDetails(brandId: string): Promise<VidTaoResponse> {
+    // Ensure accounts are initialized
+    if (!this.isInitialized) {
+      await this.initializeAccounts()
+    }
+    
+    return this.apiService.getBrandDetails(brandId)
+  }
+
+  /**
    * Get status of all accounts
    */
   getAccountsStatus() {

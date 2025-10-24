@@ -55,13 +55,11 @@ export interface AffiliateFavoriteData {
 // Brand favorite data structure
 export interface BrandFavoriteData {
   name: string
+  thumbnail: string
   description: string
-  logo: string
-  totalAds: number
-  totalViews: string
-  activeMonths: number
-  totalSpend: number
-  summaryDate?: string
+  categoryId: number
+  totalCreatives: number
+  totalViews: number
 }
 
 // Company favorite data structure
@@ -142,7 +140,7 @@ export const validateFavoriteData = (type: FavoriteType, data: any): boolean => 
     case 'affiliate':
       return !!(data.name && data.channelUrl)
     case 'brand':
-      return !!(data.name && data.logo)
+      return !!(data.name && data.thumbnail)
     case 'company':
       return !!(data.name && data.companyId)
     default:

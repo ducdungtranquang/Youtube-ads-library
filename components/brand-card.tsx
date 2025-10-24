@@ -8,6 +8,7 @@ import { Video, Eye, TrendingUp, DollarSign, Calendar } from "lucide-react"
 import { BrandFavoriteData } from "@/lib/favorites"
 
 interface BrandCardProps {
+  brandId: string
   name: string
   description: string
   logo: string
@@ -19,16 +20,17 @@ interface BrandCardProps {
   onClick?: () => void
 }
 
-export function BrandCard({ name, description, logo, totalAds, totalViews, activeMonths, totalSpend, summaryDate, onClick }: BrandCardProps) {
+export function BrandCard({ brandId, name, description, logo, totalAds, totalViews, activeMonths, totalSpend, summaryDate, onClick }: BrandCardProps) {
+  // Parse numeric value from totalViews string
+  const numericViews = parseInt(totalViews.replace(/[^\d]/g, '')) || 0
+  
   const favoriteData: BrandFavoriteData = {
     name,
+    thumbnail: logo || '/placeholder.svg',
     description,
-    logo,
-    totalAds,
-    totalViews,
-    activeMonths,
-    totalSpend: totalSpend || 0,
-    summaryDate
+    categoryId: 0, // Default category
+    totalCreatives: totalAds,
+    totalViews: numericViews
   }
 
   const formatDate = (dateString?: string) => {
@@ -102,7 +104,7 @@ export function BrandCard({ name, description, logo, totalAds, totalViews, activ
         <div className="flex gap-2">
           <FavoriteButton
             itemType="brand"
-            itemId={name}
+            itemId={brandId}
             itemData={favoriteData}
             size="sm"
             variant="outline"

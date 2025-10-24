@@ -241,14 +241,13 @@ export default function FavoritesPage() {
               return (
                 <BrandCard
                   key={favorite.id}
+                  brandId={favorite.item_id}
                   name={brandData.name}
                   description={brandData.description}
-                  logo={brandData.logo}
-                  totalAds={brandData.totalAds}
-                  totalViews={brandData.totalViews}
-                  activeMonths={brandData.activeMonths}
-                  totalSpend={brandData.totalSpend}
-                  summaryDate={brandData.summaryDate}
+                  logo={brandData.thumbnail}
+                  totalAds={brandData.totalCreatives}
+                  totalViews={brandData.totalViews.toString()}
+                  activeMonths={1} // Default value since not stored in favorites
                 />
               )
             case 'company':

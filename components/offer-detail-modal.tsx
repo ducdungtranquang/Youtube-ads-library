@@ -104,7 +104,7 @@ export function OfferDetailModal({ open, onOpenChange, offer }: OfferDetailModal
             </div>
           )}
 
-          <div className="flex gap-3 mobile:flex-col">
+          <div className="flex-col md:flex-row">
             <Button className="flex-1">
               <Heart className="mr-2 h-4 w-4" />
               Add to Favorites

@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Calendar, Globe, Filter, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
+import { useCategory } from "@/hooks/use-category";
 // Import optimized async select components
 import {
   SimpleAsyncCountrySelect,
@@ -172,6 +173,7 @@ NoDataDisplay.displayName = "NoDataDisplay";
 
 export default function MKTPage() {
   const searchQueryRef = useRef<HTMLInputElement>(null);
+  const { category: selectedCompanyCategory, fetchCategory } = useCategory();
   const [selectedCountry, setSelectedCountry] = useState("0");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
@@ -211,6 +213,14 @@ export default function MKTPage() {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
+
+  // Fetch category for selected company
+  useEffect(() => {
+    if (selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id) {
+      const categoryId = selectedCompany.categoryId || selectedCompany.summary_data.category_id;
+      fetchCategory(categoryId);
+    }
+  }, [selectedCompany, fetchCategory]);
 
   // Use MKT search with cache polling for ads
   const {
@@ -811,6 +821,7 @@ export default function MKTPage() {
                           (brand: any, index: number) => (
                             <BrandCard
                               key={brand.brandId || `brand-${index}`}
+                              brandId={brand.brandId?.toString() || `brand-${index}`}
                               name={brand.name}
                               description={brand.description || "Không có mô tả"}
                               logo={brand.thumbnail}
@@ -955,17 +966,7 @@ export default function MKTPage() {
       <BrandDetailModal
         open={!!selectedBrand}
         onOpenChange={(open) => !open && setSelectedBrand(null)}
-        brand={{
-          name: selectedBrand?.name || "",
-          description: selectedBrand?.description || "Không có mô tả",
-          logo: selectedBrand?.thumbnail || "",
-          totalAds: selectedBrand?.summary_data?.total_spend || selectedBrand?.totalSpend || 0,
-          totalViews: selectedBrand?.summary_data?.total_views || "0",
-          activeMonths: Math.ceil((selectedBrand?.summary_data?.spend_365 || 0) / 30) || 1,
-          avgCTR: "N/A",
-          topCategories: [],
-          recentActivity: `Hoạt động gần đây: Chi tiêu 30 ngày: $${selectedBrand?.summary_data?.spend_30 || 0}`
-        }}
+        brandId={selectedBrand?.brandId?.toString() || null}
       />
 
       <CompanyDetailModal
@@ -973,7 +974,7 @@ export default function MKTPage() {
         onOpenChange={(open) => !open && setSelectedCompany(null)}
         company={{
           name: selectedCompany?.legalName || selectedCompany?.summary_data?.legal_name || "Tên không xác định",
-          description: `Doanh nghiệp ${selectedCompany?.isAffiliate ? 'Affiliate' : 'Marketing'} hoạt động tại quốc gia ID ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}. Danh mục: ${selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id || 'N/A'}`,
+          description: `Doanh nghiệp ${selectedCompany?.isAffiliate ? 'Affiliate' : 'Marketing'} hoạt động tại quốc gia ID ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}. Danh mục: ${selectedCompanyCategory?.name || `ID ${selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id || 'N/A'}`}`,
           totalBrands: 1, // Companies API không có thông tin totalBrands
           totalAds: Math.floor((selectedCompany?.summary_data?.total_spend || selectedCompany?.totalSpend || 0) / 1000),
           markets: [`Quốc gia ID: ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}`],

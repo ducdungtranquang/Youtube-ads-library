@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FavoriteButton } from "@/components/favorite-button"
+import { YouTubeImage } from "@/components/youtube-image"
 import { Eye, Calendar, TrendingUp, ExternalLink, Building2 } from "lucide-react"
 import { VideoFavoriteData } from "@/lib/favorites"
 
@@ -58,10 +59,12 @@ export function VideoCard({
           {/* YouTube Thumbnail - Fixed size container */}
           <div className="relative flex-shrink-0">
             <div className="relative w-32 h-24 bg-muted rounded-lg overflow-hidden">
-              <img 
+              <YouTubeImage 
                 src={thumbnail || "/placeholder.svg"} 
                 alt={title} 
-                className="h-full w-full object-contain"
+                width={128}
+                height={96}
+                className="h-full w-full object-contain rounded-lg"
               />
               <Badge className="absolute right-1 top-1 bg-background/90 text-foreground text-[10px] px-1 py-0.5">
                 <Eye className="mr-0.5 h-2 w-2" />

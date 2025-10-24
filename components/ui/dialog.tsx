@@ -46,14 +46,70 @@ function DialogOverlay({
   )
 }
 
+function VisuallyHidden({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      border: 0,
+      clip: 'rect(0 0 0 0)',
+      height: '1px',
+      margin: '-1px',
+      overflow: 'hidden',
+      padding: 0,
+      position: 'absolute',
+      width: '1px',
+      whiteSpace: 'nowrap'
+    }}>
+      {children}
+    </span>
+  )
+}
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  accessibilityTitle,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  /**
+   * Optional text to render as a visually-hidden DialogTitle for screen reader users
+   * when no visible DialogTitle is provided by consumers.
+   */
+  accessibilityTitle?: string
 }) {
+  // Check if children contains a DialogTitle (recursively)
+  const hasDialogTitle = React.useMemo(() => {
+    const findDialogTitle = (children: React.ReactNode): boolean => {
+      return React.Children.toArray(children).some((child) => {
+        if (!React.isValidElement(child)) return false
+        
+        // Check if it's our DialogTitle component
+        if (child.type === DialogTitle) return true
+        
+        // Check by data-slot attribute
+        if (child.props && typeof child.props === 'object' && child.props !== null && 'data-slot' in child.props) {
+          const props = child.props as any
+          if (props['data-slot'] === 'dialog-title') return true
+        }
+        
+        // Check displayName for wrapped components
+        const childType = child.type as any
+        if (childType && typeof childType === 'object' && childType.displayName === 'DialogTitle') return true
+        
+        // Recursively check children
+        if (child.props && typeof child.props === 'object' && child.props !== null && 'children' in child.props) {
+          const props = child.props as any
+          return findDialogTitle(props.children)
+        }
+        
+        return false
+      })
+    }
+    
+    return findDialogTitle(children)
+  }, [children])
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -65,6 +121,12 @@ function DialogContent({
         )}
         {...props}
       >
+        {/* Always provide a DialogTitle for accessibility - either visible or hidden */}
+        {!hasDialogTitle && (
+          <DialogPrimitive.Title asChild>
+            <VisuallyHidden>{accessibilityTitle || "Dialog"}</VisuallyHidden>
+          </DialogPrimitive.Title>
+        )}
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

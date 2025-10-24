@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FavoriteButton } from "@/components/favorite-button"
+import { YouTubeImage } from "@/components/youtube-image"
 import { Eye, Calendar, TrendingUp, ExternalLink, Building2, Play, DollarSign, Clock, AlertTriangle } from "lucide-react"
 import { useVideoDetails } from "@/hooks/use-video-details"
 import { toast } from "sonner"
@@ -139,7 +140,13 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
           {!loading && (
             <>
               <div className="max-w-[300px] max-h-[300px] relative w-2/3 mx-auto aspect-video overflow-hidden rounded-lg bg-muted">
-                <img src={displayData.thumbnail || "/placeholder.svg"} alt={displayData.title} className="h-full w-full object-cover" />
+                <YouTubeImage 
+                  src={displayData.thumbnail || "/placeholder.svg"} 
+                  alt={displayData.title} 
+                  width={300}
+                  height={300}
+                  className="h-full w-full object-cover rounded-lg" 
+                />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/90 backdrop-blur">
                     <Play className="h-8 w-8 text-primary-foreground" fill="currentColor" />
@@ -268,7 +275,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-3 mobile:flex-col">
+              <div className="flex-col md:flex-row">
                 <FavoriteButton
                   itemType="video"
                   itemId={displayData.ytVideoId || video.ytVideoId || video.title}
