@@ -127,6 +127,18 @@ export class VidTaoManager {
   }
 
   /**
+   * Get Company Details using VidTao Company API
+   */
+  async getCompanyDetails(companyId: string): Promise<VidTaoResponse> {
+    // Ensure accounts are initialized
+    if (!this.isInitialized) {
+      await this.initializeAccounts()
+    }
+
+    return this.apiService.getCompanyDetails(companyId)
+  }
+
+  /**
    * Get status of all accounts
    */
   getAccountsStatus() {

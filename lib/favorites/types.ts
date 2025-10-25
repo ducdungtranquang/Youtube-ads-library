@@ -71,6 +71,7 @@ export interface CompanyFavoriteData {
   isAffiliate: boolean
   totalVideos?: number
   totalSpend?: number
+  thumbnail?: string
 }
 
 // Request/Response types

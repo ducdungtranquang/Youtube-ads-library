@@ -794,6 +794,14 @@ export default function MKTPage() {
             </TabsContent>
 
             <TabsContent value="brands" className="space-y-4">
+              {/* Loading State */}
+              <SearchLoadingState
+                isSearching={loading}
+                isPending={activeTab === "brands" && brandsSearchStatus === "pending"}
+                searchType="brands"
+                className="mb-6"
+              />
+
               {/* Brands Search Results */}
               {brandsSearchResults ? (
                 <div className="space-y-6">
@@ -860,6 +868,14 @@ export default function MKTPage() {
             </TabsContent>
 
             <TabsContent value="companies" className="space-y-4">
+              {/* Loading State */}
+              <SearchLoadingState
+                isSearching={loading}
+                isPending={activeTab === "companies" && companiesSearchStatus === "pending"}
+                searchType="companies"
+                className="mb-6"
+              />
+
               {/* Companies Search Results */}
               {companiesSearchResults ? (
                 <div className="space-y-6">
@@ -895,7 +911,10 @@ export default function MKTPage() {
                               estimatedSpend={`$${((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000).toFixed(1)}M`}
                               totalSpend={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000)}
                               summaryDate={company.summary_data?.summary_date}
-                              onClick={() => setSelectedCompany(company)} companyId={""} isAffiliate={false}                            />
+                              onClick={() => setSelectedCompany(company)}
+                              companyId={company.companyId?.toString() || ""}
+                              isAffiliate={company.isAffiliate || false}
+                            />
                           )
                         )}
                       </div>
@@ -972,17 +991,8 @@ export default function MKTPage() {
       <CompanyDetailModal
         open={!!selectedCompany}
         onOpenChange={(open) => !open && setSelectedCompany(null)}
-        company={{
-          name: selectedCompany?.legalName || selectedCompany?.summary_data?.legal_name || "Tên không xác định",
-          description: `Doanh nghiệp ${selectedCompany?.isAffiliate ? 'Affiliate' : 'Marketing'} hoạt động tại quốc gia ID ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}. Danh mục: ${selectedCompanyCategory?.name || `ID ${selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id || 'N/A'}`}`,
-          totalBrands: 1, // Companies API không có thông tin totalBrands
-          totalAds: Math.floor((selectedCompany?.summary_data?.total_spend || selectedCompany?.totalSpend || 0) / 1000),
-          markets: [`Quốc gia ID: ${selectedCompany?.countryId || selectedCompany?.summary_data?.country_id || 'N/A'}`],
-          estimatedSpend: `$${((selectedCompany?.summary_data?.total_spend || selectedCompany?.totalSpend || 0) / 1000000).toFixed(1)}M`,
-          topBrands: [], // Không có thông tin brands
-          recentCampaigns: Math.floor((selectedCompany?.summary_data?.spend_30 || 0) / 1000000),
-          avgCTR: "N/A"
-        }}
+        companyId={selectedCompany?.companyId?.toString() || null}
+        company={selectedCompany}
       />
     </div>
   );
