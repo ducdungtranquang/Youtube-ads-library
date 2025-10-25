@@ -20,7 +20,7 @@ export function SearchLoadingState({
     if (isPending) {
       return `Processing ${searchType} search in background...`
     }
-    return `Searching for ${searchType}...`
+    return `Đang tìm kiếm ...`
   }
 
   const getDescription = () => {

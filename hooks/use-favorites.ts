@@ -19,6 +19,10 @@ import {
 // Map key -> boolean cached value
 const favoritesCache: Record<string, boolean> = {}
 
+// Event system for notifying favorite status changes
+type FavoriteChangeListener = (itemType: FavoriteType, itemId: string, isFavorited: boolean) => void
+const favoriteChangeListeners = new Set<FavoriteChangeListener>()
+
 // Single-user id used for batch queries (kept in sync from hook)
 let batchUserId: string | null = null
 export function setBatchUserId(id: string | null) {
@@ -32,6 +36,25 @@ const inFlightBatches: Record<string, Promise<Record<string, boolean>>> = {}
 
 function makeKey(type: FavoriteType, id: string) {
   return `${type}:${id}`
+}
+
+// Helper functions to manage favorite change listeners
+function addFavoriteChangeListener(listener: FavoriteChangeListener) {
+  favoriteChangeListeners.add(listener)
+}
+
+function removeFavoriteChangeListener(listener: FavoriteChangeListener) {
+  favoriteChangeListeners.delete(listener)
+}
+
+function notifyFavoriteChange(itemType: FavoriteType, itemId: string, isFavorited: boolean) {
+  favoriteChangeListeners.forEach(listener => {
+    try {
+      listener(itemType, itemId, isFavorited)
+    } catch (error) {
+      console.error('Error in favorite change listener:', error)
+    }
+  })
 }
 
 /**
@@ -333,10 +356,12 @@ export function useFavorites() {
 
       if (isCurrentlyFavorited) {
         await removeFavorite(itemType, itemId)
+        notifyFavoriteChange(itemType, itemId, false)
         toast.success('Đã xóa khỏi danh sách yêu thích')
         return false
       } else {
         await addFavorite(itemType, itemId, itemData)
+        notifyFavoriteChange(itemType, itemId, true)
         toast.success('Đã thêm vào danh sách yêu thích')
         return true
       }
@@ -433,6 +458,33 @@ export function useFavorites() {
     }
   }, [user])
 
+  // Force refresh favorite status for specific item
+  const refreshFavoriteStatus = useCallback(async (
+    itemType: FavoriteType,
+    itemId: string
+  ): Promise<boolean> => {
+    try {
+      const key = makeKey(itemType, itemId)
+      // Clear cached value
+      delete favoritesCache[key]
+      
+      // Fetch fresh value
+      const response = await fetch(`/api/favorites/check/${itemType}/${itemId}`)
+      if (!response.ok) return false
+      
+      const result = await response.json()
+      const isFavorited = result.success ? result.data.isFavorited : false
+      
+      // Update cache
+      favoritesCache[key] = isFavorited
+      
+      return isFavorited
+    } catch (err) {
+      console.error('Error refreshing favorite status:', err)
+      return false
+    }
+  }, [])
+
   return {
     loading,
     error,
@@ -440,7 +492,11 @@ export function useFavorites() {
     getFavoritesCounts,
     toggleFavorite,
     checkIsFavorited,
+    refreshFavoriteStatus,
     clearFavoritesByType,
     clearAllFavorites
   }
 }
+
+// Export helper functions for event system
+export { addFavoriteChangeListener, removeFavoriteChangeListener }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Heart } from 'lucide-react'
-import { useFavorites, scheduleFavoriteCheck } from '@/hooks/use-favorites'
+import { useFavorites, scheduleFavoriteCheck, addFavoriteChangeListener, removeFavoriteChangeListener } from '@/hooks/use-favorites'
 import { useAuth } from '@/contexts/auth-context'
 import { 
   FavoriteType,
@@ -57,6 +57,24 @@ export function FavoriteButton({
     }
 
     checkStatus()
+  }, [itemType, itemId, user])
+
+  // Subscribe to favorite change events
+  useEffect(() => {
+    if (!user) return
+
+    const handleFavoriteChange = (type: FavoriteType, id: string, isFavorited: boolean) => {
+      // Only update if this is the relevant item
+      if (type === itemType && id === itemId) {
+        setIsFavorited(isFavorited)
+      }
+    }
+
+    addFavoriteChangeListener(handleFavoriteChange)
+
+    return () => {
+      removeFavoriteChangeListener(handleFavoriteChange)
+    }
   }, [itemType, itemId, user])
 
   const handleToggle = async () => {

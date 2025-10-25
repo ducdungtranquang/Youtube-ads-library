@@ -32,9 +32,10 @@ interface VideoDetailModalProps {
     ytVideoId?: string // Add YouTube video ID for API call
   }
   onCompanyClick?: () => void
+  onClose?: (videoId: string) => void // Callback when modal closes to refresh favorite status
 }
 
-export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: VideoDetailModalProps) {
+export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, onClose }: VideoDetailModalProps) {
   const { videoDetails, loading, error, fetchVideoDetails } = useVideoDetails()
 
   // Fetch video details when modal opens and video ID is available
@@ -43,6 +44,15 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
       fetchVideoDetails(video.ytVideoId)
     }
   }, [open, video.ytVideoId, fetchVideoDetails])
+
+  // Handle modal close with callback
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen)
+    // If modal is closing and we have a close callback, trigger it
+    if (!newOpen && onClose && video.ytVideoId) {
+      onClose(video.ytVideoId)
+    }
+  }
 
   // Show error toast if API call fails
   useEffect(() => {
@@ -111,7 +121,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick }: 
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="lg:w-[80vw] lg:h-[80vh] max-w-none overflow-y-auto w-[95vw] h-[90vh] m-2">
         <DialogHeader>
           <DialogTitle className="text-2xl">{displayData.title}</DialogTitle>

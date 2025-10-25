@@ -32,6 +32,7 @@ interface BrandDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   brandId: string | null;
+  onClose?: (brandId: string) => void; // Callback when modal closes to refresh favorite status
 }
 
 // Helper function to format numbers
@@ -86,6 +87,7 @@ export function BrandDetailModal({
   open,
   onOpenChange,
   brandId,
+  onClose,
 }: BrandDetailModalProps) {
   const { loading, error, brandDetails, fetchBrandDetails } = useBrandDetails();
   const {
@@ -101,6 +103,15 @@ export function BrandDetailModal({
       fetchBrandDetails(brandId);
     }
   }, [open, brandId, fetchBrandDetails]);
+
+  // Handle modal close with callback
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    // If modal is closing and we have a close callback, trigger it
+    if (!newOpen && onClose && brandId) {
+      onClose(brandId);
+    }
+  };
 
   // Fetch countries when brand details are loaded
   useEffect(() => {
@@ -532,7 +543,7 @@ export function BrandDetailModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[85vw] desktop:max-w-6xl max-h-[95vh] overflow-y-auto mobile:max-w-[calc(100vw-1rem)] mobile:max-h-[95vh] mobile:m-2">
         <DialogHeader>
           <DialogTitle className="text-2xl">

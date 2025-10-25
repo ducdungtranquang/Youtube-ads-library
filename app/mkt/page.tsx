@@ -32,6 +32,7 @@ import {
   SimpleAsyncCategorySelect,
 } from "@/components/simple-async-select";
 import { useMKTSearchWithCache, useBrandsSearchWithCache, useCompaniesSearchWithCache } from "@/hooks/use-cache-polling";
+import { useFavorites } from "@/hooks/use-favorites";
 
 // Pre-process static data once at module level for better performance
 const sortOptions = [
@@ -254,6 +255,9 @@ export default function MKTPage() {
                   activeTab === 'brands' ? brandsSearchLoading : 
                   activeTab === 'companies' ? companiesSearchLoading : false;
 
+  // Hook for refreshing favorite status
+  const { refreshFavoriteStatus } = useFavorites();
+
   // Handle polling results for ads
   useEffect(() => {
     if (activeTab === "ads" && adsSearchStatus === "completed" && adsSearchData) {
@@ -379,13 +383,9 @@ export default function MKTPage() {
         });
 
         if (result?.pending) {
-          console.log(
-            "MKT Search is pending, polling will start automatically..."
-          );
           // Don't show any toast for pending - polling will handle it
           setAdsSearchResults(null); // Clear previous results
         } else if (result?.success && result?.data) {
-          console.log("MKT Search completed:", result);
 
           setAdsSearchResults(result.data);
 
@@ -403,7 +403,6 @@ export default function MKTPage() {
           setAdsSearchResults(null);
         }
       } catch (error) {
-        console.error("Ads Search error:", error);
         toast.error("Tìm kiếm thất bại. Vui lòng thử lại.");
         setAdsSearchResults(null);
       }
@@ -459,7 +458,6 @@ export default function MKTPage() {
         });
 
         if (result?.success) {
-          console.log("Brands Search initiated:", result);
 
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm thương hiệu, vui lòng đợi...");
@@ -481,7 +479,6 @@ export default function MKTPage() {
           setBrandsSearchResults(null);
         }
       } catch (error) {
-        console.error("Brands Search error:", error);
         toast.error("Tìm kiếm thương hiệu thất bại. Vui lòng thử lại.");
         setBrandsSearchResults(null);
       }
@@ -533,8 +530,6 @@ export default function MKTPage() {
         });
 
         if (result?.success) {
-          console.log("Companies Search initiated:", result);
-
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm doanh nghiệp, vui lòng đợi...");
           } else {
@@ -555,7 +550,6 @@ export default function MKTPage() {
           setCompaniesSearchResults(null);
         }
       } catch (error) {
-        console.error("Companies Search error:", error);
         toast.error("Tìm kiếm doanh nghiệp thất bại. Vui lòng thử lại.");
         setCompaniesSearchResults(null);
       }
@@ -582,7 +576,20 @@ export default function MKTPage() {
     [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]
   );
 
+  // Callback when video modal closes - refresh favorite status
+  const handleVideoModalClose = useCallback(async (videoId: string) => {
+    await refreshFavoriteStatus('video', videoId);
+  }, [refreshFavoriteStatus]);
 
+  // Callback when brand modal closes - refresh favorite status
+  const handleBrandModalClose = useCallback(async (brandId: string) => {
+    await refreshFavoriteStatus('brand', brandId);
+  }, [refreshFavoriteStatus]);
+
+  // Callback when company modal closes - refresh favorite status
+  const handleCompanyModalClose = useCallback(async (companyId: string) => {
+    await refreshFavoriteStatus('company', companyId);
+  }, [refreshFavoriteStatus]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -980,12 +987,14 @@ export default function MKTPage() {
           // Company details coming soon
           toast.info("Thông tin doanh nghiệp sắp ra mắt!");
         }}
+        onClose={handleVideoModalClose}
       />
 
       <BrandDetailModal
         open={!!selectedBrand}
         onOpenChange={(open) => !open && setSelectedBrand(null)}
         brandId={selectedBrand?.brandId?.toString() || null}
+        onClose={handleBrandModalClose}
       />
 
       <CompanyDetailModal
@@ -993,6 +1002,7 @@ export default function MKTPage() {
         onOpenChange={(open) => !open && setSelectedCompany(null)}
         companyId={selectedCompany?.companyId?.toString() || null}
         company={selectedCompany}
+        onClose={handleCompanyModalClose}
       />
     </div>
   );

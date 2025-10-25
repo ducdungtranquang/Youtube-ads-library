@@ -20,9 +20,10 @@ interface CompanyDetailModalProps {
   // Accept either a minimal company object (legacy) or a companyId to fetch details
   company?: any
   companyId?: string | null
+  onClose?: (companyId: string) => void // Callback when modal closes to refresh favorite status
 }
 
-export function CompanyDetailModal({ open, onOpenChange, company, companyId }: CompanyDetailModalProps) {
+export function CompanyDetailModal({ open, onOpenChange, company, companyId, onClose }: CompanyDetailModalProps) {
   const { loading, error, companyDetails, fetchCompanyDetails } = useCompanyDetails()
   const { countries, fetchCountries, getCountryName } = useCountries()
   const { category, fetchCategory } = useCategory()
@@ -36,6 +37,15 @@ export function CompanyDetailModal({ open, onOpenChange, company, companyId }: C
       fetchCompanyDetails(effectiveCompanyId)
     }
   }, [open, effectiveCompanyId, fetchCompanyDetails])
+
+  // Handle modal close with callback
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen)
+    // If modal is closing and we have a close callback, trigger it
+    if (!newOpen && onClose && effectiveCompanyId) {
+      onClose(effectiveCompanyId)
+    }
+  }
 
   // When data contains top5Countries, fetch their names
   useEffect(() => {
@@ -106,7 +116,7 @@ export function CompanyDetailModal({ open, onOpenChange, company, companyId }: C
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[85vw] desktop:max-w-6xl max-h-[95vh] overflow-y-auto mobile:max-w-[calc(100vw-1rem)] mobile:max-h-[95vh] mobile:m-2">
         <DialogHeader>
           <div className="flex items-start gap-4">
