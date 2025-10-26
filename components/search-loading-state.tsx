@@ -18,16 +18,16 @@ export function SearchLoadingState({
 
   const getMessage = () => {
     if (isPending) {
-      return `Processing ${searchType} search in background...`
+      return `Đang tìm kiếm ...`
     }
     return `Đang tìm kiếm ...`
   }
 
   const getDescription = () => {
     if (isPending) {
-      return "This may take a few moments. We'll automatically update when results are ready."
+      return "Điều này có thể mất một thời gian. Chúng tôi sẽ tự động cập nhật khi có kết quả."
     }
-    return "Please wait while we find the best results for you."
+    return "Vui lòng chờ trong khi chúng tôi tìm kiếm kết quả tốt nhất cho bạn."
   }
 
   return (

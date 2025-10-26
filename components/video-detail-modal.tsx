@@ -285,7 +285,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
               )}
 
               {/* Action Buttons */}
-              <div className="flex-col md:flex-row">
+              <div className="flex-col md:flex-row gap-2">
                 <FavoriteButton
                   itemType="video"
                   itemId={displayData.ytVideoId || video.ytVideoId || video.title}
@@ -307,7 +307,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                   className="flex-1"
                 />
                 {displayData.ytVideoId && (
-                  <Button variant="secondary" asChild className="mobile:w-full">
+                  <Button variant="secondary" asChild className="ml-2">
                     <a href={`https://youtube.com/watch?v=${displayData.ytVideoId}`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Xem trên YouTube
