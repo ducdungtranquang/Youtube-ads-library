@@ -105,15 +105,17 @@ export function VideoCard({
             </div>
 
             <div className="flex gap-2">
-              <FavoriteButton
-                itemType="video"
-                itemId={ytVideoId || title}
-                itemData={favoriteData}
-                size="sm"
-                variant="outline"
-                className="flex-1 bg-transparent h-7 text-xs"
-                showText
-              />
+              <div onClick={(e) => e.stopPropagation()}>
+                <FavoriteButton
+                  itemType="video"
+                  itemId={ytVideoId || title}
+                  itemData={favoriteData}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 bg-transparent h-7 text-xs"
+                  showText
+                />
+              </div>
               {url && (
                 <Button size="sm" variant="outline" className="bg-transparent h-7 px-2" asChild onClick={(e) => e.stopPropagation()}>
                   <a href={url} target="_blank" rel="noopener noreferrer">

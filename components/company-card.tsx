@@ -86,7 +86,7 @@ export function CompanyCard({
           <div className="rounded-lg bg-accent p-2 text-center">
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <Video className="h-3 w-3" />
-              Video
+              Tổng views
             </div>
             <p className="mt-1 font-semibold text-foreground">{totalVideos || totalAds || 0}</p>
           </div>
@@ -102,15 +102,17 @@ export function CompanyCard({
         </div>
 
         <div className="flex gap-2">
-          <FavoriteButton
-            itemType="company"
-            itemId={companyId}
-            itemData={favoriteData}
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            showText
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <FavoriteButton
+              itemType="company"
+              itemId={companyId}
+              itemData={favoriteData}
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              showText
+            />
+          </div>
           <Button
             className="flex-1"
             size="sm"

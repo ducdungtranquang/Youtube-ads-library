@@ -77,7 +77,11 @@ export function FavoriteButton({
     }
   }, [itemType, itemId, user])
 
-  const handleToggle = async () => {
+  const handleToggle = async (e: React.MouseEvent) => {
+    // Prevent event bubbling to parent card click handler
+    e.stopPropagation()
+    e.preventDefault()
+    
     if (!user) {
       toast.error('Bạn cần đăng nhập để sử dụng tính năng yêu thích')
       return
@@ -91,25 +95,26 @@ export function FavoriteButton({
   const isLoading = loading || isChecking
 
   return (
-    <Button
-      variant={variant}
-      size={size}
-      onClick={handleToggle}
-      disabled={isLoading}
-      className={cn(
-        'transition-colors',
-        isFavorited && 'text-red-500 hover:text-red-600',
-        className
-      )}
-    >
-      <Heart 
+    <div onClick={handleToggle} className="inline-flex">
+      <Button
+        variant={variant}
+        size={size}
+        disabled={isLoading}
         className={cn(
-          'h-4 w-4',
-          showText && 'mr-2',
-          isFavorited && 'fill-current'
-        )} 
-      />
-      {showText && (isFavorited ? 'Đã yêu thích' : 'Yêu thích')}
-    </Button>
+          'transition-colors',
+          isFavorited && 'text-red-500 hover:text-red-600',
+          className
+        )}
+      >
+        <Heart 
+          className={cn(
+            'h-4 w-4',
+            showText && 'mr-2',
+            isFavorited && 'fill-current'
+          )} 
+        />
+        {showText && (isFavorited ? 'Đã yêu thích' : 'Yêu thích')}
+      </Button>
+    </div>
   )
 }

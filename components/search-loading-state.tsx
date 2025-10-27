@@ -40,7 +40,7 @@ export function SearchLoadingState({
         </p>
         {isPending && (
           <div className="mt-4 text-sm text-muted-foreground">
-            Status: Processing in background...
+            Trạng thái: Đang xử lý trong nền...
           </div>
         )}
       </CardContent>

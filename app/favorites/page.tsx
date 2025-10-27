@@ -14,6 +14,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Heart, Download, Trash2, Video, DollarSign, Users, Building2, Building, LogIn } from "lucide-react"
 import { useFavorites } from "@/hooks/use-favorites"
+import { VideoDetailModal } from "@/components/video-detail-modal"
+import { BrandDetailModal } from "@/components/brand-detail-modal"
+import { CompanyDetailModal } from "@/components/company-detail-modal"
 import { useAuth } from "@/contexts/auth-context"
 import { 
   FavoriteType, 
@@ -43,6 +46,7 @@ export default function FavoritesPage() {
     getFavorites, 
     getFavoritesCounts, 
     clearFavoritesByType,
+    refreshFavoriteStatus,
     loading: favoritesLoading 
   } = useFavorites()
   
@@ -107,6 +111,12 @@ export default function FavoritesPage() {
   const handleTabChange = (value: string) => {
     setActiveTab(value as FavoriteType)
   }
+
+  // Selected items for detail modals
+  const [selectedVideo, setSelectedVideo] = useState<any | null>(null)
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null)
+  const [selectedCompany, setSelectedCompany] = useState<any | null>(null)
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
 
   const renderFavoriteCards = () => {
     if (isLoading) {
@@ -206,6 +216,19 @@ export default function FavoritesPage() {
                   description={videoData.description}
                   duration={videoData.duration}
                   companyName={videoData.companyName}
+                  onClick={() => setSelectedVideo({
+                    title: videoData.title,
+                    channel: videoData.channel,
+                    views: videoData.views,
+                    ctr: videoData.ctr,
+                    date: videoData.date,
+                    thumbnail: videoData.thumbnail,
+                    url: videoData.url,
+                    ytVideoId: videoData.ytVideoId || videoData.title,
+                    description: videoData.description,
+                    duration: videoData.duration,
+                    companyName: videoData.companyName
+                  })}
                 />
               )
             case 'offer':
@@ -242,12 +265,14 @@ export default function FavoritesPage() {
                 <BrandCard
                   key={favorite.id}
                   brandId={favorite.item_id}
-                  name={brandData.name}
-                  description={brandData.description}
-                  logo={brandData.thumbnail}
-                  totalAds={brandData.totalCreatives}
-                  totalViews={brandData.totalViews.toString()}
+                  name={brandData.name || 'Unknown Brand'}
+                  description={brandData.description || ''}
+                  logo={brandData.thumbnail || '/placeholder.svg'}
+                  totalAds={brandData.totalCreatives || 0}
+                  totalViews={String(brandData.totalViews || 0)}
+                  totalSpend={brandData.totalSpend || 0}
                   activeMonths={1} // Default value since not stored in favorites
+                  onClick={() => setSelectedBrand(String(favorite.item_id))}
                 />
               )
             case 'company':
@@ -262,6 +287,10 @@ export default function FavoritesPage() {
                   isAffiliate={companyData.isAffiliate}
                   totalVideos={companyData.totalVideos}
                   totalSpend={companyData.totalSpend}
+                  onClick={() => {
+                    setSelectedCompany(companyData)
+                    setSelectedCompanyId(companyData.companyId ? String(companyData.companyId) : String(favorite.item_id))
+                  }}
                 />
               )
             default:
@@ -389,7 +418,7 @@ export default function FavoritesPage() {
                         Xóa tất cả
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="lg:max-w-[50%]">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -413,6 +442,57 @@ export default function FavoritesPage() {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Detail Modals for favorites */}
+        <VideoDetailModal
+          open={!!selectedVideo}
+          onOpenChange={(open) => {
+            if (!open) setSelectedVideo(null)
+          }}
+          video={selectedVideo || {
+            title: "",
+            channel: "",
+            views: "0",
+            ctr: "0%",
+            date: "",
+            thumbnail: "",
+            url: "",
+            ytVideoId: "",
+            description: "",
+            duration: "",
+            companyName: ""
+          }}
+          onClose={async (videoId: string) => {
+            // Refresh favorite status for the video when modal closes
+            await refreshFavoriteStatus('video', videoId)
+          }}
+        />
+
+        <BrandDetailModal
+          open={!!selectedBrand}
+          onOpenChange={(open) => {
+            if (!open) setSelectedBrand(null)
+          }}
+          brandId={selectedBrand}
+          onClose={async (brandId: string) => {
+            await refreshFavoriteStatus('brand', brandId)
+          }}
+        />
+
+        <CompanyDetailModal
+          open={!!selectedCompanyId}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedCompany(null)
+              setSelectedCompanyId(null)
+            }
+          }}
+          companyId={selectedCompanyId}
+          company={selectedCompany}
+          onClose={async (companyId: string) => {
+            await refreshFavoriteStatus('company', companyId)
+          }}
+        />
       </main>
     </div>
   )

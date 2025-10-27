@@ -302,7 +302,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                     duration: displayData.duration,
                     companyName: video.companyName
                   } as VideoFavoriteData}
-                  variant="default"
+                  variant="outline"
                   showText
                   className="flex-1"
                 />

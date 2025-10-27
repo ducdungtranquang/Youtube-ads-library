@@ -60,6 +60,7 @@ export interface BrandFavoriteData {
   categoryId: number
   totalCreatives: number
   totalViews: number
+  totalSpend?: number
 }
 
 // Company favorite data structure

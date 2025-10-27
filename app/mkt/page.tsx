@@ -837,11 +837,11 @@ export default function MKTPage() {
                             <BrandCard
                               key={brand.brandId || `brand-${index}`}
                               brandId={brand.brandId?.toString() || `brand-${index}`}
-                              name={brand.name}
+                              name={brand.name || `Brand ${index + 1}`}
                               description={brand.description || "Không có mô tả"}
-                              logo={brand.thumbnail}
+                              logo={brand.thumbnail || "/placeholder.svg"}
                               totalAds={brand.summary_data?.total_spend || brand.totalSpend || 0}
-                              totalViews={brand.summary_data?.total_views || "0"}
+                              totalViews={String(brand.summary_data?.total_views || brand.totalViews || 0)}
                               activeMonths={Math.ceil((brand.summary_data?.spend_365 || 0) / 30) || 1}
                               totalSpend={brand.summary_data?.total_spend || brand.totalSpend || 0}
                               summaryDate={brand.summary_data?.summary_date}
@@ -913,14 +913,15 @@ export default function MKTPage() {
                               name={company.legalName || company.summary_data?.legal_name || "Tên không xác định"}
                               description={`Doanh nghiệp ${company.isAffiliate ? 'Affiliate' : 'Marketing'} - ID: ${company.companyId}`}
                               totalBrands={1} // Companies API không trả về totalBrands, default 1
-                              totalAds={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000)} // Estimate ads from spend
+                              // totalAds={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000)} // Estimate ads from spend
                               markets={[`Quốc gia ID: ${company.countryId || company.summary_data?.country_id || 'N/A'}`]}
                               estimatedSpend={`$${((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000).toFixed(1)}M`}
-                              totalSpend={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000)}
+                              totalSpend={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0))}
                               summaryDate={company.summary_data?.summary_date}
                               onClick={() => setSelectedCompany(company)}
                               companyId={company.companyId?.toString() || ""}
                               isAffiliate={company.isAffiliate || false}
+                              totalVideos={Math.floor((company.summary_data?.total_views || 0))}
                             />
                           )
                         )}
