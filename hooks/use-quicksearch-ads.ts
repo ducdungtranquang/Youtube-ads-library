@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react'
 import { useQuickSearchWithCache } from './use-cache-polling'
 
 interface SearchParams {
-  query: string
+  query?: string
+  searchTerm?: string
   page?: number
   limit?: number
   [key: string]: any

@@ -1,17 +1,81 @@
+'use client'
+
 import Link from "next/link"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/header"
-import { TrendingUp, Search, Heart, LayoutDashboard, Video, Target, DollarSign, BarChart3 } from "lucide-react"
+import { TrendingUp, Search, Heart, LayoutDashboard, Video, Target, DollarSign, BarChart3, CheckCircle } from "lucide-react"
 
 export default function HomePage() {
+  const contactFormRef = useRef<HTMLFormElement>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('');
+    try {
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxlZrmJH2N_9b4MK5LVtZc6OCQ6lT4CV8nmd4FTtHWvnrPoXCNywMZV0mvaDjrlGoZ6/exec';
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('subject', formData.subject);
+      formDataToSend.append('message', formData.message);
+      formDataToSend.append('timestamp', new Date().toISOString());
+      const response = await fetch(scriptURL, {
+        method: 'POST',
+        body: formDataToSend,
+      });
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const scrollToContact = () => {
+    if (contactFormRef.current) {
+      contactFormRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
+      {/* Hero Section with CTA */}
+      <section className="w-full bg-gradient-to-br from-primary/10 to-secondary/10 py-16 px-4 flex flex-col items-center justify-center text-center mb-10">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Youtube Ads Library</h1>
+        <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl">
+          Đăng ký ngay để nhận tư vấn miễn phí và trải nghiệm nền tảng phân tích quảng cáo video mạnh mẽ nhất cho marketers & affiliate.
+        </p>
+        <Button size="lg" className="text-lg px-10 py-6 font-bold shadow-lg bg-primary hover:bg-primary/90 transition-all" onClick={scrollToContact}>
+          Liên hệ tư vấn ngay
+        </Button>
+      </section>
+
       <main>
         {/* Hero Section */}
-        <section className="container py-20 tablet:py-32 mobile:py-16">
+        <section className="container py-10 tablet:py-32 mobile:py-16">
           <div className="mx-auto text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
               <Video className="h-4 w-4" />
@@ -48,7 +112,7 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section className="container py-20">
+        <section className="container py-10">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold text-foreground">Ba chế độ mạnh mẽ</h2>
             <p className="text-lg text-muted-foreground">
@@ -67,7 +131,7 @@ export default function HomePage() {
                   Tìm kiếm nhanh trên tất cả quảng cáo và offers với nội dung nổi bật
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 text-center">
                 <div className="flex items-start gap-3">
                   <Search className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
                   <div>
@@ -89,7 +153,7 @@ export default function HomePage() {
                     <p className="text-sm text-muted-foreground">Nhận thống kê tức thì và thông tin chi tiết nền tảng</p>
                   </div>
                 </div>
-                <Link href="/quicksearch" className="block pt-4">
+                <Link href="/quicksearch" className="block pt-4 ">
                   <Button className="w-full" variant="outline">
                     Thử tìm kiếm nhanh
                   </Button>
@@ -130,7 +194,7 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-                <Link href="/mkt" className="block pt-4">
+                <Link href="/mkt" className="block pt-4 ">
                   <Button className="w-full">Khám phá công cụ Marketing</Button>
                 </Link>
               </CardContent>
@@ -174,7 +238,7 @@ export default function HomePage() {
                     </p>
                   </div>
                 </div>
-                <Link href="/aff" className="block pt-4">
+                <Link href="/aff" className="block pt-4 ">
                   <Button className="w-full" variant="secondary">
                     Khám phá công cụ Affiliate
                   </Button>
@@ -185,7 +249,7 @@ export default function HomePage() {
         </section>
 
         {/* Additional Features */}
-        <section className="container py-20">
+        <section className="container py-10">
           <div className="grid gap-6 tablet:grid-cols-3 mobile:grid-cols-1">
             <Card>
               <CardHeader>
@@ -219,27 +283,68 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="container py-20">
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
-            <CardContent className="flex flex-col items-center gap-6 p-12 text-center">
-              <h2 className="text-3xl font-bold text-foreground text-balance">
-                Sẵn sàng tìm chiến dịch thành công tiếp theo?
-              </h2>
-              <p className="max-w-2xl text-lg text-muted-foreground text-pretty">
-                Tham gia cùng hàng nghìn marketers và affiliates sử dụng YouTube ADS Libraries để nghiên cứu, phân tích và
-                khám phá cơ hội có lợi nhuận.
-              </p>
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Link href="/pricing">
-                  <Button size="lg">Xem gói giá</Button>
-                </Link>
-                <Link href="/login">
-                  <Button size="lg" variant="outline">
-                    Đăng nhập
-                  </Button>
-                </Link>
-              </div>
+
+        {/* Contact Form Section */}
+        <section className="container py-16" id="contact-form-section">
+          <Card className="max-w-2xl mx-auto shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">Liên hệ tư vấn miễn phí</CardTitle>
+              <CardDescription className="text-center">Điền thông tin để nhận tư vấn và demo nền tảng</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form ref={contactFormRef} className="space-y-6" onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Họ và tên"
+                    required
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted-foreground transition-colors"
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Email"
+                    required
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted-foreground transition-colors"
+                  />
+                </div>
+                <input
+                  type="text"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  placeholder="Chủ đề"
+                  required
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted-foreground transition-colors"
+                />
+                <textarea
+                  rows={5}
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  placeholder="Nội dung cần tư vấn..."
+                  required
+                  className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:border-primary focus:ring-1 focus:ring-primary text-foreground placeholder-muted-foreground transition-colors resize-none"
+                ></textarea>
+                {submitStatus === 'success' && (
+                  <div className="p-3 rounded bg-green-100 text-green-800 flex items-center gap-2 text-sm">
+                    <CheckCircle className="w-5 h-5 text-green-600" /> Gửi thành công! Chúng tôi sẽ liên hệ lại sớm nhất.
+                  </div>
+                )}
+                {submitStatus === 'error' && (
+                  <div className="p-3 rounded bg-red-100 text-red-800 flex items-center gap-2 text-sm">
+                    Đã có lỗi xảy ra, vui lòng thử lại sau.
+                  </div>
+                )}
+                <Button type="submit" size="lg" className="w-full font-bold text-lg" disabled={isSubmitting}>
+                  {isSubmitting ? 'Đang gửi...' : 'Gửi liên hệ'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </section>

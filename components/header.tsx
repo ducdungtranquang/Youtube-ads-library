@@ -45,7 +45,7 @@ export function Header() {
   const navigationItems = [
     { href: "/quicksearch", icon: Search, label: "Tìm kiếm nhanh" },
     { href: "/mkt", icon: TrendingUp, label: "Marketing" },
-    { href: "/aff", icon: Video, label: "Affiliate" },
+    // { href: "/aff", icon: Video, label: "Affiliate" },
     { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]

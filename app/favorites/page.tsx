@@ -331,7 +331,7 @@ export default function FavoritesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/10">
                 <DollarSign className="h-6 w-6 text-secondary" />
@@ -353,7 +353,7 @@ export default function FavoritesPage() {
                 <p className="text-2xl font-bold text-foreground">{counts.affiliate}</p>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardContent className="flex items-center gap-4 p-6">
@@ -386,14 +386,14 @@ export default function FavoritesPage() {
               <Video className="mr-2 h-4 w-4" />
               Video yêu thích
             </TabsTrigger>
-            <TabsTrigger value="offer">
+            {/* <TabsTrigger value="offer">
               <DollarSign className="mr-2 h-4 w-4" />
               Offer yêu thích
             </TabsTrigger>
             <TabsTrigger value="affiliate">
               <Users className="mr-2 h-4 w-4" />
               Affiliate yêu thích
-            </TabsTrigger>
+            </TabsTrigger> */}
             <TabsTrigger value="brand">
               <Building2 className="mr-2 h-4 w-4" />
               Thương hiệu yêu thích
