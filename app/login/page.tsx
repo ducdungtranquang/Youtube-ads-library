@@ -149,6 +149,7 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/*
             <Button 
               variant="outline" 
               className="w-full bg-transparent" 
@@ -175,6 +176,7 @@ export default function LoginPage() {
               </svg>
               {redirecting ? 'Đang chuyển hướng...' : loading ? 'Đang đăng nhập...' : 'Đăng nhập bằng Google'}
             </Button>
+            */}
 
             <div className="text-center text-sm text-muted-foreground">
               Chưa có tài khoản?{" "}

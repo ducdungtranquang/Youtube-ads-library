@@ -350,10 +350,10 @@ export default function FavoritesPage() {
               nghiệp đã lưu
             </p>
           </div>
-          <Button variant="outline" className="bg-transparent">
+          {/* <Button variant="outline" className="bg-transparent">
             <Download className="mr-2 h-4 w-4" />
             Xuất CSV
-          </Button>
+          </Button> */}
         </div>
 
         {/* Stats Overview */}

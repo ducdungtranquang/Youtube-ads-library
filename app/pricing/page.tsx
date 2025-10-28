@@ -109,6 +109,10 @@ export default function PricingPage() {
                   <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                   <span className="text-sm text-muted-foreground">Chỉ sử dụng QuickSearch</span>
                 </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                  <span className="text-sm text-muted-foreground">Giới hạn 20 lượt yêu thích</span>
+                </li>
               </ul>
               <Link href="/register" className="block">
                 <Button variant="outline" className="w-full bg-transparent">
@@ -143,7 +147,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
-                  <span className="text-sm text-foreground font-medium">Lưu tối đa 20 mục yêu thích</span>
+                  <span className="text-sm text-foreground font-medium">Không giới hạn mục yêu thích</span>
                 </li>
               </ul>
               <Button className="w-full" onClick={() => openModal('personal')}>Đăng ký ngay</Button>
@@ -166,10 +170,10 @@ export default function PricingPage() {
                   <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                   <span className="text-sm text-foreground font-medium">Tìm kiếm không giới hạn</span>
                 </li>
-                <li className="flex items-start gap-2">
+                {/* <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                   <span className="text-sm text-foreground font-medium">Xuất dữ liệu ra CSV</span>
-                </li>
+                </li> */}
                 <li className="flex items-start gap-2">
                   <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                   <span className="text-sm text-foreground font-medium">Hỗ trợ 24/7</span>

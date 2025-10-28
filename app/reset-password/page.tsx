@@ -76,20 +76,20 @@ export default function ResetPasswordPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
               <Video className="h-6 w-6 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl">Reset your password</CardTitle>
+            <CardTitle className="text-2xl">Đặt lại mật khẩu</CardTitle>
             <CardDescription>
-              Enter your new password below
+              Nhập mật khẩu mới của bạn bên dưới
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
+                <Label htmlFor="password">Mật khẩu mới</Label>
                 <div className="relative">
                   <Input 
                     id="password" 
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your new password"
+                    placeholder="Nhập mật khẩu mới"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -111,12 +111,12 @@ export default function ResetPasswordPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
                 <div className="relative">
                   <Input 
                     id="confirmPassword" 
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your new password"
+                    placeholder="Xác nhận lại mật khẩu mới"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -141,10 +141,10 @@ export default function ResetPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Resetting password...
+                    Đang đặt lại mật khẩu...
                   </>
                 ) : (
-                  'Reset password'
+                  'Đặt lại mật khẩu'
                 )}
               </Button>
             </form>

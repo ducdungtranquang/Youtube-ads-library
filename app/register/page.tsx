@@ -152,6 +152,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/*
             <Button 
               variant="outline" 
               className="w-full bg-transparent"
@@ -178,6 +179,7 @@ export default function RegisterPage() {
               </svg>
               {redirecting ? 'Đang chuyển hướng...' : loading ? 'Đang đăng ký...' : 'Đăng ký bằng Google'}
             </Button>
+            */}
 
             <div className="text-center text-sm text-muted-foreground">
               Đã có tài khoản?{" "}
