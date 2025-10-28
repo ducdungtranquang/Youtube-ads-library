@@ -352,7 +352,17 @@ export function CompanyDetailModal({ open, onOpenChange, company, companyId, onC
 
               <div className="flex gap-3 flex-col md:flex-row">
                 <FavoriteButton itemType="company" itemId={effectiveCompanyId || 'unknown'} itemData={favoriteData} showText className="flex-1" />
-                <Button variant="secondary" className="max-sm:w-full">Xem tất cả quảng cáo</Button>
+                <Button
+                  variant="secondary"
+                  className="max-sm:w-full"
+                  onClick={() => {
+                    if (effectiveCompanyId) {
+                      window.open(`/companies/${effectiveCompanyId}/videos`, '_blank');
+                    }
+                  }}
+                >
+                  Xem tất cả quảng cáo
+                </Button>
               </div>
             </>
           )}

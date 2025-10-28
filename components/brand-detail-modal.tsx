@@ -535,7 +535,15 @@ export function BrandDetailModal({
             showText
             className="flex-1"
           />
-          <Button variant="secondary" className="max-sm:w-full">
+          <Button
+            variant="secondary"
+            className="max-sm:w-full"
+            onClick={() => {
+              if (brandId) {
+                window.open(`/brands/${brandId}/videos`, '_blank');
+              }
+            }}
+          >
             Xem tất cả quảng cáo
           </Button>
         </div>

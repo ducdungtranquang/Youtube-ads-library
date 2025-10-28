@@ -29,7 +29,7 @@ export function useAsyncSelect(
 ): UseAsyncSelectResult {
   const {
     searchDelay = 300,
-    pageSize = 1000,
+    pageSize = 500,
     minSearchLength = 0
   } = options
 

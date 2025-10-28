@@ -26,7 +26,7 @@ export function useMKTSearch() {
       const payload = {
         searchTerm: params.searchTerm,
         page: params.page || 1,
-        limit: params.limit || 1000, // Use 1000 for better FE pagination
+        limit: params.limit || 500, // Use 500 for better FE pagination
         countryId: params.filters?.countryId || 0,
         language: params.filters?.language || '',
         categoryIds: params.filters?.categoryIds || [],
