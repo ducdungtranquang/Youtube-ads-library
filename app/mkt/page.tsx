@@ -21,7 +21,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Calendar, Globe, Filter, Loader2, Sparkles } from "lucide-react";
+import {
+  Search,
+  Calendar,
+  Globe,
+  Filter,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
 import { useCategory } from "@/hooks/use-category";
@@ -31,7 +38,11 @@ import {
   SimpleAsyncLanguageSelect,
   SimpleAsyncCategorySelect,
 } from "@/components/simple-async-select";
-import { useMKTSearchWithCache, useBrandsSearchWithCache, useCompaniesSearchWithCache } from "@/hooks/use-cache-polling";
+import {
+  useMKTSearchWithCache,
+  useBrandsSearchWithCache,
+  useCompaniesSearchWithCache,
+} from "@/hooks/use-cache-polling";
 import { useFavorites } from "@/hooks/use-favorites";
 
 // Pre-process static data once at module level for better performance
@@ -98,24 +109,33 @@ ShowVideosSelect.displayName = "ShowVideosSelect";
 
 // Cute No Data Component
 const NoDataDisplay = memo(
-  ({ type, hasSearched }: { type: "ads" | "brands" | "companies"; hasSearched: boolean }) => {
+  ({
+    type,
+    hasSearched,
+  }: {
+    type: "ads" | "brands" | "companies";
+    hasSearched: boolean;
+  }) => {
     const getDisplayText = () => {
       if (!hasSearched) {
         switch (type) {
           case "ads":
             return {
               title: "🎬 Sẵn sàng khám phá những quảng cáo tuyệt vời?",
-              subtitle: "Nhập từ khóa ở trên để bắt đầu tìm kiếm quảng cáo và chiến dịch của đối thủ",
+              subtitle:
+                "Nhập từ khóa ở trên để bắt đầu tìm kiếm quảng cáo và chiến dịch của đối thủ",
             };
           case "brands":
             return {
               title: "🏢 Khám phá chiến lược thương hiệu",
-              subtitle: "Tìm kiếm thương hiệu để phân tích cách tiếp cận quảng cáo và hiệu suất của họ",
+              subtitle:
+                "Tìm kiếm thương hiệu để phân tích cách tiếp cận quảng cáo và hiệu suất của họ",
             };
           case "companies":
             return {
               title: "🏭 Thông tin doanh nghiệp đang chờ bạn",
-              subtitle: "Khám phá các doanh nghiệp và chiến lược marketing của họ qua nhiều thương hiệu",
+              subtitle:
+                "Khám phá các doanh nghiệp và chiến lược marketing của họ qua nhiều thương hiệu",
             };
         }
       } else {
@@ -123,17 +143,20 @@ const NoDataDisplay = memo(
           case "ads":
             return {
               title: "🔍 Không tìm thấy quảng cáo",
-              subtitle: "Thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc để tìm thêm kết quả",
+              subtitle:
+                "Thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc để tìm thêm kết quả",
             };
           case "brands":
             return {
               title: "🔍 Không tìm thấy thương hiệu",
-              subtitle: "Thử các từ khóa khác hoặc duyệt cơ sở dữ liệu thương hiệu đang phát triển của chúng tôi",
+              subtitle:
+                "Thử các từ khóa khác hoặc duyệt cơ sở dữ liệu thương hiệu đang phát triển của chúng tôi",
             };
           case "companies":
             return {
               title: "🔍 Không tìm thấy doanh nghiệp",
-              subtitle: "Điều chỉnh tiêu chí tìm kiếm để khám phá thêm doanh nghiệp",
+              subtitle:
+                "Điều chỉnh tiêu chí tìm kiếm để khám phá thêm doanh nghiệp",
             };
         }
       }
@@ -217,8 +240,12 @@ export default function MKTPage() {
 
   // Fetch category for selected company
   useEffect(() => {
-    if (selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id) {
-      const categoryId = selectedCompany.categoryId || selectedCompany.summary_data.category_id;
+    if (
+      selectedCompany?.categoryId ||
+      selectedCompany?.summary_data?.category_id
+    ) {
+      const categoryId =
+        selectedCompany.categoryId || selectedCompany.summary_data.category_id;
       fetchCategory(categoryId);
     }
   }, [selectedCompany, fetchCategory]);
@@ -251,17 +278,29 @@ export default function MKTPage() {
   } = useCompaniesSearchWithCache();
 
   // Determine loading state based on active tab
-  const loading = activeTab === 'ads' ? adsSearchLoading : 
-                  activeTab === 'brands' ? brandsSearchLoading : 
-                  activeTab === 'companies' ? companiesSearchLoading : false;
+  const loading =
+    activeTab === "ads"
+      ? adsSearchLoading
+      : activeTab === "brands"
+      ? brandsSearchLoading
+      : activeTab === "companies"
+      ? companiesSearchLoading
+      : false;
 
   // Hook for refreshing favorite status
   const { refreshFavoriteStatus } = useFavorites();
 
   // Handle polling results for ads
   useEffect(() => {
-    if (activeTab === "ads" && adsSearchStatus === "completed" && adsSearchData) {
-      console.log("MKT Ads Polling completed, updating results:", adsSearchData);
+    if (
+      activeTab === "ads" &&
+      adsSearchStatus === "completed" &&
+      adsSearchData
+    ) {
+      console.log(
+        "MKT Ads Polling completed, updating results:",
+        adsSearchData
+      );
 
       setAdsSearchResults(adsSearchData);
 
@@ -283,8 +322,15 @@ export default function MKTPage() {
 
   // Handle polling results for brands
   useEffect(() => {
-    if (activeTab === "brands" && brandsSearchStatus === "completed" && brandsSearchData) {
-      console.log("MKT Brands Polling completed, updating results:", brandsSearchData);
+    if (
+      activeTab === "brands" &&
+      brandsSearchStatus === "completed" &&
+      brandsSearchData
+    ) {
+      console.log(
+        "MKT Brands Polling completed, updating results:",
+        brandsSearchData
+      );
 
       setBrandsSearchResults(brandsSearchData);
 
@@ -306,8 +352,15 @@ export default function MKTPage() {
 
   // Handle polling results for companies
   useEffect(() => {
-    if (activeTab === "companies" && companiesSearchStatus === "completed" && companiesSearchData) {
-      console.log("MKT Companies Polling completed, updating results:", companiesSearchData);
+    if (
+      activeTab === "companies" &&
+      companiesSearchStatus === "completed" &&
+      companiesSearchData
+    ) {
+      console.log(
+        "MKT Companies Polling completed, updating results:",
+        companiesSearchData
+      );
 
       setCompaniesSearchResults(companiesSearchData);
 
@@ -321,13 +374,19 @@ export default function MKTPage() {
         toast.info("Không tìm thấy doanh nghiệp");
       }
     } else if (activeTab === "companies" && companiesSearchStatus === "error") {
-      console.log("MKT Companies Polling failed with error:", companiesSearchError);
+      console.log(
+        "MKT Companies Polling failed with error:",
+        companiesSearchError
+      );
       setCompaniesSearchResults(null);
       toast.error(companiesSearchError || "Tìm kiếm doanh nghiệp thất bại");
     }
-  }, [activeTab, companiesSearchStatus, companiesSearchData, companiesSearchError]);
-
-
+  }, [
+    activeTab,
+    companiesSearchStatus,
+    companiesSearchData,
+    companiesSearchError,
+  ]);
 
   // Tab change handler
   const handleTabChange = useCallback((value: string) => {
@@ -360,7 +419,7 @@ export default function MKTPage() {
 
       try {
         const result = await searchAdsWithCache({
-          type: 'ads',
+          type: "ads",
           searchTerm: searchQuery,
           page: 1, // Always use page 1 since API returns 1000 results
           limit: 500, // Get more results for FE pagination
@@ -386,7 +445,6 @@ export default function MKTPage() {
           // Don't show any toast for pending - polling will handle it
           setAdsSearchResults(null); // Clear previous results
         } else if (result?.success && result?.data) {
-
           setAdsSearchResults(result.data);
 
           // Only show success toast for completed results
@@ -436,7 +494,7 @@ export default function MKTPage() {
 
       try {
         const result = await searchBrandsWithCache({
-          type: 'brands',
+          type: "brands",
           searchTerm: searchQuery,
           page: 1, // Always use page 1 since API returns many results
           limit: 500, // Get more results for FE pagination
@@ -458,13 +516,12 @@ export default function MKTPage() {
         });
 
         if (result?.success) {
-
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm thương hiệu, vui lòng đợi...");
           } else {
             // Direct result from cache
             setBrandsSearchResults(result.data);
-            
+
             const resultCount = result.data?.data?.results?.length || 0;
             if (resultCount > 0) {
               toast.success(
@@ -483,12 +540,7 @@ export default function MKTPage() {
         setBrandsSearchResults(null);
       }
     },
-    [
-      searchBrandsWithCache,
-      selectedCountry,
-      selectedCategory,
-      sortBy,
-    ]
+    [searchBrandsWithCache, selectedCountry, selectedCategory, sortBy]
   );
 
   // Companies search function with cache polling
@@ -508,7 +560,7 @@ export default function MKTPage() {
 
       try {
         const result = await searchCompaniesWithCache({
-          type: 'companies',
+          type: "companies",
           searchTerm: searchQuery,
           page: 1, // Always use page 1 since API returns many results
           limit: 500, // Get more results for FE pagination
@@ -535,7 +587,7 @@ export default function MKTPage() {
           } else {
             // Direct result from cache
             setCompaniesSearchResults(result.data);
-            
+
             const resultCount = result.data?.data?.results?.length || 0;
             if (resultCount > 0) {
               toast.success(
@@ -554,12 +606,7 @@ export default function MKTPage() {
         setCompaniesSearchResults(null);
       }
     },
-    [
-      searchCompaniesWithCache,
-      selectedCountry,
-      selectedCategory,
-      sortBy,
-    ]
+    [searchCompaniesWithCache, selectedCountry, selectedCategory, sortBy]
   );
 
   // Generic search handler that delegates to the appropriate search function
@@ -577,19 +624,19 @@ export default function MKTPage() {
   );
 
   // Callback when video modal closes - refresh favorite status
-  const handleVideoModalClose = useCallback(async (videoId: string) => {
-    await refreshFavoriteStatus('video', videoId);
-  }, [refreshFavoriteStatus]);
+  // const handleVideoModalClose = useCallback(async (videoId: string) => {
+  //   await refreshFavoriteStatus('video', videoId);
+  // }, [refreshFavoriteStatus]);
 
-  // Callback when brand modal closes - refresh favorite status
-  const handleBrandModalClose = useCallback(async (brandId: string) => {
-    await refreshFavoriteStatus('brand', brandId);
-  }, [refreshFavoriteStatus]);
+  // // Callback when brand modal closes - refresh favorite status
+  // const handleBrandModalClose = useCallback(async (brandId: string) => {
+  //   await refreshFavoriteStatus('brand', brandId);
+  // }, [refreshFavoriteStatus]);
 
-  // Callback when company modal closes - refresh favorite status
-  const handleCompanyModalClose = useCallback(async (companyId: string) => {
-    await refreshFavoriteStatus('company', companyId);
-  }, [refreshFavoriteStatus]);
+  // // Callback when company modal closes - refresh favorite status
+  // const handleCompanyModalClose = useCallback(async (companyId: string) => {
+  //   await refreshFavoriteStatus('company', companyId);
+  // }, [refreshFavoriteStatus]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -601,7 +648,8 @@ export default function MKTPage() {
             Tìm kiếm Marketing
           </h1>
           <p className="text-muted-foreground">
-            Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp
+            Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi
+            chiến dịch doanh nghiệp
           </p>
         </div>
 
@@ -745,7 +793,9 @@ export default function MKTPage() {
               {adsSearchResults ? (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">Kết quả tìm kiếm quảng cáo</h2>
+                    <h2 className="text-2xl font-bold">
+                      Kết quả tìm kiếm quảng cáo
+                    </h2>
                     <p className="text-sm text-muted-foreground">
                       Tìm thấy {adsPagination.totalItems} quảng cáo (
                       {adsSearchResults.total_available || 0} tổng cộng có sẵn)
@@ -770,7 +820,9 @@ export default function MKTPage() {
                               onClick={() => setSelectedVideo(video)}
                               onCompanyClick={() => {
                                 // Company click disabled for now
-                                toast.info("Thông tin doanh nghiệp sắp ra mắt!");
+                                toast.info(
+                                  "Thông tin doanh nghiệp sắp ra mắt!"
+                                );
                               }}
                             />
                           )
@@ -804,7 +856,9 @@ export default function MKTPage() {
               {/* Loading State */}
               <SearchLoadingState
                 isSearching={loading}
-                isPending={activeTab === "brands" && brandsSearchStatus === "pending"}
+                isPending={
+                  activeTab === "brands" && brandsSearchStatus === "pending"
+                }
                 searchType="brands"
                 className="mb-6"
               />
@@ -818,7 +872,8 @@ export default function MKTPage() {
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       Tìm thấy {brandsPagination.totalItems} thương hiệu (
-                      {brandsSearchResults.total_available || 0} tổng cộng có sẵn)
+                      {brandsSearchResults.total_available || 0} tổng cộng có
+                      sẵn)
                       {brandsPagination.totalPages > 1 && (
                         <span>
                           {" "}
@@ -836,14 +891,34 @@ export default function MKTPage() {
                           (brand: any, index: number) => (
                             <BrandCard
                               key={brand.brandId || `brand-${index}`}
-                              brandId={brand.brandId?.toString() || `brand-${index}`}
+                              brandId={
+                                brand.brandId?.toString() || `brand-${index}`
+                              }
                               name={brand.name || `Brand ${index + 1}`}
-                              description={brand.description || "Không có mô tả"}
+                              description={
+                                brand.description || "Không có mô tả"
+                              }
                               logo={brand.thumbnail || "/placeholder.svg"}
-                              totalAds={brand.summary_data?.total_spend || brand.totalSpend || 0}
-                              totalViews={String(brand.summary_data?.total_views || brand.totalViews || 0)}
-                              activeMonths={Math.ceil((brand.summary_data?.spend_365 || 0) / 30) || 1}
-                              totalSpend={brand.summary_data?.total_spend || brand.totalSpend || 0}
+                              totalAds={
+                                brand.summary_data?.total_spend ||
+                                brand.totalSpend ||
+                                0
+                              }
+                              totalViews={String(
+                                brand.summary_data?.total_views ||
+                                  brand.totalViews ||
+                                  0
+                              )}
+                              activeMonths={
+                                Math.ceil(
+                                  (brand.summary_data?.spend_365 || 0) / 30
+                                ) || 1
+                              }
+                              totalSpend={
+                                brand.summary_data?.total_spend ||
+                                brand.totalSpend ||
+                                0
+                              }
                               summaryDate={brand.summary_data?.summary_date}
                               onClick={() => setSelectedBrand(brand)}
                             />
@@ -878,7 +953,10 @@ export default function MKTPage() {
               {/* Loading State */}
               <SearchLoadingState
                 isSearching={loading}
-                isPending={activeTab === "companies" && companiesSearchStatus === "pending"}
+                isPending={
+                  activeTab === "companies" &&
+                  companiesSearchStatus === "pending"
+                }
                 searchType="companies"
                 className="mb-6"
               />
@@ -892,7 +970,8 @@ export default function MKTPage() {
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       Tìm thấy {companiesPagination.totalItems} doanh nghiệp (
-                      {companiesSearchResults.total_available || 0} tổng cộng có sẵn)
+                      {companiesSearchResults.total_available || 0} tổng cộng có
+                      sẵn)
                       {companiesPagination.totalPages > 1 && (
                         <span>
                           {" "}
@@ -910,18 +989,40 @@ export default function MKTPage() {
                           (company: any, index: number) => (
                             <CompanyCard
                               key={company.companyId || `company-${index}`}
-                              name={company.legalName || company.summary_data?.legal_name || "Tên không xác định"}
-                              description={`Doanh nghiệp ${company.isAffiliate ? 'Affiliate' : 'Marketing'} - ID: ${company.companyId}`}
+                              name={
+                                company.legalName ||
+                                company.summary_data?.legal_name ||
+                                "Tên không xác định"
+                              }
+                              description={`Doanh nghiệp ${
+                                company.isAffiliate ? "Affiliate" : "Marketing"
+                              } - ID: ${company.companyId}`}
                               totalBrands={1} // Companies API không trả về totalBrands, default 1
                               // totalAds={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000)} // Estimate ads from spend
-                              markets={[`Quốc gia ID: ${company.countryId || company.summary_data?.country_id || 'N/A'}`]}
-                              estimatedSpend={`$${((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000).toFixed(1)}M`}
-                              totalSpend={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0))}
+                              markets={[
+                                `Quốc gia ID: ${
+                                  company.countryId ||
+                                  company.summary_data?.country_id ||
+                                  "N/A"
+                                }`,
+                              ]}
+                              estimatedSpend={`$${(
+                                (company.summary_data?.total_spend ||
+                                  company.totalSpend ||
+                                  0) / 1000000
+                              ).toFixed(1)}M`}
+                              totalSpend={Math.floor(
+                                company.summary_data?.total_spend ||
+                                  company.totalSpend ||
+                                  0
+                              )}
                               summaryDate={company.summary_data?.summary_date}
                               onClick={() => setSelectedCompany(company)}
                               companyId={company.companyId?.toString() || ""}
                               isAffiliate={company.isAffiliate || false}
-                              totalVideos={Math.floor((company.summary_data?.total_views || 0))}
+                              totalVideos={Math.floor(
+                                company.summary_data?.total_views || 0
+                              )}
                             />
                           )
                         )}
@@ -982,20 +1083,20 @@ export default function MKTPage() {
           duration: selectedVideo?.duration || "",
           engagement: selectedVideo?.engagement || "",
           avgViewDuration: selectedVideo?.avgViewDuration || "",
-          ytVideoId: selectedVideo?.ytVideoId || selectedVideo?.videoId || ""
+          ytVideoId: selectedVideo?.ytVideoId || selectedVideo?.videoId || "",
         }}
         onCompanyClick={() => {
           // Company details coming soon
           toast.info("Thông tin doanh nghiệp sắp ra mắt!");
         }}
-        onClose={handleVideoModalClose}
+        onClose={() => {}}
       />
 
       <BrandDetailModal
         open={!!selectedBrand}
         onOpenChange={(open) => !open && setSelectedBrand(null)}
         brandId={selectedBrand?.brandId?.toString() || null}
-        onClose={handleBrandModalClose}
+        onClose={() => {}}
       />
 
       <CompanyDetailModal
@@ -1003,7 +1104,7 @@ export default function MKTPage() {
         onOpenChange={(open) => !open && setSelectedCompany(null)}
         companyId={selectedCompany?.companyId?.toString() || null}
         company={selectedCompany}
-        onClose={handleCompanyModalClose}
+        onClose={() => {}}
       />
     </div>
   );
