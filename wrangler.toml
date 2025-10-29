@@ -1,0 +1,9 @@
+# wrangler.toml
+name = "youtube-ads-library"
+main = ".vercel/output/static/_worker.js"
+compatibility_date = "2025-10-29"
+
+# Biến môi trường public (NEXT_PUBLIC_*)
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://zhkeeabqrorawmmlbrmz.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpoa2VlYWJxcm9yYXdtbWxicm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzk1OTEsImV4cCI6MjA2ODA1NTU5MX0.Z5ggtqxfWYirJ0I2yqf22f4vL5cG8peWbsSs0ayRL0E"
