@@ -1,3 +1,5 @@
+export const runtime = "nodejs"
+export const maxDuration = 300
 import { NextRequest, NextResponse } from 'next/server'
 import { 
   MKTSearchParams, 
@@ -144,9 +146,9 @@ export async function POST(request: NextRequest) {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
 
-    // Don't await this - run in background
-    performBackgroundSearch(pendingEntry.id, searchParams, controller.signal)
-      .finally(() => clearTimeout(timeoutId))
+    // Await background search to ensure it runs to completion on Vercel
+    await performBackgroundSearch(pendingEntry.id, searchParams, controller.signal)
+    clearTimeout(timeoutId)
 
     // Return pending response immediately
     return NextResponse.json({

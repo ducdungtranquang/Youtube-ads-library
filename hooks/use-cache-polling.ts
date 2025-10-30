@@ -21,8 +21,8 @@ export interface CacheStatusResponse {
 }
 
 export function useCachePolling<T = any>(
-  pollingInterval: number = 5000, // 5 seconds
-  maxPollingDuration: number = 300000 // 5 minutes
+  pollingInterval: number = 6000, // 6 seconds
+  maxPollingDuration: number = 180000 // 3 minutes
 ): CachePollingResult<T> {
   const [status, setStatus] = useState<CacheStatus | null>(null)
   const [data, setData] = useState<T | null>(null)
@@ -151,7 +151,7 @@ export function useCachePolling<T = any>(
 import { supabase } from '@/lib/supabase'
 
 function useSearchWithCache(apiEndpoint: string) {
-  const cachePolling = useCachePolling(5000, 300000) // 5s interval, 5min max
+  const cachePolling = useCachePolling(6000, 180000) // 6s interval, 3min max
   const [loading, setLoading] = useState(false)
 
   const searchWithCache = useCallback(async (searchParams: any) => {

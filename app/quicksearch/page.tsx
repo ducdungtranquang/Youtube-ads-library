@@ -177,14 +177,14 @@ function QuickSearchPage() {
                       const target = e.target as HTMLInputElement
                       setHasInputValue(target.value.trim().length > 0)
                     }}
-                    className="h-16 pl-5 pr-4 text-xl bg-white/95 backdrop-blur-sm border-0 focus:ring-2 focus:ring-white/50 text-black"
+                    className="h-12 pl-5 pr-4 text-lg bg-white/95 backdrop-blur-sm border-0 focus:ring-2 focus:ring-white/50 text-black"
                   />
                 </div>
                 <Button
                   type="submit"
                   size="lg"
                   disabled={!hasInputValue || isSearching}
-                  className="h-16 px-10 bg-white text-blue-600 hover:bg-white/90 font-semibold text-lg"
+                  className="h-12 px-10 bg-white text-blue-600 hover:bg-white/90 font-semibold text-lg"
                 >
                   {isSearching ? (
                     <Loader2 className="h-6 w-6 animate-spin" />

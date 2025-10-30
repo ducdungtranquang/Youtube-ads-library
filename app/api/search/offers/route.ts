@@ -1,3 +1,5 @@
+export const runtime = "nodejs"
+export const maxDuration = 300
 import { NextRequest, NextResponse } from 'next/server'
 import { vidTaoManager } from '@/lib/vidtao-manager'
 import { cacheManager } from '@/lib/cache-manager'
