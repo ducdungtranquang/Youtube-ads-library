@@ -1,9 +1,37 @@
-# wrangler.toml
 name = "youtube-ads-library"
-main = ".vercel/output/static/_worker.js"
+main = ".open-next/worker.js"
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
 compatibility_date = "2025-10-29"
+compatibility_flags = ["nodejs_compat"]
 
 # Biến môi trường public (NEXT_PUBLIC_*)
 [vars]
-NEXT_PUBLIC_SUPABASE_URL = "https://zhkeeabqrorawmmlbrmz.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpoa2VlYWJxcm9yYXdtbWxicm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzk1OTEsImV4cCI6MjA2ODA1NTU5MX0.Z5ggtqxfWYirJ0I2yqf22f4vL5cG8peWbsSs0ayRL0E"
+POSTGRES_URL="postgres://postgres.zhkeeabqrorawmmlbrmz:PebwG1XNW3hLNlKB@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
+POSTGRES_USER="postgres"
+POSTGRES_HOST="db.zhkeeabqrorawmmlbrmz.supabase.co"
+SUPABASE_JWT_SECRET="MAtv1CWMD2WPoPUxtL95OwEVtWuO9+ISz7EvgPnrBsc5wtonpi9gq79zQMhSOKvCAAEDuneUWMAjPPBwUd2aXQ=="
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpoa2VlYWJxcm9yYXdtbWxicm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzk1OTEsImV4cCI6MjA2ODA1NTU5MX0.Z5ggtqxfWYirJ0I2yqf22f4vL5cG8peWbsSs0ayRL0E"
+POSTGRES_PRISMA_URL="postgres://postgres.zhkeeabqrorawmmlbrmz:PebwG1XNW3hLNlKB@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
+POSTGRES_PASSWORD="PebwG1XNW3hLNlKB"
+POSTGRES_DATABASE="postgres"
+SUPABASE_URL="https://zhkeeabqrorawmmlbrmz.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpoa2VlYWJxcm9yYXdtbWxicm16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0Nzk1OTEsImV4cCI6MjA2ODA1NTU5MX0.Z5ggtqxfWYirJ0I2yqf22f4vL5cG8peWbsSs0ayRL0E"
+NEXT_PUBLIC_SUPABASE_URL="https://zhkeeabqrorawmmlbrmz.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpoa2VlYWJxcm9yYXdtbWxicm16Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjQ3OTU5MSwiZXhwIjoyMDY4MDU1NTkxfQ.b9X2oaYMz93zXhkCJVl5bwdcaZqMcq_cvtUJCGAbL-c"
+EMAIL_PASS=kori dbhe nvhs emou
+EMAIL_USER=tranthideptrai@gmail.com
+RESET_URL=http://localhost:3000/reset-password
+VERIFY_URL=http://localhost:3000/verify-account
+NEXT_PUBLIC_YT_API_KEY=AIzaSyDLaD6LjGGjcuF-nD3O8kn2jufkbrbydq4
+VAPID_PUBLIC_KEY=BEr0BoRJLrLCmeD-JrxvluTfhXpCHWFlROr8YIGV6GBA4fsI93MV8ehSAuyv1BWRFy0gsXQAUPWPgYQJ7asA4WE
+VAPID_PRIVATE_KEY=sKEqGBTzpHGbvaRp9d86nsHx6JJUSkkFO3gzCzXYZr0
+POSTGRES_URL_NON_POOLING="postgres://postgres.zhkeeabqrorawmmlbrmz:PebwG1XNW3hLNlKB@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
+
+VIDTAO_EMAIL_1=tranquangducdung@gmail.com
+VIDTAO_PASSWORD_1=a0983312811
+
+VIDTAO_EMAIL_2=your_vidtao_email_2@example.com
+VIDTAO_PASSWORD_2=your_vidtao_password_2
+
+VIDTAO_EMAIL_3=your_vidtao_email_3@example.com
+VIDTAO_PASSWORD_3=your_vidtao_password_3

@@ -43,7 +43,9 @@ import {
   useBrandsSearchWithCache,
   useCompaniesSearchWithCache,
 } from "@/hooks/use-cache-polling";
+
 import { useFavorites } from "@/hooks/use-favorites";
+import { useAuth } from "@/contexts/auth-context";
 
 // Pre-process static data once at module level for better performance
 const sortOptions = [
@@ -196,6 +198,21 @@ const NoDataDisplay = memo(
 NoDataDisplay.displayName = "NoDataDisplay";
 
 export default function MKTPage() {
+  const { user, loading: authLoading } = useAuth();
+  // Show login prompt if not authenticated
+  if (!authLoading && !user) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    return null;
+  }
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-lg text-muted-foreground">Đang kiểm tra đăng nhập...</div>
+      </div>
+    );
+  }
   const searchQueryRef = useRef<HTMLInputElement>(null);
   const { category: selectedCompanyCategory, fetchCategory } = useCategory();
   const [selectedCountry, setSelectedCountry] = useState("0");
@@ -257,24 +274,25 @@ export default function MKTPage() {
     data: adsSearchData,
     error: adsSearchError,
     status: adsSearchStatus,
+    stopPolling: stopAdsPolling,
   } = useMKTSearchWithCache();
 
-  // Use Brands search with cache polling
   const {
     searchWithCache: searchBrandsWithCache,
     loading: brandsSearchLoading,
     data: brandsSearchData,
     error: brandsSearchError,
     status: brandsSearchStatus,
+    stopPolling: stopBrandsPolling,
   } = useBrandsSearchWithCache();
 
-  // Use Companies search with cache polling
   const {
     searchWithCache: searchCompaniesWithCache,
     loading: companiesSearchLoading,
     data: companiesSearchData,
     error: companiesSearchError,
     status: companiesSearchStatus,
+    stopPolling: stopCompaniesPolling,
   } = useCompaniesSearchWithCache();
 
   // Determine loading state based on active tab
@@ -390,6 +408,10 @@ export default function MKTPage() {
 
   // Tab change handler
   const handleTabChange = useCallback((value: string) => {
+    // Hủy polling khi chuyển tab
+    stopAdsPolling();
+    stopBrandsPolling();
+    stopCompaniesPolling();
     const newTab = value as "ads" | "brands" | "companies";
     setActiveTab(newTab);
     // Reset search results when switching tabs
@@ -400,7 +422,7 @@ export default function MKTPage() {
     } else if (newTab === "companies") {
       setCompaniesSearchResults(null);
     }
-  }, []);
+  }, [stopAdsPolling, stopBrandsPolling, stopCompaniesPolling]);
 
   // Ads search function
   const handleAdsSearch = useCallback(
