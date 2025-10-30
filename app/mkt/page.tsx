@@ -198,21 +198,8 @@ const NoDataDisplay = memo(
 NoDataDisplay.displayName = "NoDataDisplay";
 
 export default function MKTPage() {
+  // All hooks must be called unconditionally at the top
   const { user, loading: authLoading } = useAuth();
-  // Show login prompt if not authenticated
-  if (!authLoading && !user) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
-    return null;
-  }
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-lg text-muted-foreground">Đang kiểm tra đăng nhập...</div>
-      </div>
-    );
-  }
   const searchQueryRef = useRef<HTMLInputElement>(null);
   const { category: selectedCompanyCategory, fetchCategory } = useCategory();
   const [selectedCountry, setSelectedCountry] = useState("0");
@@ -224,19 +211,13 @@ export default function MKTPage() {
   const [sortBy, setSortBy] = useState<
     "date" | "totalSpend" | "views" | "relevance"
   >("date");
-
-  // Tab management state
   const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">(
     "ads"
   );
-
-  // Search results for each tab
   const [adsSearchResults, setAdsSearchResults] = useState<any>(null);
   const [brandsSearchResults, setBrandsSearchResults] = useState<any>(null);
   const [companiesSearchResults, setCompaniesSearchResults] =
     useState<any>(null);
-
-  // Frontend pagination for each tab
   const adsPagination = useFrontendPagination(
     adsSearchResults?.data?.results || [],
     { itemsPerPage: 20 }
@@ -249,12 +230,34 @@ export default function MKTPage() {
     companiesSearchResults?.data?.results || [],
     { itemsPerPage: 20 }
   );
-
-  // Modal states
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
-
+  const {
+    searchWithCache: searchAdsWithCache,
+    loading: adsSearchLoading,
+    data: adsSearchData,
+    error: adsSearchError,
+    status: adsSearchStatus,
+    stopPolling: stopAdsPolling,
+  } = useMKTSearchWithCache();
+  const {
+    searchWithCache: searchBrandsWithCache,
+    loading: brandsSearchLoading,
+    data: brandsSearchData,
+    error: brandsSearchError,
+    status: brandsSearchStatus,
+    stopPolling: stopBrandsPolling,
+  } = useBrandsSearchWithCache();
+  const {
+    searchWithCache: searchCompaniesWithCache,
+    loading: companiesSearchLoading,
+    data: companiesSearchData,
+    error: companiesSearchError,
+    status: companiesSearchStatus,
+    stopPolling: stopCompaniesPolling,
+  } = useCompaniesSearchWithCache();
+  const { refreshFavoriteStatus } = useFavorites();
   // Fetch category for selected company
   useEffect(() => {
     if (
@@ -266,48 +269,6 @@ export default function MKTPage() {
       fetchCategory(categoryId);
     }
   }, [selectedCompany, fetchCategory]);
-
-  // Use MKT search with cache polling for ads
-  const {
-    searchWithCache: searchAdsWithCache,
-    loading: adsSearchLoading,
-    data: adsSearchData,
-    error: adsSearchError,
-    status: adsSearchStatus,
-    stopPolling: stopAdsPolling,
-  } = useMKTSearchWithCache();
-
-  const {
-    searchWithCache: searchBrandsWithCache,
-    loading: brandsSearchLoading,
-    data: brandsSearchData,
-    error: brandsSearchError,
-    status: brandsSearchStatus,
-    stopPolling: stopBrandsPolling,
-  } = useBrandsSearchWithCache();
-
-  const {
-    searchWithCache: searchCompaniesWithCache,
-    loading: companiesSearchLoading,
-    data: companiesSearchData,
-    error: companiesSearchError,
-    status: companiesSearchStatus,
-    stopPolling: stopCompaniesPolling,
-  } = useCompaniesSearchWithCache();
-
-  // Determine loading state based on active tab
-  const loading =
-    activeTab === "ads"
-      ? adsSearchLoading
-      : activeTab === "brands"
-      ? brandsSearchLoading
-      : activeTab === "companies"
-      ? companiesSearchLoading
-      : false;
-
-  // Hook for refreshing favorite status
-  const { refreshFavoriteStatus } = useFavorites();
-
   // Handle polling results for ads
   useEffect(() => {
     if (
@@ -315,14 +276,7 @@ export default function MKTPage() {
       adsSearchStatus === "completed" &&
       adsSearchData
     ) {
-      console.log(
-        "MKT Ads Polling completed, updating results:",
-        adsSearchData
-      );
-
       setAdsSearchResults(adsSearchData);
-
-      // Show success toast for completed polling
       const resultCount = adsSearchData?.data?.results?.length || 0;
       if (resultCount > 0) {
         toast.success(
@@ -332,12 +286,10 @@ export default function MKTPage() {
         toast.info("No results found");
       }
     } else if (activeTab === "ads" && adsSearchStatus === "error") {
-      console.log("MKT Ads Polling failed with error:", adsSearchError);
       setAdsSearchResults(null);
       toast.error(adsSearchError || "Tìm kiếm thất bại");
     }
   }, [activeTab, adsSearchStatus, adsSearchData, adsSearchError]);
-
   // Handle polling results for brands
   useEffect(() => {
     if (
@@ -345,14 +297,7 @@ export default function MKTPage() {
       brandsSearchStatus === "completed" &&
       brandsSearchData
     ) {
-      console.log(
-        "MKT Brands Polling completed, updating results:",
-        brandsSearchData
-      );
-
       setBrandsSearchResults(brandsSearchData);
-
-      // Show success toast for completed polling
       const resultCount = brandsSearchData?.data?.results?.length || 0;
       if (resultCount > 0) {
         toast.success(
@@ -362,12 +307,10 @@ export default function MKTPage() {
         toast.info("Không tìm thấy thương hiệu");
       }
     } else if (activeTab === "brands" && brandsSearchStatus === "error") {
-      console.log("MKT Brands Polling failed with error:", brandsSearchError);
       setBrandsSearchResults(null);
       toast.error(brandsSearchError || "Tìm kiếm thương hiệu thất bại");
     }
   }, [activeTab, brandsSearchStatus, brandsSearchData, brandsSearchError]);
-
   // Handle polling results for companies
   useEffect(() => {
     if (
@@ -375,14 +318,7 @@ export default function MKTPage() {
       companiesSearchStatus === "completed" &&
       companiesSearchData
     ) {
-      console.log(
-        "MKT Companies Polling completed, updating results:",
-        companiesSearchData
-      );
-
       setCompaniesSearchResults(companiesSearchData);
-
-      // Show success toast for completed polling
       const resultCount = companiesSearchData?.data?.results?.length || 0;
       if (resultCount > 0) {
         toast.success(
@@ -392,10 +328,6 @@ export default function MKTPage() {
         toast.info("Không tìm thấy doanh nghiệp");
       }
     } else if (activeTab === "companies" && companiesSearchStatus === "error") {
-      console.log(
-        "MKT Companies Polling failed with error:",
-        companiesSearchError
-      );
       setCompaniesSearchResults(null);
       toast.error(companiesSearchError || "Tìm kiếm doanh nghiệp thất bại");
     }
@@ -405,24 +337,37 @@ export default function MKTPage() {
     companiesSearchData,
     companiesSearchError,
   ]);
+  const loading =
+    activeTab === "ads"
+      ? adsSearchLoading
+      : activeTab === "brands"
+      ? brandsSearchLoading
+      : activeTab === "companies"
+      ? companiesSearchLoading
+      : false;
+
+  // ...existing code...
 
   // Tab change handler
-  const handleTabChange = useCallback((value: string) => {
-    // Hủy polling khi chuyển tab
-    stopAdsPolling();
-    stopBrandsPolling();
-    stopCompaniesPolling();
-    const newTab = value as "ads" | "brands" | "companies";
-    setActiveTab(newTab);
-    // Reset search results when switching tabs
-    if (newTab === "ads") {
-      setAdsSearchResults(null);
-    } else if (newTab === "brands") {
-      setBrandsSearchResults(null);
-    } else if (newTab === "companies") {
-      setCompaniesSearchResults(null);
-    }
-  }, [stopAdsPolling, stopBrandsPolling, stopCompaniesPolling]);
+  const handleTabChange = useCallback(
+    (value: string) => {
+      // Hủy polling khi chuyển tab
+      stopAdsPolling();
+      stopBrandsPolling();
+      stopCompaniesPolling();
+      const newTab = value as "ads" | "brands" | "companies";
+      setActiveTab(newTab);
+      // Reset search results when switching tabs
+      if (newTab === "ads") {
+        setAdsSearchResults(null);
+      } else if (newTab === "brands") {
+        setBrandsSearchResults(null);
+      } else if (newTab === "companies") {
+        setCompaniesSearchResults(null);
+      }
+    },
+    [stopAdsPolling, stopBrandsPolling, stopCompaniesPolling]
+  );
 
   // Ads search function
   const handleAdsSearch = useCallback(
@@ -644,6 +589,40 @@ export default function MKTPage() {
     },
     [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]
   );
+
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="mb-4 h-12 w-12 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                Đăng nhập để sử dụng tính năng tìm kiếm
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Bạn cần đăng nhập để nghiên cứu quảng cáo, thương hiệu và doanh nghiệp.
+              </p>
+              <Button asChild>
+                <a href="/login">Đăng nhập</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-lg text-muted-foreground">
+          Đang kiểm tra đăng nhập...
+        </div>
+      </div>
+    );
+  }
 
   // Callback when video modal closes - refresh favorite status
   // const handleVideoModalClose = useCallback(async (videoId: string) => {

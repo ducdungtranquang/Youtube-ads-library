@@ -21,7 +21,7 @@ export interface CacheStatusResponse {
 }
 
 export function useCachePolling<T = any>(
-  pollingInterval: number = 3000, // 3 seconds
+  pollingInterval: number = 5000, // 5 seconds
   maxPollingDuration: number = 300000 // 5 minutes
 ): CachePollingResult<T> {
   const [status, setStatus] = useState<CacheStatus | null>(null)
@@ -147,18 +147,28 @@ export function useCachePolling<T = any>(
 }
 
 // Generic hook for search with cache polling
+
+import { supabase } from '@/lib/supabase'
+
 function useSearchWithCache(apiEndpoint: string) {
-  const cachePolling = useCachePolling(3000, 300000) // 3s interval, 5min max
+  const cachePolling = useCachePolling(5000, 300000) // 5s interval, 5min max
   const [loading, setLoading] = useState(false)
 
   const searchWithCache = useCallback(async (searchParams: any) => {
     try {
       setLoading(true)
-      
+      // Lấy access token từ supabase
+      let accessToken: string | undefined = undefined;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        accessToken = session?.access_token;
+      } catch {}
+
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(searchParams),
       })
@@ -225,11 +235,18 @@ export function useQuickSearchWithCache() {
   const searchWithCache = useCallback(async (searchParams: any) => {
     try {
       setLoading(true)
-      
+      // Lấy access token từ supabase
+      let accessToken: string | undefined = undefined;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        accessToken = session?.access_token;
+      } catch {}
+
       const response = await fetch('/api/search/quicksearch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(searchParams),
       })
