@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
 
 interface CompanyDetails {
   company: {
@@ -69,7 +70,19 @@ export function useCompanyDetails(): UseCompanyDetailsResult {
     setError(null)
 
     try {
-      const response = await fetch(`/api/companies/${companyId}`)
+      // Get access token from Supabase session
+      let accessToken: string | undefined = undefined
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        accessToken = session?.access_token
+      } catch {}
+
+      const response = await fetch(`/api/companies/${companyId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+      })
       const result = await response.json()
 
       if (!response.ok) {

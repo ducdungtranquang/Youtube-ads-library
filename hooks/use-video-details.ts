@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
 
 interface VideoDetails {
   ytVideoId: string
@@ -45,7 +46,19 @@ export function useVideoDetails(): UseVideoDetailsReturn {
     setError(null)
 
     try {
-      const response = await fetch(`/api/videos/${videoId}`)
+      // Get access token from Supabase session
+      let accessToken: string | undefined = undefined
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        accessToken = session?.access_token
+      } catch {}
+
+      const response = await fetch(`/api/videos/${videoId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+      })
       const result = await response.json()
 
       if (!response.ok) {

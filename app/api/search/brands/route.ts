@@ -98,81 +98,92 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Brands API] Created pending search entry:`, pendingEntry.id)
 
-    // Start background search process
-    setImmediate(async () => {
-      try {
-        console.log(`[Brands API] Starting background search for:`, searchTerm)
+    // Perform search directly with timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout
 
-        // Prepare VidTao search parameters
-        const vidTaoParams = {
+    try {
+      console.log(`[Brands API] Starting search for:`, searchTerm)
+
+      // Prepare VidTao search parameters
+      const vidTaoParams = {
+        searchTerm,
+        page,
+        limit,
+        countryId: filters.countryId,
+        categoryIds: filters.categoryIds,
+        language: filters.language,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        sortProp: filters.sortProp || 'date',
+        orderAsc: filters.orderAsc || false
+      }
+
+      const result = await vidTaoManager.searchBrands(vidTaoParams)
+      clearTimeout(timeoutId)
+
+      if (result.success && result.data) {
+        console.log(`[Brands API] Search completed:`, {
           searchTerm,
-          page,
-          limit,
-          countryId: filters.countryId,
-          categoryIds: filters.categoryIds,
-          language: filters.language,
-          dateFrom: filters.dateFrom,
-          dateTo: filters.dateTo,
-          sortProp: filters.sortProp || 'date',
-          orderAsc: filters.orderAsc || false
+          resultsCount: result.data?.data?.results?.length || 0,
+          account: result.account
+        })
+
+        // Transform response for frontend
+        const transformedResponse = {
+          success: true,
+          data: result.data?.data || {},
+          total_available: result.data?.total_available || 0,
+          total_results: result.data?.total_results || 0,
+          account: result.account,
+          search_type: 'brands',
+          cached: false
         }
 
-        const result = await vidTaoManager.searchBrands(vidTaoParams)
+        // Update cache with results
+        await supabaseCacheManager.updateCacheEntry(
+          pendingEntry.id,
+          'completed',
+          transformedResponse
+        )
 
-        if (result.success && result.data) {
-          console.log(`[Brands API] Background search completed:`, {
-            searchTerm,
-            resultsCount: result.data?.data?.results?.length || 0,
-            account: result.account
-          })
-
-          // Transform response for frontend
-          const transformedResponse = {
-            success: true,
-            data: result.data?.data || {},
-            total_available: result.data?.total_available || 0,
-            total_results: result.data?.total_results || 0,
-            account: result.account,
-            search_type: 'brands',
-            cached: false
-          }
-
-          // Update cache with results
-          await supabaseCacheManager.updateCacheEntry(
-            pendingEntry.id,
-            'completed',
-            transformedResponse
-          )
-        } else {
-          console.error(`[Brands API] Background search failed:`, result.error)
-          
-          // Update cache with error
-          await supabaseCacheManager.updateCacheEntry(
-            pendingEntry.id,
-            'error',
-            null,
-            result.error || 'Brands search failed'
-          )
-        }
-      } catch (error) {
-        console.error(`[Brands API] Background search error:`, error)
+        return NextResponse.json(transformedResponse)
+      } else {
+        console.error(`[Brands API] Search failed:`, result.error)
         
         // Update cache with error
         await supabaseCacheManager.updateCacheEntry(
           pendingEntry.id,
           'error',
           null,
-          error instanceof Error ? error.message : 'Unknown error'
+          result.error || 'Brands search failed'
+        )
+
+        return NextResponse.json(
+          { success: false, error: result.error || 'Brands search failed' },
+          { status: 500 }
         )
       }
-    })
+    } catch (error) {
+      clearTimeout(timeoutId)
+      console.error(`[Brands API] Search error:`, error)
+      
+      // Update cache with error
+      await supabaseCacheManager.updateCacheEntry(
+        pendingEntry.id,
+        'error',
+        null,
+        error instanceof Error ? error.message : 'Unknown error'
+      )
 
-    // Return pending response immediately
-    return NextResponse.json({
-      status: 'pending',
-      cacheId: pendingEntry.id,
-      message: 'Brands search started...'
-    })
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        },
+        { status: 500 }
+      )
+    }
 
   } catch (error) {
     console.error('[Brands API] Error:', error)

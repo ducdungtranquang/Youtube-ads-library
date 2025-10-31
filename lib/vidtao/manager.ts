@@ -84,8 +84,8 @@ export class VidTaoManager {
   /**
    * MKT Search using VidTao Enhanced Search API
    */
-  async mktSearch(params: MKTSearchParams): Promise<VidTaoResponse> {
-    return this.apiService.mktSearch(params)
+  async mktSearch(params: MKTSearchParams, signal?: AbortSignal): Promise<VidTaoResponse> {
+    return this.apiService.mktSearch(params, signal)
   }
 
   /**

@@ -472,7 +472,7 @@ export class VidTaoAPIService {
   /**
    * MKT Search using VidTao Enhanced Search API
    */
-  async mktSearch(params: MKTSearchParams): Promise<VidTaoResponse> {
+  async mktSearch(params: MKTSearchParams, signal?: AbortSignal): Promise<VidTaoResponse> {
     const account = this.accountManager.getAvailableAccount()
     if (!account) {
       return {
@@ -520,7 +520,8 @@ export class VidTaoAPIService {
           'Content-Type': 'application/json',
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal
       })
 
       // Update account usage
