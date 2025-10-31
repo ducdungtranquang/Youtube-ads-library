@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export type CacheStatus = 'pending' | 'completed' | 'error'
 
@@ -148,17 +149,25 @@ export function useCachePolling<T = any>(
 
 // Generic hook for search with cache polling
 function useSearchWithCache(apiEndpoint: string) {
-  const cachePolling = useCachePolling(3000, 300000) // 3s interval, 5min max
+  const cachePolling = useCachePolling(3500, 300000) // 3s interval, 5min max
   const [loading, setLoading] = useState(false)
 
   const searchWithCache = useCallback(async (searchParams: any) => {
     try {
       setLoading(true)
       
+      // Get current session for authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Authentication required. Please log in again.')
+      }
+
       const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(searchParams),
       })
@@ -219,17 +228,25 @@ export function useCompaniesSearchWithCache() {
 
 // Specialized hook for QuickSearch with cache polling
 export function useQuickSearchWithCache() {
-  const cachePolling = useCachePolling(2000, 180000) // 2s interval, 3min max (faster for quick search)
+  const cachePolling = useCachePolling(3500, 180000) // 2s interval, 3min max (faster for quick search)
   const [loading, setLoading] = useState(false)
 
   const searchWithCache = useCallback(async (searchParams: any) => {
     try {
       setLoading(true)
       
+      // Get current session for authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Authentication required. Please log in again.')
+      }
+      
       const response = await fetch('/api/search/quicksearch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(searchParams),
       })
