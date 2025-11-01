@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { VideoCard } from "@/components/video-card"
 import { SearchLoadingState } from "@/components/search-loading-state"
-import { useQuickSearchAds } from "@/hooks/use-quicksearch-ads"
 import { Search, TrendingUp, Eye, Loader2, AlertTriangle, Globe } from "lucide-react"
 import { toast } from "sonner"
 
@@ -18,8 +17,7 @@ function QuickSearchPage() {
   const [hasInputValue, setHasInputValue] = useState(false)
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isSearching, setIsSearching] = useState(false)
-
-  const { searchAds, loading, error, data, status } = useQuickSearchAds()
+  const [error, setError] = useState<string | null>(null)
 
   // Memoize quick tags to prevent re-creation (marketing only)
   const marketingTags = useMemo(() => 
@@ -35,50 +33,65 @@ function QuickSearchPage() {
     }
     setSearchQuery(currentQuery)
     setIsSearching(true)
-    if (page === 1) {
-      setSearchResults(null)
-    }
+    setError(null)
+    setSearchResults(null)
+
     try {
-      const result = await searchAds({
-        affiliateCountryId: 0,
-        affiliateNetworkIds: [],
-        categoryIds: [],
-        countryId: 0,
-        dateFrom: "",
-        dateTo: "",
-        isAffiliate: false,
-        language: "",
-        limit: 20,
-        offerIds: [],
-        orderAsc: false,
-        page: 1,
-        searchTerm: currentQuery,
-        query: currentQuery,
-        showVideos: "unlisted",
-        softwareIds: [],
-        sortProp: ""
+      const response = await fetch('/api/search/quicksearch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          affiliateCountryId: 0,
+          affiliateNetworkIds: [],
+          categoryIds: [],
+          countryId: 0,
+          dateFrom: "",
+          dateTo: "",
+          isAffiliate: false,
+          language: "",
+          limit: 20,
+          offerIds: [],
+          orderAsc: false,
+          page: 1,
+          searchTerm: currentQuery,
+          query: currentQuery,
+          showVideos: "unlisted",
+          softwareIds: [],
+          sortProp: ""
+        })
       })
-      if (result?.pending) {
-        setSearchResults(null)
-      } else if (result?.success && result?.data) {
-        // Handle deeply nested VidTao response
-        const videos = result.data?.data?.data?.results || result.data?.data?.results || result.data?.results || [];
-        setSearchResults(videos);
-        const resultCount = Array.isArray(videos) ? videos.length : 0;
-        if (resultCount === 0) {
-          toast.info('Không tìm thấy kết quả');
-        }
-      } else {
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (result.error) {
+        throw new Error(result.details || result.error)
+      }
+
+      // Handle the response
+      const videos = result?.data || []
+      setSearchResults(videos)
+      setIsSearching(false)
+
+      const resultCount = Array.isArray(videos) ? videos.length : 0;
+      if (resultCount === 0) {
         toast.info('Không tìm thấy kết quả');
-        setSearchResults(null);
+      } else {
+        toast.success(`Tìm thấy ${resultCount} kết quả`)
       }
     } catch (error) {
-      toast.error("Tìm kiếm thất bại. Vui lòng thử lại.")
+      console.error('Search error:', error)
+      setError(error instanceof Error ? error.message : 'Tìm kiếm thất bại')
       setSearchResults(null)
-    } finally {
       setIsSearching(false)
+      toast.error("Tìm kiếm thất bại. Vui lòng thử lại.")
     }
-  }, [searchAds])
+  }, [])
 
   useEffect(() => {
     if (searchInputRef.current && searchQuery) {
@@ -86,24 +99,6 @@ function QuickSearchPage() {
       setHasInputValue(searchQuery.trim().length > 0)
     }
   }, [searchQuery])
-
-  useEffect(() => {
-    if (status === 'completed' && data) {
-      const videos = data?.data || data?.ads || data?.videos || []
-      setSearchResults(videos)
-      setIsSearching(false)
-      const resultCount = Array.isArray(videos) ? videos.length : 0
-      if (resultCount > 0) {
-        toast.success(`Tìm thấy ${resultCount} kết quả`)
-      } else {
-        toast.info('Không tìm thấy kết quả')
-      }
-    } else if (status === 'error') {
-      setSearchResults(null)
-      setIsSearching(false)
-      toast.error(error || 'Tìm kiếm thất bại')
-    }
-  }, [status, data, error])
 
   const renderedSearchResults = useMemo(() => {
     if (!searchResults || !Array.isArray(searchResults) || searchResults.length === 0) return (
@@ -177,14 +172,14 @@ function QuickSearchPage() {
                       const target = e.target as HTMLInputElement
                       setHasInputValue(target.value.trim().length > 0)
                     }}
-                    className="h-16 pl-5 pr-4 text-xl bg-white/95 backdrop-blur-sm border-0 focus:ring-2 focus:ring-white/50 text-black"
+                    className="h-12 pl-5 pr-4 text-lg bg-white/95 backdrop-blur-sm border-0 focus:ring-2 focus:ring-white/50 text-black"
                   />
                 </div>
                 <Button
                   type="submit"
                   size="lg"
                   disabled={!hasInputValue || isSearching}
-                  className="h-16 px-10 bg-white text-blue-600 hover:bg-white/90 font-semibold text-lg"
+                  className="h-12 px-10 bg-white text-blue-600 hover:bg-white/90 font-semibold text-lg"
                 >
                   {isSearching ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -223,7 +218,7 @@ function QuickSearchPage() {
         {/* Loading State */}
         <SearchLoadingState 
           isSearching={isSearching}
-          isPending={status === 'pending'}
+          isPending={false}
           searchType="ads"
           className="mb-8"
         />
