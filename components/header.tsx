@@ -57,7 +57,7 @@ export function Header() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <Video className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="mobile:text-lg tablet:text-xl font-bold text-foreground">YouTube ADS Libraries</span>
+            <span className="mobile:text-lg tablet:text-xl font-bold text-foreground">YouTube ADS Library</span>
           </Link>
 
           {/* Desktop Navigation - Hidden on 1024px and below */}

@@ -66,10 +66,10 @@ export function VideoCard({
                 height={96}
                 className="h-full w-full object-contain rounded-lg"
               />
-              <Badge className="absolute right-1 top-1 bg-background/90 text-foreground text-[10px] px-1 py-0.5">
+              {/* <Badge className="absolute right-1 top-1 bg-background/90 text-foreground text-[10px] px-1 py-0.5">
                 <Eye className="mr-0.5 h-2 w-2" />
                 {views}
-              </Badge>
+              </Badge> */}
             </div>
           </div>
 

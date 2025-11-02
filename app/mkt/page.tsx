@@ -735,7 +735,7 @@ export default function MKTPage() {
                   <Calendar className="h-4 w-4" />
                   Ngày bắt đầu
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid md:grid-cols-2 gap-2">
                   <Input
                     type="date"
                     placeholder="Từ ngày"
@@ -749,7 +749,7 @@ export default function MKTPage() {
                   <Calendar className="h-4 w-4" />
                   Ngày kết thúc
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid md:grid-cols-2 gap-2">
                   <Input
                     type="date"
                     placeholder="Đến ngày"

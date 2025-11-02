@@ -352,7 +352,7 @@ export default function HomePage() {
 
       <footer className="border-t border-border/40 py-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 YouTube ADS Libraries. Được xây dựng cho marketers và affiliate marketers.</p>
+          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>

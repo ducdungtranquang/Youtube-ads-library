@@ -1,4 +1,4 @@
-# YouTube ADS Libraries - Supabase Integration Guide
+# YouTube ADS Library - Supabase Integration Guide
 
 Dự án này đã được tích hợp với Supabase để xử lý authentication và database. Dưới đây là hướng dẫn chi tiết để cấu hình Supabase.
 
@@ -10,7 +10,7 @@ Dự án này đã được tích hợp với Supabase để xử lý authentica
 2. Đăng nhập hoặc tạo tài khoản mới
 3. Nhấp "New Project"
 4. Điền thông tin dự án:
-   - **Name**: YouTube ADS Libraries
+   - **Name**: YouTube ADS Library
    - **Database Password**: Tạo mật khẩu mạnh
    - **Region**: Chọn region gần nhất
 5. Nhấp "Create new project"
