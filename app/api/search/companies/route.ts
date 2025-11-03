@@ -59,12 +59,12 @@ export async function POST(request: NextRequest) {
     const body: CompaniesSearchParams = await request.json()
     const { searchTerm, page = 1, limit = 50, filters = {} } = body
 
-    if (!searchTerm || searchTerm.trim().length === 0) {
-      return withCORS(NextResponse.json(
-        { success: false, error: 'Search term is required' },
-        { status: 400 }
-      ))
-    }
+    // if (!searchTerm || searchTerm.trim().length === 0) {
+    //   return withCORS(NextResponse.json(
+    //     { success: false, error: 'Search term is required' },
+    //     { status: 400 }
+    //   ))
+    // }
 
     console.log(`[Companies API] Search request:`, {
       searchTerm,

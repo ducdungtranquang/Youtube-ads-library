@@ -63,12 +63,12 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required parameters
-    if (!searchTerm || searchTerm.trim() === '') {
-      return withCORS(NextResponse.json(
-        { error: 'Search term is required' },
-        { status: 400 }
-      ))
-    }
+    // if (!searchTerm || searchTerm.trim() === '') {
+    //   return withCORS(NextResponse.json(
+    //     { error: 'Search term is required' },
+    //     { status: 400 }
+    //   ))
+    // }
 
     // Create search payload for caching
     const searchPayload: SearchPayload = {
