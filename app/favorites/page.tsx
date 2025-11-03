@@ -431,7 +431,7 @@ export default function FavoritesPage() {
           className="w-full"
         >
           <TabsList className="mb-6">
-            <TabsTrigger value="video">
+            <TabsTrigger value="video" className=" cursor-pointer">
               <Video className="mr-2 h-4 w-4" />
               Video yêu thích
             </TabsTrigger>
@@ -443,11 +443,11 @@ export default function FavoritesPage() {
               <Users className="mr-2 h-4 w-4" />
               Affiliate yêu thích
             </TabsTrigger> */}
-            <TabsTrigger value="brand">
+            <TabsTrigger value="brand" className="cursor-pointer">
               <Building2 className="mr-2 h-4 w-4" />
               Thương hiệu yêu thích
             </TabsTrigger>
-            <TabsTrigger value="company">
+            <TabsTrigger value="company" className="cursor-pointer">
               <Building className="mr-2 h-4 w-4" />
               Doanh nghiệp yêu thích
             </TabsTrigger>
