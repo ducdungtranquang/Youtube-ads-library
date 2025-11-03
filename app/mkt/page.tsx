@@ -437,10 +437,10 @@ export default function MKTPage() {
       if (e) e.preventDefault();
 
       const searchQuery = searchQueryRef.current?.value?.trim();
-      if (!searchQuery) {
-        toast.error("Vui lòng nhập từ khóa tìm kiếm");
-        return;
-      }
+      // if (!searchQuery) {
+      //   toast.error("Vui lòng nhập từ khóa tìm kiếm");
+      //   return;
+      // }
 
       if (page === 1) {
         setAdsSearchResults(null);
@@ -512,10 +512,10 @@ export default function MKTPage() {
       if (e) e.preventDefault();
 
       const searchQuery = searchQueryRef.current?.value?.trim();
-      if (!searchQuery) {
-        toast.error("Vui lòng nhập từ khóa tìm kiếm");
-        return;
-      }
+      // if (!searchQuery) {
+      //   toast.error("Vui lòng nhập từ khóa tìm kiếm");
+      //   return;
+      // }
 
       if (page === 1) {
         setBrandsSearchResults(null);
@@ -578,10 +578,10 @@ export default function MKTPage() {
       if (e) e.preventDefault();
 
       const searchQuery = searchQueryRef.current?.value?.trim();
-      if (!searchQuery) {
-        toast.error("Vui lòng nhập từ khóa tìm kiếm");
-        return;
-      }
+      // if (!searchQuery) {
+      //   toast.error("Vui lòng nhập từ khóa tìm kiếm");
+      //   return;
+      // }
 
       if (page === 1) {
         setCompaniesSearchResults(null);
