@@ -4,6 +4,7 @@ import { VidTaoResponse, QuickSearchParams, MKTSearchParams } from './types'
 import { VIDTAO_CONFIG } from './config'
 import { VidTaoAccountManager } from './account-manager'
 import { VidTaoAuth } from './auth'
+import { VidTaoSecurityUtils } from './security-utils'
 
 export class VidTaoAPIService {
   private accountManager: VidTaoAccountManager
@@ -60,11 +61,10 @@ export class VidTaoAPIService {
 
       const response = await fetch(url.toString(), {
         method: 'GET',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'Content-Type': 'application/json'
+        })
       })
 
       // Update account usage
@@ -169,11 +169,10 @@ export class VidTaoAPIService {
 
       const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/videos/quickSearch`, {
         method: 'POST',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
+          'Content-Type': 'application/json'
+        }),
         body: JSON.stringify(requestBody)
       })
 
@@ -286,11 +285,10 @@ export class VidTaoAPIService {
 
       const response = await fetch('https://apiv2.vidtao.com/search/brands/enhanced', {
         method: 'POST',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
+          'Content-Type': 'application/json'
+        }),
         body: JSON.stringify(requestBody)
       })
 
@@ -406,11 +404,10 @@ export class VidTaoAPIService {
 
       const response = await fetch('https://apiv2.vidtao.com/search/companies/enhanced', {
         method: 'POST',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
+          'Content-Type': 'application/json'
+        }),
         body: JSON.stringify(requestBody)
       })
 
@@ -515,11 +512,10 @@ export class VidTaoAPIService {
 
       const response = await fetch('https://apiv2.vidtao.com/search/videos/enhanced', {
         method: 'POST',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        },
+          'Content-Type': 'application/json'
+        }),
         body: JSON.stringify(requestBody)
       })
 
@@ -611,12 +607,11 @@ export class VidTaoAPIService {
 
       const response = await fetch(`https://apiv1.vidtao.com/api/videos/${videoId}`, {
         method: 'GET',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'application/json',
-        },
+          'Accept': 'application/json'
+        }),
         signal: AbortSignal.timeout(30000) // 30 second timeout
       })
 
@@ -709,11 +704,10 @@ export class VidTaoAPIService {
     try {
       const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/brands/${brandId}?basicInfo=undefined&encrypted`, {
         method: 'GET',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'Content-Type': 'application/json'
+        })
       })
 
       // Update account usage
@@ -792,11 +786,10 @@ export class VidTaoAPIService {
     try {
       const response = await fetch(`https://apiv1.vidtao.com/api/companies/${companyId}`, {
         method: 'GET',
-        headers: {
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+          'Content-Type': 'application/json'
+        })
       })
 
       // Update account usage

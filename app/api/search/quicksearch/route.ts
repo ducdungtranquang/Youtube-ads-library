@@ -6,6 +6,20 @@ import { vidTaoManager } from '@/lib/vidtao-manager'
 import { supabaseCacheManager, SearchPayload } from '@/lib/supabase-cache'
 import { supabase } from '@/lib/supabase'
 
+// Hàm thêm CORS headers
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*")
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  return response
+}
+
+// OPTIONS handler cho preflight request
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 })
+  return withCORS(res)
+}
+
 async function requireAuth(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
@@ -20,10 +34,8 @@ async function requireAuth(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request);
-  if (auth.error) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Authentication intentionally removed for quicksearch endpoint
+  // Requests are allowed without Authorization header
 
   try {
     const body = await request.json()
@@ -38,10 +50,10 @@ export async function POST(request: NextRequest) {
 
     // Validate required parameters
     if (!query || query.trim() === '') {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { error: 'Search query is required' },
         { status: 400 }
-      )
+      ))
     }
 
     // Create search payload for caching
@@ -59,7 +71,7 @@ export async function POST(request: NextRequest) {
     
     if (cacheEntry && cacheEntry.status === 'completed') {
       console.log('QuickSearch API: Cache entry found, returning cached result')
-      return NextResponse.json(cacheEntry.result_data)
+      return withCORS(NextResponse.json(cacheEntry.result_data))
     }
 
     console.log('QuickSearch API: No valid cache found, calling VidTao directly')
@@ -114,23 +126,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(transformedResponse)
+    return withCORS(NextResponse.json(transformedResponse))
 
   } catch (error) {
     console.error('QuickSearch API error:', error)
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { 
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
-    )
+    ))
   }
 }
 
 export async function GET(request: NextRequest) {
-  return NextResponse.json(
+  const res = NextResponse.json(
     { error: 'Method not allowed. Use POST instead.' },
     { status: 405 }
   )
+  return withCORS(res)
 }

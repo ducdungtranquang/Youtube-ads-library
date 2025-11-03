@@ -34,7 +34,7 @@ export function useVidTaoSearch(): UseSearchReturn {
     setError(null)
 
     try {
-      const response = await fetch('https://youtube-ads-library.onrender.com/api/search/ads', {
+      const response = await fetch('/api/search/ads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export function useVidTaoSearch(): UseSearchReturn {
     setError(null)
 
     try {
-      const response = await fetch('https://youtube-ads-library.onrender.com/api/search/offers', {
+      const response = await fetch('/api/search/offers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,9 +95,7 @@ export function useVidTaoSearch(): UseSearchReturn {
 
   const getVidTaoStatus = async () => {
     try {
-      const response = await fetch('https://youtube-ads-library.onrender.com/api/vidtao/status', {
-        method: 'GET',
-      })
+      const response = await fetch('/api/vidtao/status')
       const result = await response.json()
 
       if (!response.ok) {
@@ -141,9 +139,7 @@ export function useVidTaoSearchGet(): UseSearchReturn {
         }
       })
 
-      const response = await fetch(`https://youtube-ads-library.onrender.com/api/search/ads?${searchParams.toString()}`, {
-        method: 'GET',
-      })
+      const response = await fetch(`/api/search/ads?${searchParams.toString()}`)
       const result = await response.json()
 
       if (!response.ok) {
@@ -175,9 +171,7 @@ export function useVidTaoSearchGet(): UseSearchReturn {
         }
       })
 
-      const response = await fetch(`https://youtube-ads-library.onrender.com/api/search/offers?${searchParams.toString()}`, {
-        method: 'GET',
-      })
+      const response = await fetch(`/api/search/offers?${searchParams.toString()}`)
       const result = await response.json()
 
       if (!response.ok) {
@@ -199,9 +193,7 @@ export function useVidTaoSearchGet(): UseSearchReturn {
 
   const getVidTaoStatus = async () => {
     try {
-      const response = await fetch('https://youtube-ads-library.onrender.com/api/vidtao/status', {
-        method: 'GET',
-      })
+      const response = await fetch('/api/vidtao/status')
       const result = await response.json()
 
       if (!response.ok) {
