@@ -212,31 +212,6 @@ export default function MKTPage() {
 
   const { user, loading: authLoading } = useAuth();
 
-  // Show login prompt if not authenticated
-  if (!authLoading && !user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-8">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold text-foreground">
-                Đăng nhập để tìm kiếm Marketing
-              </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo và phân tích đối thủ
-              </p>
-              <Button asChild>
-                <a href="/login">Đăng nhập</a>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    );
-  }
-
   // Tab management state
   const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">(
     "ads"
@@ -652,20 +627,31 @@ export default function MKTPage() {
     [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]
   );
 
-  // Callback when video modal closes - refresh favorite status
-  // const handleVideoModalClose = useCallback(async (videoId: string) => {
-  //   await refreshFavoriteStatus('video', videoId);
-  // }, [refreshFavoriteStatus]);
-
-  // // Callback when brand modal closes - refresh favorite status
-  // const handleBrandModalClose = useCallback(async (brandId: string) => {
-  //   await refreshFavoriteStatus('brand', brandId);
-  // }, [refreshFavoriteStatus]);
-
-  // // Callback when company modal closes - refresh favorite status
-  // const handleCompanyModalClose = useCallback(async (companyId: string) => {
-  //   await refreshFavoriteStatus('company', companyId);
-  // }, [refreshFavoriteStatus]);
+  // Show login prompt if not authenticated
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                Đăng nhập để tìm kiếm Marketing
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo và
+                phân tích đối thủ
+              </p>
+              <Button asChild>
+                <a href="/login">Đăng nhập</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -72,31 +72,6 @@ export default function FavoritesPage() {
 
   const { user, loading: authLoading } = useAuth();
 
-  // Show login prompt if not authenticated
-  if (!authLoading && !user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-8">
-          <Card className="max-w-md mx-auto">
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold text-foreground">
-                Đăng nhập để xem yêu thích
-              </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Bạn cần đăng nhập để quản lý danh sách yêu thích của mình
-              </p>
-              <Button asChild>
-                <a href="/login">Đăng nhập</a>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    );
-  }
-
   // Load favorites and counts
   useEffect(() => {
     const loadData = async () => {
@@ -334,6 +309,31 @@ export default function FavoritesPage() {
       </div>
     );
   };
+
+  // Show login prompt if not authenticated
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                Đăng nhập để xem yêu thích
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Bạn cần đăng nhập để quản lý danh sách yêu thích của mình
+              </p>
+              <Button asChild>
+                <a href="/login">Đăng nhập</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
