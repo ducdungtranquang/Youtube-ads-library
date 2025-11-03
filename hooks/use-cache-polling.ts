@@ -51,7 +51,13 @@ export function useCachePolling<T = any>(
 
   const checkCacheStatus = useCallback(async (cacheId: string): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/cache/status?cacheId=${encodeURIComponent(cacheId)}`)
+      const response = await fetch(`https://youtube-ads-library.onrender.com/api/cache/status?cacheId=${encodeURIComponent(cacheId)}`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -165,6 +171,7 @@ function useSearchWithCache(apiEndpoint: string) {
 
       const response = await fetch(apiEndpoint, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
@@ -213,17 +220,17 @@ function useSearchWithCache(apiEndpoint: string) {
 
 // Specialized hook for MKT search with cache polling
 export function useMKTSearchWithCache() {
-  return useSearchWithCache('/api/search/mkt')
+  return useSearchWithCache('https://youtube-ads-library.onrender.com/api/search/mkt')
 }
 
 // Specialized hook for Brands search with cache polling
 export function useBrandsSearchWithCache() {
-  return useSearchWithCache('/api/search/brands')
+  return useSearchWithCache('https://youtube-ads-library.onrender.com/api/search/brands')
 }
 
 // Specialized hook for Companies search with cache polling
 export function useCompaniesSearchWithCache() {
-  return useSearchWithCache('/api/search/companies')
+  return useSearchWithCache('https://youtube-ads-library.onrender.com/api/search/companies')
 }
 
 // Specialized hook for QuickSearch with cache polling
@@ -242,8 +249,9 @@ export function useQuickSearchWithCache() {
         throw new Error('Authentication required. Please log in again.')
       }
       
-      const response = await fetch('/api/search/quicksearch', {
+      const response = await fetch('https://youtube-ads-library.onrender.com/api/search/quicksearch', {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
