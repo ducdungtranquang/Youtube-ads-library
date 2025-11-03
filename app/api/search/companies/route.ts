@@ -6,6 +6,20 @@ import { supabaseCacheManager, SearchPayload } from '@/lib/supabase-cache'
 import { vidTaoManager } from '@/lib/vidtao/manager'
 import { supabase } from '@/lib/supabase'
 
+// Hàm thêm CORS headers
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*")
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  return response
+}
+
+// OPTIONS handler cho preflight request
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 })
+  return withCORS(res)
+}
+
 interface CompaniesSearchParams {
   type: 'companies'
   searchTerm: string
@@ -38,7 +52,7 @@ async function requireAuth(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
   }
 
   try {
@@ -46,10 +60,10 @@ export async function POST(request: NextRequest) {
     const { searchTerm, page = 1, limit = 50, filters = {} } = body
 
     if (!searchTerm || searchTerm.trim().length === 0) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { success: false, error: 'Search term is required' },
         { status: 400 }
-      )
+      ))
     }
 
     console.log(`[Companies API] Search request:`, {
@@ -80,26 +94,26 @@ export async function POST(request: NextRequest) {
       if (cacheEntry.status === 'completed') {
         // Return cached result immediately
         console.log(`[Companies API] Returning cached result`)
-        return NextResponse.json(cacheEntry.result_data)
+        return withCORS(NextResponse.json(cacheEntry.result_data))
       } else if (cacheEntry.status === 'pending') {
         // Return pending status for client polling
         console.log(`[Companies API] Request is pending, returning polling response`)
-        return NextResponse.json({
+        return withCORS(NextResponse.json({
           status: 'pending',
           message: 'Companies search is being processed. Please poll again.',
           cacheId: cacheEntry.id,
           createdAt: cacheEntry.created_at
-        })
+        }))
       } else if (cacheEntry.status === 'error') {
         // Return error from cache
         console.log(`[Companies API] Cached error found`)
-        return NextResponse.json(
+        return withCORS(NextResponse.json(
           { 
             error: 'Search failed',
             details: cacheEntry.error_message || 'Cached error'
           },
           { status: 500 }
-        )
+        ))
       }
     }
 
@@ -114,10 +128,10 @@ export async function POST(request: NextRequest) {
 
     if (!pendingEntry) {
       console.error(`[Companies API] Failed to create pending cache entry`)
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { error: 'Failed to initialize search request' },
         { status: 500 }
-      )
+      ))
     }
 
     console.log(`[Companies API] Created pending entry:`, pendingEntry.id)
@@ -145,23 +159,23 @@ export async function POST(request: NextRequest) {
       .finally(() => clearTimeout(timeoutId))
 
     // Return pending response immediately
-    return NextResponse.json({
+    return withCORS(NextResponse.json({
       status: 'pending',
       message: 'Companies search initiated. Please poll for results.',
       cacheId: pendingEntry.id,
       createdAt: pendingEntry.created_at
-    })
+    }))
 
   } catch (error) {
     console.error('[Companies API] Error:', error)
     
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error occurred' 
       },
       { status: 500 }
-    )
+    ))
   }
 }
 
@@ -235,4 +249,12 @@ async function performBackgroundSearch(
       )
     }
   }
+}
+
+export async function GET(request: NextRequest) {
+  const res = NextResponse.json(
+    { error: 'Method not allowed. Use POST instead.' },
+    { status: 405 }
+  )
+  return withCORS(res)
 }

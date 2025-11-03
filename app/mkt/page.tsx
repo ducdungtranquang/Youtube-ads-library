@@ -28,6 +28,7 @@ import {
   Filter,
   Loader2,
   Sparkles,
+  LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
@@ -44,6 +45,7 @@ import {
   useCompaniesSearchWithCache,
 } from "@/hooks/use-cache-polling";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useAuth } from "@/contexts/auth-context";
 
 // Pre-process static data once at module level for better performance
 const sortOptions = [
@@ -207,6 +209,33 @@ export default function MKTPage() {
   const [sortBy, setSortBy] = useState<
     "date" | "totalSpend" | "views" | "relevance"
   >("date");
+
+  const { user, loading: authLoading } = useAuth();
+
+  // Show login prompt if not authenticated
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-semibold text-foreground">
+                Đăng nhập để tìm kiếm Marketing
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo và phân tích đối thủ
+              </p>
+              <Button asChild>
+                <a href="/login">Đăng nhập</a>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   // Tab management state
   const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">(

@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { vidTaoManager } from '@/lib/vidtao-manager'
 import { cacheManager } from '@/lib/cache-manager'
 
+// Hàm thêm CORS headers
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*")
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  return response
+}
+
+// OPTIONS handler cho preflight request
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 })
+  return withCORS(res)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -117,16 +131,16 @@ export async function POST(request: NextRequest) {
     const cachedResult = cacheManager.get('offers', vidTaoParams)
     if (cachedResult) {
       console.log('Returning cached offers result (POST)')
-      return NextResponse.json(cachedResult)
+      return withCORS(NextResponse.json(cachedResult))
     }
 
     const result = await vidTaoManager.makeRequest('/offers/search', vidTaoParams)
 
     if (!result.success) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { success: false, error: result.error },
         { status: 500 }
-      )
+      ))
     }
 
     const responseData = {
@@ -141,13 +155,13 @@ export async function POST(request: NextRequest) {
     // Cache the result for 8 hours (tối ưu VidTao requests)
     cacheManager.set('offers', vidTaoParams, responseData, 8 * 60 * 60 * 1000)
 
-    return NextResponse.json(responseData)
+    return withCORS(NextResponse.json(responseData))
 
   } catch (error) {
     console.error('Search offers API error:', error)
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
-    )
+    ))
   }
 }

@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { vidTaoManager } from '@/lib/vidtao-manager'
 import { cacheManager } from '@/lib/cache-manager'
 
+// Hàm thêm CORS headers
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*")
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  return response
+}
+
+// OPTIONS handler cho preflight request
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 })
+  return withCORS(res)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -16,10 +30,10 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'relevance'
 
     if (!query) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { success: false, error: 'Query parameter is required' },
         { status: 400 }
-      )
+      ))
     }
 
     // Extract additional parameters
@@ -53,7 +67,7 @@ export async function GET(request: NextRequest) {
     const cachedResult = cacheManager.get('ads', quickSearchParams)
     if (cachedResult) {
       console.log('Returning cached ads result')
-      return NextResponse.json(cachedResult)
+      return withCORS(NextResponse.json(cachedResult))
     }
 
     // Make request through VidTao manager
@@ -101,14 +115,14 @@ export async function GET(request: NextRequest) {
     // Cache the result for 8 hours (tối ưu VidTao requests)
     cacheManager.set('ads', quickSearchParams, transformedData, 8 * 60 * 60 * 1000)
 
-    return NextResponse.json(transformedData)
+    return withCORS(NextResponse.json(transformedData))
 
   } catch (error) {
     console.error('Search ads API error:', error)
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
-    )
+    ))
   }
 }
 
@@ -119,10 +133,10 @@ export async function POST(request: NextRequest) {
     const { query, filters = {}, pagination = {} } = body
 
     if (!query) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { success: false, error: 'Query is required' },
         { status: 400 }
-      )
+      ))
     }
 
     // Prepare parameters for VidTao QuickSearch
@@ -149,16 +163,16 @@ export async function POST(request: NextRequest) {
     const cachedResult = cacheManager.get('ads', quickSearchParams)
     if (cachedResult) {
       console.log('Returning cached ads result (POST)')
-      return NextResponse.json(cachedResult)
+      return withCORS(NextResponse.json(cachedResult))
     }
 
     const result = await vidTaoManager.quickSearch(quickSearchParams)
 
     if (!result.success) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { success: false, error: result.error },
         { status: 500 }
-      )
+      ))
     }
 
     const videos = result.data?.data?.results || result.data?.results || []
@@ -195,13 +209,13 @@ export async function POST(request: NextRequest) {
     // Cache the result for 8 hours (tối ưu VidTao requests)
     cacheManager.set('ads', quickSearchParams, responseData, 8 * 60 * 60 * 1000)
 
-    return NextResponse.json(responseData)
+    return withCORS(NextResponse.json(responseData))
 
   } catch (error) {
     console.error('Search ads API error:', error)
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
-    )
+    ))
   }
 }

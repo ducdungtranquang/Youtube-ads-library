@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cacheManager } from '@/lib/cache-manager'
 import { supabaseCacheManager, supabaseAdmin } from '@/lib/supabase-cache'
 
+// Hàm thêm CORS headers
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*")
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE")
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  return response
+}
+
+// OPTIONS handler cho preflight request
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 })
+  return withCORS(res)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -16,10 +30,10 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (error || !data) {
-        return NextResponse.json(
+        return withCORS(NextResponse.json(
           { error: 'Cache entry not found' },
           { status: 404 }
-        )
+        ))
       }
 
       // Check if expired
@@ -27,32 +41,32 @@ export async function GET(request: NextRequest) {
       const expiresAt = new Date(data.expires_at)
       
       if (now > expiresAt) {
-        return NextResponse.json(
+        return withCORS(NextResponse.json(
           { error: 'Cache entry expired' },
           { status: 410 }
-        )
+        ))
       }
 
       // Return status and data based on current state
       if (data.status === 'completed') {
-        return NextResponse.json({
+        return withCORS(NextResponse.json({
           status: 'completed',
           data: data.result_data,
           updatedAt: data.updated_at
-        })
+        }))
       } else if (data.status === 'pending') {
-        return NextResponse.json({
+        return withCORS(NextResponse.json({
           status: 'pending',
           message: 'Search is still processing',
           createdAt: data.created_at,
           updatedAt: data.updated_at
-        })
+        }))
       } else if (data.status === 'error') {
-        return NextResponse.json({
+        return withCORS(NextResponse.json({
           status: 'error',
           error: data.error_message || 'Search failed',
           updatedAt: data.updated_at
-        }, { status: 500 })
+        }, { status: 500 }))
       }
 
       return NextResponse.json({
@@ -67,7 +81,7 @@ export async function GET(request: NextRequest) {
       supabaseCacheManager.getCacheStats()
     ])
     
-    return NextResponse.json({
+    return withCORS(NextResponse.json({
       success: true,
       data: {
         memory_cache: memoryStats,
@@ -82,14 +96,14 @@ export async function GET(request: NextRequest) {
         }
       },
       timestamp: Date.now()
-    })
+    }))
 
   } catch (error) {
     console.error('Cache status error:', error)
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
-    )
+    ))
   }
 }
 
@@ -122,16 +136,16 @@ export async function DELETE(request: NextRequest) {
     // Also clean up expired entries
     await supabaseCacheManager.cleanupExpiredEntries()
 
-    return NextResponse.json({
+    return withCORS(NextResponse.json({
       success: true,
       message: `Cache cleared: ${cacheType || 'all'} cache, ${type || 'all'} types`
-    })
+    }))
 
   } catch (error) {
     console.error('Clear cache error:', error)
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
-    )
+    ))
   }
 }
