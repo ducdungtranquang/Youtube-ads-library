@@ -17,6 +17,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { useAsyncSelect } from '@/hooks/use-async-select'
+import languagesData from '@/data/languages.json'
 
 interface SimpleAsyncSelectProps {
   type: 'countries' | 'languages' | 'categories'
@@ -181,6 +182,101 @@ export function SimpleAsyncSelect({
                   <span className="text-xs text-muted-foreground">Loading more...</span>
                 </div>
               )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
+
+// Static Language Select Component
+export function SimpleStaticLanguageSelect(props: Omit<SimpleAsyncSelectProps, 'type'>) {
+  const [open, setOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  // Convert languages.json to array format
+  const languages = React.useMemo(() => {
+    const languageArray = Object.entries(languagesData).map(([name, code]) => ({
+      code: code as string,
+      name: name
+    }))
+
+    // Add "All Languages" option at the beginning
+    return [
+      { code: 'all', name: 'All Languages' },
+      ...languageArray
+    ]
+  }, [])
+
+  // Filter languages based on search term
+  const filteredLanguages = React.useMemo(() => {
+    if (!searchTerm) return languages
+    return languages.filter(lang =>
+      lang.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lang.code.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [languages, searchTerm])
+
+  // Find selected item
+  const selectedItem = languages.find(item => item.code === props.value)
+
+  const getDisplayValue = () => {
+    if (props.value === 'all') return 'All Languages'
+    return selectedItem?.name || props.placeholder || 'All Languages'
+  }
+
+  const handleSelect = (currentValue: string) => {
+    props.onValueChange(currentValue)
+    setOpen(false)
+    setSearchTerm('')
+  }
+
+  return (
+    <div className={cn('relative', props.className)}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between"
+          >
+            <div className="flex items-center flex-1 min-w-0">
+              {props.icon && <span className="mr-2 flex-shrink-0">{props.icon}</span>}
+              <span className="truncate text-left">
+                {getDisplayValue()}
+              </span>
+            </div>
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder={props.searchPlaceholder || "Search languages..."}
+              value={searchTerm}
+              onValueChange={setSearchTerm}
+            />
+
+            <CommandList>
+              {filteredLanguages.length === 0 && searchTerm && (
+                <CommandEmpty>No results found</CommandEmpty>
+              )}
+
+              <CommandGroup>
+                {filteredLanguages.map((item, index) => (
+                  <CommandItem
+                    key={`${item.code}-${index}`}
+                    value={item.code}
+                    onSelect={() => handleSelect(item.code)}
+                    className="cursor-pointer"
+                  >
+                    <span className="truncate">{item.name}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>

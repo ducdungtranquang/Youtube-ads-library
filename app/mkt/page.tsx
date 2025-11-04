@@ -36,7 +36,7 @@ import { useCategory } from "@/hooks/use-category";
 // Import optimized async select components
 import {
   SimpleAsyncCountrySelect,
-  SimpleAsyncLanguageSelect,
+  SimpleStaticLanguageSelect,
   SimpleAsyncCategorySelect,
 } from "@/components/simple-async-select";
 import {
@@ -720,7 +720,7 @@ export default function MKTPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngôn ngữ</label>
-                <SimpleAsyncLanguageSelect
+                <SimpleStaticLanguageSelect
                   value={selectedLanguage}
                   onValueChange={setSelectedLanguage}
                   className="w-full"
