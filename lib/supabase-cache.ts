@@ -45,21 +45,31 @@ export class SupabaseCacheManager {
   private tableName = 'search_cache'
   
   /**
-   * Create a consistent cache key from payload
+   * Deeply sort object keys for consistent serialization
+   */
+  private deepSortObject(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.deepSortObject(item));
+    } else if (obj && typeof obj === 'object' && obj.constructor === Object) {
+      return Object.keys(obj)
+        .sort()
+        .reduce((result: any, key) => {
+          const value = obj[key];
+          if (value !== null && value !== undefined) {
+            result[key] = this.deepSortObject(value);
+          }
+          return result;
+        }, {});
+    }
+    return obj;
+  }
+
+  /**
+   * Create a consistent cache key from payload (deep sort, include all params)
    */
   private createCacheKey(searchType: SearchCacheEntry['search_type'], payload: SearchPayload): string {
-    // Sort payload keys for consistency
-    const sortedPayload = Object.keys(payload)
-      .sort()
-      .reduce((result, key) => {
-        // Only include non-null, non-undefined values
-        if (payload[key] !== null && payload[key] !== undefined) {
-          result[key] = payload[key]
-        }
-        return result
-      }, {} as SearchPayload)
-
-    return `${searchType}:${JSON.stringify(sortedPayload)}`
+    const sortedPayload = this.deepSortObject(payload);
+    return `${searchType}:${JSON.stringify(sortedPayload)}`;
   }
 
   /**
