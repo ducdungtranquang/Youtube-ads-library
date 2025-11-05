@@ -30,6 +30,7 @@ interface VideoDetailModalProps {
     engagement?: string
     avgViewDuration?: string
     ytVideoId?: string // Add YouTube video ID for API call
+    brandId?: string
   }
   onCompanyClick?: () => void
   onClose?: (videoId: string) => void // Callback when modal closes to refresh favorite status

@@ -242,6 +242,13 @@ export default function MKTPage() {
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
 
+  // Handler to open brand modal from video card or detail modal
+  const handleOpenBrandModal = useCallback((brandId: string | number | undefined) => {
+    if (brandId) {
+      setSelectedBrand({ brandId });
+    }
+  }, []);
+
   // Fetch category for selected company
   useEffect(() => {
     if (
@@ -833,12 +840,7 @@ export default function MKTPage() {
                               key={video.ytVideoId || `video-${index}`}
                               {...video}
                               onClick={() => setSelectedVideo(video)}
-                              onCompanyClick={() => {
-                                // Company click disabled for now
-                                toast.info(
-                                  "Thông tin doanh nghiệp sắp ra mắt!"
-                                );
-                              }}
+                              onCompanyClick={() => handleOpenBrandModal(video.brandId)}
                             />
                           )
                         )}
@@ -1099,11 +1101,9 @@ export default function MKTPage() {
           engagement: selectedVideo?.engagement || "",
           avgViewDuration: selectedVideo?.avgViewDuration || "",
           ytVideoId: selectedVideo?.ytVideoId || selectedVideo?.videoId || "",
+          brandId: selectedVideo?.brandId // Pass brandId if available
         }}
-        onCompanyClick={() => {
-          // Company details coming soon
-          toast.info("Thông tin doanh nghiệp sắp ra mắt!");
-        }}
+        onCompanyClick={() => handleOpenBrandModal(selectedVideo?.brandId)}
         onClose={() => {}}
       />
 
@@ -1111,7 +1111,7 @@ export default function MKTPage() {
         open={!!selectedBrand}
         onOpenChange={(open) => !open && setSelectedBrand(null)}
         brandId={selectedBrand?.brandId?.toString() || null}
-        onClose={() => {}}
+        onClose={() => setSelectedBrand(null)}
       />
 
       <CompanyDetailModal
