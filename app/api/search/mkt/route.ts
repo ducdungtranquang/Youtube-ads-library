@@ -47,42 +47,18 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Extract search parameters from request
-    const {
-      searchTerm,
-      countryId = 0,
-      language = '',
-      categoryIds = [],
-      dateFrom = '',
-      dateTo = '',
-      showVideos = 'unlisted',
-      sortProp = 'date',
-      orderAsc = false,
-      limit = 500, // Set to 1000 for better FE pagination
-      page = 1
-    } = body
-
-    // Validate required parameters
-    // if (!searchTerm || searchTerm.trim() === '') {
-    //   return withCORS(NextResponse.json(
-    //     { error: 'Search term is required' },
-    //     { status: 400 }
-    //   ))
-    // }
-
-    // Create search payload for caching
-    const searchPayload: SearchPayload = {
-      searchTerm: searchTerm.trim(),
-      countryId,
-      language: language || '',
-      categoryIds: categoryIds.length > 0 ? categoryIds : [],
-      dateFrom: dateFrom || '',
-      dateTo: dateTo || '',
-      showVideos,
-      sortProp,
-      orderAsc,
-      limit,
-      page
+    // Extract all search/filter params from body, including filters object
+    let searchPayload: SearchPayload
+    if (body.filters && typeof body.filters === 'object') {
+      searchPayload = {
+        ...body,
+        ...body.filters,
+        filters: undefined // Remove nested filters to avoid duplication
+      }
+    } else {
+      searchPayload = {
+        ...body
+      }
     }
 
     console.log('MKT API: Checking cache for payload:', searchPayload)
@@ -142,18 +118,33 @@ export async function POST(request: NextRequest) {
     console.log('MKT API: Created pending entry:', pendingEntry.id)
 
     // Start background VidTao search (don't await)
+    // Use all params from searchPayload for VidTao search
+    const {
+      searchTerm = '',
+      countryId = 0,
+      language = '',
+      categoryIds = [],
+      dateFrom = '',
+      dateTo = '',
+      showVideos = 'unlisted',
+      sortProp = 'date',
+      orderAsc = false,
+      limit = 500,
+      page = 1
+    } = searchPayload
+
     const searchParams = {
-      searchTerm: searchTerm.trim(),
-      countryId: countryId,
-      language: language || '',
-      categoryIds: categoryIds.length > 0 ? categoryIds : [],
-      dateFrom: dateFrom || '',
-      dateTo: dateTo || '',
-      showVideos: showVideos,
-      sortProp: sortProp,
-      orderAsc: orderAsc,
-      limit: 500, // Get more results for FE pagination
-      page: 1 // Always use page 1 for better caching
+      searchTerm: typeof searchTerm === 'string' ? searchTerm.trim() : '',
+      countryId,
+      language,
+      categoryIds,
+      dateFrom,
+      dateTo,
+      showVideos,
+      sortProp,
+      orderAsc,
+      limit,
+      page
     }
 
     // Background VidTao search with AbortController

@@ -264,24 +264,25 @@ export class VidTaoAPIService {
         return sortMap[sortProp] !== undefined ? sortMap[sortProp] : null
       }
 
-      // Prepare request body for VidTao API (using quickSearch format for brands)
+      // Prepare request body for VidTao API (using filters object)
+      const filters = params.filters || {};
       const requestBody = {
         searchTerm: params.searchTerm,
         limit: params.limit || 500,
         page: params.page || 1,
-        sortProp: mapBrandsSortProp(params.sortProp || 'date'),
-        orderAsc: params.orderAsc || false,
-        countryId: params.countryId || 0,
+        sortProp: mapBrandsSortProp(filters.sortProp || params.sortProp || 'date'),
+        orderAsc: filters.orderAsc ?? params.orderAsc ?? false,
+        countryId: filters.countryId ?? params.countryId ?? 0,
         isAffiliate: false,
         affiliateNetworkIds: [],
-        affiliateCountryId: params.countryId || 0,
-        categoryIds: params.categoryIds || [],
+        affiliateCountryId: filters.countryId ?? params.countryId ?? 0,
+        categoryIds: filters.categoryIds ?? params.categoryIds ?? [],
         softwareIds: [],
         offerIds: [],
-        language: params.language || '',
-        showVideos: 'unlisted',
-        dateFrom: params.dateFrom || '',
-        dateTo: params.dateTo || ''
+        language: filters.language ?? params.language ?? '',
+        showVideos: filters.showVideos ?? 'unlisted',
+        dateFrom: filters.dateFrom ?? params.dateFrom ?? '',
+        dateTo: filters.dateTo ?? params.dateTo ?? ''
       }
 
       const response = await fetch('https://apiv2.vidtao.com/search/brands/enhanced', {
@@ -384,24 +385,25 @@ export class VidTaoAPIService {
         return sortMap[sortProp] !== undefined ? sortMap[sortProp] : null
       }
 
-      // Prepare request body for VidTao API (using quickSearch format for companies)
+      // Prepare request body for VidTao API (using filters object)
+      const filters = params.filters || {};
       const requestBody = {
         searchTerm: params.searchTerm,
         limit: params.limit || 1000,
         page: params.page || 1,
-        sortProp: mapCompaniesSortProp(params.sortProp || 'date'),
-        orderAsc: params.orderAsc || false,
-        countryId: params.countryId || 0,
+        sortProp: mapCompaniesSortProp(filters.sortProp || params.sortProp || 'date'),
+        orderAsc: filters.orderAsc ?? params.orderAsc ?? false,
+        countryId: filters.countryId ?? params.countryId ?? 0,
         isAffiliate: false,
         affiliateNetworkIds: [],
-        affiliateCountryId: params.countryId || 0,
-        categoryIds: params.categoryIds || [],
+        affiliateCountryId: filters.countryId ?? params.countryId ?? 0,
+        categoryIds: filters.categoryIds ?? params.categoryIds ?? [],
         softwareIds: [],
         offerIds: [],
-        language: params.language || '',
-        showVideos: 'unlisted',
-        dateFrom: params.dateFrom || '',
-        dateTo: params.dateTo || ''
+        language: filters.language ?? params.language ?? '',
+        showVideos: filters.showVideos ?? 'unlisted',
+        dateFrom: filters.dateFrom ?? params.dateFrom ?? '',
+        dateTo: filters.dateTo ?? params.dateTo ?? ''
       }
 
       const response = await fetch('https://apiv2.vidtao.com/search/companies/enhanced', {
@@ -493,24 +495,25 @@ export class VidTaoAPIService {
     try {
       console.log(`Making MKT search request with account: ${account.id}`)
       
-      // Map parameters to VidTao Enhanced Search API format (same as quickSearch)
+      // Prepare request body for VidTao API (using filters object)
+      const filters = params.filters || {};
       const requestBody = {
         affiliateCountryId: 0,
         affiliateNetworkIds: [],
-        categoryIds: params.categoryIds || [],
-        countryId: params.countryId || 0,
-        dateFrom: params.dateFrom || "",
-        dateTo: params.dateTo || "",
+        categoryIds: filters.categoryIds ?? params.categoryIds ?? [],
+        countryId: filters.countryId ?? params.countryId ?? 0,
+        dateFrom: filters.dateFrom ?? params.dateFrom ?? "",
+        dateTo: filters.dateTo ?? params.dateTo ?? "",
         isAffiliate: false,
-        language: params.language || "",
+        language: filters.language ?? params.language ?? "",
         limit: params.limit || 20,
         offerIds: [],
-        orderAsc: params.orderAsc || false,
+        orderAsc: filters.orderAsc ?? params.orderAsc ?? false,
         page: params.page || 1,
         searchTerm: params.searchTerm,
-        showVideos: params.showVideos || "unlisted",
+        showVideos: filters.showVideos ?? params.showVideos ?? "unlisted",
         softwareIds: [],
-        sortProp: params.sortProp || "date"
+        sortProp: filters.sortProp ?? params.sortProp ?? "date"
       }
 
       const response = await fetch('https://apiv2.vidtao.com/search/videos/enhanced', {

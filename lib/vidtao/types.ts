@@ -56,6 +56,16 @@ export interface MKTSearchParams {
   orderAsc?: boolean
   limit?: number
   page?: number
+  filters?: {
+    countryId?: number
+    language?: string
+    categoryIds?: number[]
+    dateFrom?: string
+    dateTo?: string
+    showVideos?: string
+    sortProp?: string
+    orderAsc?: boolean
+  }
 }
 
 export interface VidTaoConfig {
