@@ -188,9 +188,9 @@ export function BrandDetailModal({
       thumbnail: brand.thumbnail || "/placeholder.svg",
       description: brand.description || "",
       categoryId: brand.categoryId,
-      totalCreatives: brandDetails.creativeCount,
-      totalViews: brand.views.last30Days,
-      totalSpend: brand.spend.last365Days,
+      totalCreatives: brandDetails?.creativeCount,
+      totalViews: brand?.views?.last30Days,
+      totalSpend: brand?.spend?.last365Days,
     };
 
     return (

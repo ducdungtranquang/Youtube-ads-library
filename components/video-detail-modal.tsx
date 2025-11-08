@@ -41,7 +41,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
   // Fetch video details when modal opens and video ID is available
   useEffect(() => {
-    if (open && video.ytVideoId) {
+    if (open && video?.ytVideoId) {
       fetchVideoDetails(video.ytVideoId)
     }
   }, [open, video.ytVideoId, fetchVideoDetails])
@@ -92,19 +92,19 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
   // Use API data if available, fallback to props
   const displayData = videoDetails ? {
-    title: videoDetails.title || video.title,
-    channel: videoDetails.brandName || video.channel,
-    thumbnail: videoDetails.thumbnail || video.thumbnail,
-    description: videoDetails.description || video.description || "",
-    duration: formatDuration(videoDetails.duration),
-    publishedAt: formatDate(videoDetails.publishedAt),
-    totalSpend: formatCurrency(videoDetails.totalSpend),
-    last30Days: formatCurrency(videoDetails.last30Days),
-    isActive: videoDetails.isActive,
-    firstSeen: formatDate(videoDetails.firstSeen),
-    lastSeen: videoDetails.lastSeen ? formatDate(videoDetails.lastSeen) : "Chưa xác định",
-    spendHistory: videoDetails.spend || [],
-    ytVideoId: videoDetails.ytVideoId
+    title: videoDetails?.title || video?.title,
+    channel: videoDetails?.brandName || video?.channel,
+    thumbnail: videoDetails?.thumbnail || video?.thumbnail,
+    description: videoDetails?.description || video?.description || "",
+    duration: formatDuration(videoDetails?.duration),
+    publishedAt: formatDate(videoDetails?.publishedAt),
+    totalSpend: formatCurrency(videoDetails?.totalSpend),
+    last30Days: formatCurrency(videoDetails?.last30Days),
+    isActive: videoDetails?.isActive,
+    firstSeen: formatDate(videoDetails?.firstSeen),
+    lastSeen: videoDetails?.lastSeen ? formatDate(videoDetails?.lastSeen) : "Chưa xác định",
+    spendHistory: videoDetails?.spend || [],
+    ytVideoId: videoDetails?.ytVideoId
   } : {
     title: video.title,
     channel: video.channel,
