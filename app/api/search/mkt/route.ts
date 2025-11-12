@@ -270,7 +270,7 @@ async function performBackgroundSearch(
 // Helper function to transform VidTao Enhanced Search video result to our expected format
 function transformVidTaoVideo(video: any): TransformedVideoResult {
   return {
-    ytVideoId: video.ytVideoId,
+    ytVideoId: video.ytVideoId || video.summary_data.fv.yt_video_id,
     title: video.title,
     description: video.description,
     thumbnail: video.thumbnail,
