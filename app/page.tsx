@@ -101,10 +101,10 @@ export default function HomePage() {
                   Chế độ Marketing
                 </Button>
               </Link>
-              <Link href="/aff">
+              <Link href="/facebook-ads-search">
                 <Button size="lg" variant="outline" className="w-full xl:w-auto bg-transparent">
-                  <Video className="mr-2 h-5 w-5" />
-                  Chế độ Affiliate
+                  <DollarSign className="mr-2 h-5 w-5" />
+                  Facebook Ads
                 </Button>
               </Link>
             </div>
@@ -135,21 +135,21 @@ export default function HomePage() {
                 <div className="flex items-start gap-3">
                   <Search className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-foreground">Tìm kiếm toàn diện</p>
+                    <p className="font-medium text-foreground text-left">Tìm kiếm toàn diện</p>
                     <p className="text-sm text-muted-foreground">Tìm kiếm cả quảng cáo marketing và affiliate offers ngay lập tức</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Video className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-foreground">Nội dung nổi bật</p>
+                    <p className="font-medium text-foreground text-left">Nội dung nổi bật</p>
                     <p className="text-sm text-muted-foreground">Khám phá quảng cáo xu hướng và offers hiệu suất cao</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <TrendingUp className="mt-1 h-5 w-5 text-accent-foreground flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-foreground">Thông tin chi tiết nhanh</p>
+                    <p className="font-medium text-foreground text-left">Thông tin chi tiết nhanh</p>
                     <p className="text-sm text-muted-foreground">Nhận thống kê tức thì và thông tin chi tiết nền tảng</p>
                   </div>
                 </div>
@@ -205,42 +205,36 @@ export default function HomePage() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/10">
                   <DollarSign className="h-6 w-6 text-secondary" />
                 </div>
-                <CardTitle className="text-2xl">Chế độ Affiliate</CardTitle>
+                <CardTitle className="text-2xl">Facebook Ads Search</CardTitle>
                 <CardDescription className="text-base">
-                  Khám phá offers có lợi nhuận, affiliates thành công và chiến dịch thắng lợi
+                  Tìm kiếm, phân tích quảng cáo Facebook với bộ lọc nâng cao cho marketers và e-commerce
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Search className="mt-1 h-5 w-5 text-secondary flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-foreground">Video Affiliate</p>
-                    <p className="text-sm text-muted-foreground">
-                      Tìm video có link affiliate và phân tích hiệu suất
-                    </p>
+                    <p className="font-medium text-foreground">Tìm kiếm từ khóa</p>
+                    <p className="text-sm text-muted-foreground">Lọc theo text, headline, comment, landing page</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <TrendingUp className="mt-1 h-5 w-5 text-secondary flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-foreground">Top Affiliates</p>
-                    <p className="text-sm text-muted-foreground">
-                      Nghiên cứu affiliate marketers thành công và chiến lược của họ
-                    </p>
+                    <p className="font-medium text-foreground">Phân loại định dạng quảng cáo</p>
+                    <p className="text-sm text-muted-foreground">Image, Video, Carousel, Slideshow</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <DollarSign className="mt-1 h-5 w-5 text-secondary flex-shrink-0" />
+                  <BarChart3 className="mt-1 h-5 w-5 text-secondary flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-foreground">Cơ sở dữ liệu Offer</p>
-                    <p className="text-sm text-muted-foreground">
-                      Duyệt offers theo mạng lưới, lĩnh vực và chỉ số hiệu suất
-                    </p>
+                    <p className="font-medium text-foreground">Lọc theo nền tảng e-commerce</p>
+                    <p className="text-sm text-muted-foreground">Shopify, WooCommerce, Custom Store</p>
                   </div>
                 </div>
-                <Link href="/aff" className="block pt-4 ">
+                <Link href="/facebook-ads-search" className="block pt-4 ">
                   <Button className="w-full" variant="secondary">
-                    Khám phá công cụ Affiliate
+                    Khám phá Facebook Ads
                   </Button>
                 </Link>
               </CardContent>

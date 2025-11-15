@@ -45,7 +45,7 @@ export function Header() {
   const navigationItems = [
     { href: "/quicksearch", icon: Search, label: "Tìm kiếm nhanh" },
     { href: "/mkt", icon: TrendingUp, label: "Marketing" },
-    // { href: "/aff", icon: Video, label: "Affiliate" },
+    { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
@@ -244,6 +244,12 @@ export function Header() {
                   <Link href="/quicksearch">
                     <Search className="mr-2 h-4 w-4" />
                     Tìm kiếm nhanh
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/facebook-ads-search">
+                    <Video className="mr-2 h-4 w-4" />
+                    Facebook Ads
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
