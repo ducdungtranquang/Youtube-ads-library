@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       sort_by: "-creation_date",
       is_active: true,
     };
-    Object.entries(queryVars).forEach(([key, value]) => {
+    Object.entries(body).forEach(([key, value]) => {
       if (
         value === undefined ||
         value === null ||

@@ -17,8 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Filter, Loader2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MultiAsyncCountrySelect } from "@/components/multi-async-country-select";
 
 const adFormats = [
   { value: "image", label: "Image" },
@@ -28,7 +33,7 @@ const adFormats = [
 ];
 
 const sortFields = [
-  { value: "publication_date", label: "Publication date (Ngày xuất bản)" },
+  { value: "creation_date", label: "Publication date (Ngày xuất bản)" },
   { value: "running_time", label: "Running time (Thời gian chạy)" },
   { value: "total_adsets", label: "Total adsets (Tổng số adset)" },
   { value: "spend", label: "Spend (Chi tiêu)" },
@@ -50,7 +55,7 @@ export default function FacebookAdsPage() {
   const [adFormat, setAdFormat] = useState("");
   const [sortField, setSortField] = useState("total_adsets");
   const [sortDirection, setSortDirection] = useState("desc");
-  const [country, setCountry] = useState("");
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [ecommercePlatform, setEcommercePlatform] = useState("");
   const [publicDateFrom, setPublicDateFrom] = useState("");
   const [publicDateTo, setPublicDateTo] = useState("");
@@ -67,14 +72,8 @@ export default function FacebookAdsPage() {
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
   const [totalAdsMin, setTotalAdsMin] = useState("");
   const [totalAdsMax, setTotalAdsMax] = useState("");
-  const {
-    searchFacebookAds,
-    loading,
-    error,
-    data,
-    status,
-    clearError,
-  } = useFacebookAdsSearch();
+  const { searchFacebookAds, loading, error, data, status, clearError } =
+    useFacebookAdsSearch();
   const [results, setResults] = useState<any[]>([]);
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -88,11 +87,12 @@ export default function FacebookAdsPage() {
       page: currentPage,
       per_page: itemsPerPage,
       show_total_count: true,
+      // lang:["vi"],
       sort_by: sortDirection === "desc" ? `-${sortField}` : sortField,
       format: adFormat ? [adFormat] : undefined,
       cta: cta ? [cta] : undefined,
       ecom_platform: ecommercePlatform ? [ecommercePlatform] : undefined,
-      countries: country ? [country] : undefined,
+      lang: selectedCountries.length > 0 ? selectedCountries : undefined,
       creation_date:
         publicDateFrom && publicDateTo
           ? [
@@ -100,6 +100,7 @@ export default function FacebookAdsPage() {
               new Date(publicDateTo).toISOString(),
             ]
           : undefined,
+      text: searchQueryRef.current?.value || "",
       total_ads:
         totalAdsMin && totalAdsMax ? [totalAdsMin, totalAdsMax] : undefined,
       age:
@@ -111,12 +112,18 @@ export default function FacebookAdsPage() {
               })
               .flat()
           : undefined,
-      is_active: isActive === "yes" ? true : isActive === "no" ? false : undefined,
+      is_active:
+        isActive === "yes" ? true : isActive === "no" ? false : undefined,
     };
-    Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
+    Object.keys(payload).forEach(
+      (key) => payload[key] === undefined && delete payload[key]
+    );
     const result = await searchFacebookAds(payload);
     // Support both result.data and result.data.data
-    const items = result?.data?.searchMeta?.items || result?.data?.data?.searchMeta?.items || [];
+    const items =
+      result?.data?.searchMeta?.items ||
+      result?.data?.data?.searchMeta?.items ||
+      [];
     setResults(items);
   };
 
@@ -208,7 +215,7 @@ export default function FacebookAdsPage() {
                 setAdFormat("");
                 setSortField("total_adsets");
                 setSortDirection("desc");
-                setCountry("");
+                setSelectedCountries([]);
                 setEcommercePlatform("");
                 setPublicDateFrom("");
                 setPublicDateTo("");
@@ -240,37 +247,44 @@ export default function FacebookAdsPage() {
                 </Select>
               </div>
               <div className="space-y-2 w-full">
-                <label className="text-sm font-medium">Kiểu sắp xếp chính</label>
+                <label className="text-sm font-medium">
+                  Kiểu sắp xếp chính
+                </label>
                 <Select value={sortDirection} onValueChange={setSortDirection}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Chọn kiểu sắp xếp" />
                   </SelectTrigger>
                   <SelectContent>
                     {sortDirections.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2 w-full">
-                <label className="text-sm font-medium">Trường để sắp xếp theo</label>
+                <label className="text-sm font-medium">
+                  Trường để sắp xếp theo
+                </label>
                 <Select value={sortField} onValueChange={setSortField}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Chọn trường sắp xếp" />
                   </SelectTrigger>
                   <SelectContent>
                     {sortFields.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2 w-full">
-                <label className="text-sm font-medium">Country</label>
-                <Input
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="Country"
+                <label className="text-sm font-medium">Countries</label>
+                <MultiAsyncCountrySelect
+                  value={selectedCountries}
+                  onValueChange={setSelectedCountries}
                   className="w-full"
                 />
               </div>
@@ -358,15 +372,26 @@ export default function FacebookAdsPage() {
                 <label className="text-sm font-medium">Age Range</label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
                       {selectedAges.length > 0
-                        ? selectedAges.map(val => ageRanges.find(a => a.value === val)?.label).join(", ")
+                        ? selectedAges
+                            .map(
+                              (val) =>
+                                ageRanges.find((a) => a.value === val)?.label
+                            )
+                            .join(", ")
                         : "Chọn khoảng tuổi"}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56">
                     {ageRanges.map((range) => (
-                      <div key={range.value} className="flex items-center px-2 py-1">
+                      <div
+                        key={range.value}
+                        className="flex items-center px-2 py-1"
+                      >
                         <Checkbox
                           checked={selectedAges.includes(range.value)}
                           onCheckedChange={(checked) => {
@@ -378,7 +403,10 @@ export default function FacebookAdsPage() {
                           }}
                           id={`age-${range.value}`}
                         />
-                        <label htmlFor={`age-${range.value}`} className="ml-2 text-sm cursor-pointer">
+                        <label
+                          htmlFor={`age-${range.value}`}
+                          className="ml-2 text-sm cursor-pointer"
+                        >
                           {range.label}
                         </label>
                       </div>
