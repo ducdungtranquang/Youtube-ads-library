@@ -13,13 +13,14 @@ import {
   BrandFavoriteData,
   CompanyFavoriteData
 } from '@/lib/favorites'
+
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface FavoriteButtonProps {
   itemType: FavoriteType
   itemId: string
-  itemData: VideoFavoriteData | OfferFavoriteData | AffiliateFavoriteData | BrandFavoriteData | CompanyFavoriteData
+  itemData: VideoFavoriteData | OfferFavoriteData | AffiliateFavoriteData | BrandFavoriteData | CompanyFavoriteData | any // allow facebook ad data
   variant?: 'default' | 'ghost' | 'outline'
   size?: 'sm' | 'default' | 'lg'
   showText?: boolean

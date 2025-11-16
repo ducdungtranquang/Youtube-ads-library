@@ -1,6 +1,6 @@
 // Favorites system types and utilities
 
-export type FavoriteType = 'video' | 'offer' | 'affiliate' | 'brand' | 'company'
+export type FavoriteType = 'video' | 'offer' | 'affiliate' | 'brand' | 'company' | 'facebook_ad'
 
 export interface FavoriteItem {
   id: string
@@ -145,6 +145,9 @@ export const validateFavoriteData = (type: FavoriteType, data: any): boolean => 
       return !!(data.name && data.thumbnail)
     case 'company':
       return !!(data.name && data.companyId)
+    case 'facebook_ad':
+      // Minimal validation: require id and page_name
+      return !!(data.id && data.page_name)
     default:
       return false
   }

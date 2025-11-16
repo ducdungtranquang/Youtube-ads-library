@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useFacebookAdsSearch } from "@/hooks/use-facebook-search";
 import { useAuth } from "@/contexts/auth-context";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FacebookAdCard } from "@/components/facebook-ad-card";
+import { FacebookAdDetailModal } from "@/components/facebook-ad-detail-modal";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -64,19 +67,57 @@ export default function FacebookAdsPage() {
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
   const [totalAdsMin, setTotalAdsMin] = useState("");
   const [totalAdsMax, setTotalAdsMax] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    searchFacebookAds,
+    loading,
+    error,
+    data,
+    status,
+    clearError,
+  } = useFacebookAdsSearch();
   const [results, setResults] = useState<any[]>([]);
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // TODO: Call API to search Facebook ads with filters
-    setTimeout(() => {
-      setResults([]); // Replace with API results
-      setLoading(false);
-    }, 1000);
+    // ...existing code for building payload...
+    const payload: any = {
+      page: currentPage,
+      per_page: itemsPerPage,
+      show_total_count: true,
+      sort_by: sortDirection === "desc" ? `-${sortField}` : sortField,
+      format: adFormat ? [adFormat] : undefined,
+      cta: cta ? [cta] : undefined,
+      ecom_platform: ecommercePlatform ? [ecommercePlatform] : undefined,
+      countries: country ? [country] : undefined,
+      creation_date:
+        publicDateFrom && publicDateTo
+          ? [
+              new Date(publicDateFrom).toISOString(),
+              new Date(publicDateTo).toISOString(),
+            ]
+          : undefined,
+      total_ads:
+        totalAdsMin && totalAdsMax ? [totalAdsMin, totalAdsMax] : undefined,
+      age:
+        selectedAges.length > 0
+          ? selectedAges
+              .map((range) => {
+                const [min, max] = range.split("-");
+                return [parseInt(min), parseInt(max)];
+              })
+              .flat()
+          : undefined,
+      is_active: isActive === "yes" ? true : isActive === "no" ? false : undefined,
+    };
+    Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
+    const result = await searchFacebookAds(payload);
+    // Support both result.data and result.data.data
+    const items = result?.data?.searchMeta?.items || result?.data?.data?.searchMeta?.items || [];
+    setResults(items);
   };
 
   // Pagination logic
@@ -128,7 +169,7 @@ export default function FacebookAdsPage() {
         {/* Search Bar - Consistent with MKT Search */}
         <form
           onSubmit={handleSearch}
-          className="mb-6 flex gap-2 mobile:flex-col"
+          className="mb-6 flex md:flex-row gap-2 flex-col"
         >
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -364,24 +405,18 @@ export default function FacebookAdsPage() {
                 </Card>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {/* Render ad cards here */}
                   {paginatedResults.map((ad, idx) => (
-                    <Card key={idx}>
-                      <CardHeader>
-                        <CardTitle>{ad.headline}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p>{ad.text}</p>
-                        <p>Format: {ad.format}</p>
-                        <p>Country: {ad.country}</p>
-                        <p>Engagement: {ad.engagement}</p>
-                        {/* Add more ad info as needed */}
-                      </CardContent>
-                    </Card>
+                    <FacebookAdCard
+                      key={ad.id || idx}
+                      ad={ad}
+                      onClick={() => {
+                        setSelectedAd(ad);
+                        setModalOpen(true);
+                      }}
+                    />
                   ))}
                 </div>
               )}
-              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-8">
                   <Button
@@ -400,6 +435,17 @@ export default function FacebookAdsPage() {
                     Next
                   </Button>
                 </div>
+              )}
+              {/* Detail Modal */}
+              {selectedAd && (
+                <FacebookAdDetailModal
+                  open={modalOpen}
+                  onOpenChange={(open) => {
+                    setModalOpen(open);
+                    if (!open) setSelectedAd(null);
+                  }}
+                  ad={selectedAd}
+                />
               )}
             </div>
           )}

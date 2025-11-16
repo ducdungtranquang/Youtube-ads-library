@@ -37,6 +37,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { VideoDetailModal } from "@/components/video-detail-modal";
 import { BrandDetailModal } from "@/components/brand-detail-modal";
 import { CompanyDetailModal } from "@/components/company-detail-modal";
+import { FacebookAdCard } from "@/components/facebook-ad-card";
 import { useAuth } from "@/contexts/auth-context";
 import {
   FavoriteType,
@@ -53,12 +54,13 @@ import { toast } from "sonner";
 export default function FavoritesPage() {
   const [activeTab, setActiveTab] = useState<FavoriteType>("video");
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
-  const [counts, setCounts] = useState<FavoriteCountsByType>({
+  const [counts, setCounts] = useState<FavoriteCountsByType & { facebook_ad: number; [key: string]: number }>({
     video: 0,
     offer: 0,
     affiliate: 0,
     brand: 0,
     company: 0,
+    facebook_ad: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -82,7 +84,7 @@ export default function FavoritesPage() {
       // Load counts
       const countsData = await getFavoritesCounts();
       if (countsData) {
-        setCounts(countsData);
+        setCounts({ ...countsData, facebook_ad: 0 });
       }
 
       // Load favorites for active tab
@@ -176,6 +178,13 @@ export default function FavoritesPage() {
           actionText: "Duyệt Doanh nghiệp",
           actionUrl: "/mkt",
         },
+        facebook_ad: {
+          icon: Heart,
+          title: "Chưa có Facebook Ad yêu thích",
+          description: "Bắt đầu lưu quảng cáo Facebook từ trang Facebook Ads Search",
+          actionText: "Duyệt Facebook Ads",
+          actionUrl: "/facebook-ads-search",
+        },
       };
 
       const config = emptyConfig[activeTab];
@@ -203,7 +212,7 @@ export default function FavoritesPage() {
       <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
         {favorites.map((favorite) => {
           switch (favorite.item_type) {
-            case "video":
+            case "video": {
               const videoData = favorite.item_data as VideoFavoriteData;
               return (
                 <VideoCard
@@ -236,7 +245,8 @@ export default function FavoritesPage() {
                   }
                 />
               );
-            case "offer":
+            }
+            case "offer": {
               const offerData = favorite.item_data as OfferFavoriteData;
               return (
                 <OfferCard
@@ -250,7 +260,8 @@ export default function FavoritesPage() {
                   totalVideos={offerData.totalVideos}
                 />
               );
-            case "affiliate":
+            }
+            case "affiliate": {
               const affiliateData = favorite.item_data as AffiliateFavoriteData;
               return (
                 <AffiliateCard
@@ -264,7 +275,8 @@ export default function FavoritesPage() {
                   avatar={affiliateData.avatar}
                 />
               );
-            case "brand":
+            }
+            case "brand": {
               const brandData = favorite.item_data as BrandFavoriteData;
               return (
                 <BrandCard
@@ -280,7 +292,8 @@ export default function FavoritesPage() {
                   onClick={() => setSelectedBrand(String(favorite.item_id))}
                 />
               );
-            case "company":
+            }
+            case "company": {
               const companyData = favorite.item_data as CompanyFavoriteData;
               return (
                 <CompanyCard
@@ -302,6 +315,18 @@ export default function FavoritesPage() {
                   }}
                 />
               );
+            }
+            case "facebook_ad": {
+              // Use FacebookAdCard for facebook_ad type
+              const adData = favorite.item_data;
+              return (
+                <div key={favorite.id} className="flex justify-center items-center">
+                  <div className="w-72 h-72">
+                    <FacebookAdCard ad={adData} />
+                  </div>
+                </div>
+              );
+            }
             default:
               return null;
           }
@@ -451,17 +476,20 @@ export default function FavoritesPage() {
               <Building className="mr-2 h-4 w-4" />
               Doanh nghiệp yêu thích
             </TabsTrigger>
+            <TabsTrigger value="facebook_ad" className="cursor-pointer">
+              <Heart className="mr-2 h-4 w-4" />
+              Facebook Ads yêu thích
+            </TabsTrigger>
           </TabsList>
 
-          {(
-            [
-              "video",
-              "offer",
-              "affiliate",
-              "brand",
-              "company",
-            ] as FavoriteType[]
-          ).map((type) => (
+          {[
+            "video",
+            "offer",
+            "affiliate",
+            "brand",
+            "company",
+            "facebook_ad",
+          ].map((type) => (
             <TabsContent key={type} value={type} className="space-y-4">
               {counts[type] > 0 && (
                 <div className="mb-4 flex items-center justify-between">
@@ -483,14 +511,13 @@ export default function FavoritesPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Bạn có chắc muốn xóa tất cả {type} yêu thích? Hành
-                          động này không thể hoàn tác.
+                          Bạn có chắc muốn xóa tất cả {type} yêu thích? Hành động này không thể hoàn tác.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleClearAll(type)}
+                          onClick={() => handleClearAll(type as FavoriteType)}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                           Xóa tất cả
@@ -504,8 +531,9 @@ export default function FavoritesPage() {
             </TabsContent>
           ))}
         </Tabs>
-
-        {/* Detail Modals for favorites */}
+                "company",
+                "facebook_ad",
+              ] as FavoriteType[]
         <VideoDetailModal
           open={!!selectedVideo}
           onOpenChange={(open) => {
