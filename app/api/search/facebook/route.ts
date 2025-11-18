@@ -4,6 +4,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CognitoUser, AuthenticationDetails, CognitoUserPool } from "amazon-cognito-identity-js";
 import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
+// Cache config
+const CACHE_KEY = "facebook-search";
+const CACHE_EXPIRATION_HOURS = 12;
+// Helper: hash payload for cache key
+function getPayloadHash(payload: any): string {
+  return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+}
 
 // CORS helper
 function withCORS(response: NextResponse) {
@@ -37,12 +45,19 @@ async function requireAuth(request: NextRequest) {
 const MINEA_API_URL = process.env.MINEA_API_URL;
 const MINEA_COGNITO_USER_POOL_ID = process.env.MINEA_COGNITO_USER_POOL_ID;
 const MINEA_COGNITO_CLIENT_ID = process.env.MINEA_COGNITO_CLIENT_ID;
-const MINEA_COGNITO_USERNAME = process.env.MINEA_COGNITO_USERNAME;
-const MINEA_COGNITO_PASSWORD = process.env.MINEA_COGNITO_PASSWORD;
+
+// Pool of credentials for rotation
+const MINEA_CREDENTIALS_POOL = [
+  { username: process.env.MINEA_COGNITO_USERNAME, password: process.env.MINEA_COGNITO_PASSWORD },
+  // Thêm các tài khoản khác ở đây
+  // { username: "user2", password: "pass2" },
+  // { username: "user3", password: "pass3" },
+];
+let exhaustedAccounts: string[] = [];
 
 
 
-function getMineaToken(): Promise<string> {
+function getMineaTokenWithCredential(username: string, password: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const poolData = {
       UserPoolId: MINEA_COGNITO_USER_POOL_ID!,
@@ -50,13 +65,13 @@ function getMineaToken(): Promise<string> {
     };
     const userPool = new CognitoUserPool(poolData);
     const userData = {
-      Username: MINEA_COGNITO_USERNAME!,
+      Username: username,
       Pool: userPool,
     };
     const cognitoUser = new CognitoUser(userData);
     const authDetails = new AuthenticationDetails({
-      Username: MINEA_COGNITO_USERNAME!,
-      Password: MINEA_COGNITO_PASSWORD!,
+      Username: username,
+      Password: password,
     });
     cognitoUser.authenticateUser(authDetails, {
       onSuccess: (result) => {
@@ -98,6 +113,27 @@ export async function POST(request: NextRequest) {
       }
       filteredQueryVars[key] = value;
     });
+
+    // --- CACHE LOGIC ---
+    const payloadHash = getPayloadHash(filteredQueryVars);
+    // Check cache
+    const { data: cacheHit, error: cacheError } = await supabase
+      .from("search_cache")
+      .select("id, data, created_at")
+      .eq("cache_key", CACHE_KEY)
+      .eq("payload_hash", payloadHash)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    if (cacheHit && cacheHit.data && cacheHit.created_at) {
+      const cacheTime = new Date(cacheHit.created_at).getTime();
+      const now = Date.now();
+      const diffHours = (now - cacheTime) / (1000 * 60 * 60);
+      if (diffHours < CACHE_EXPIRATION_HOURS) {
+        return withCORS(NextResponse.json({ ...cacheHit.data, cached: true }));
+      }
+    }
+
     const mineaPayload = {
       operationName: operationName || "SearchMeta",
       variables: { query: filteredQueryVars },
@@ -122,30 +158,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // --- END CACHE LOGIC ---
     // Try with cookie token first
     let setCookieHeader = "";
     if (mineaToken) {
-      mineaRes = await doSearch(mineaToken);
+      mineaRes = await doSearch(String(mineaToken));
       // If token expired (401), refresh and retry once
       if (mineaRes.status === 401) {
         try {
-          mineaToken = await getMineaToken();
-          // Set new token to cookies (expires in 55min)
-          setCookieHeader = `tokenFB=${encodeURIComponent(mineaToken)}; Path=/; Max-Age=${55 * 60}`;
+          const cred = MINEA_CREDENTIALS_POOL[0];
+          mineaToken = await getMineaTokenWithCredential(String(cred.username), String(cred.password));
+          setCookieHeader = `tokenFB=${encodeURIComponent(String(mineaToken))}; Path=/; Max-Age=${55 * 60}`;
         } catch (err) {
           return withCORS(NextResponse.json({ error: "Auth failed" }, { status: 500 }));
         }
-        mineaRes = await doSearch(mineaToken);
+        mineaRes = await doSearch(String(mineaToken));
       }
     } else {
       // No cookie token, login
       try {
-        mineaToken = await getMineaToken();
-        setCookieHeader = `tokenFB=${encodeURIComponent(mineaToken)}; Path=/; Max-Age=${55 * 60}`;
+        const cred = MINEA_CREDENTIALS_POOL[0];
+        mineaToken = await getMineaTokenWithCredential(String(cred.username), String(cred.password));
+        setCookieHeader = `tokenFB=${encodeURIComponent(String(mineaToken))}; Path=/; Max-Age=${55 * 60}`;
       } catch (err) {
         return withCORS(NextResponse.json({ error: "Auth failed" }, { status: 500 }));
       }
-      mineaRes = await doSearch(mineaToken);
+      mineaRes = await doSearch(String(mineaToken));
     }
 
     if (!mineaRes.ok) {
@@ -158,6 +196,48 @@ export async function POST(request: NextRequest) {
       return withCORS(NextResponse.json({ error: "FB API error" }, { status: 500 }));
     }
     mineaData = await mineaRes.json();
+    // Check for no_credits error and retry with a new account
+    const isNoCredits =
+      mineaData?.errors?.some(
+        (err: any) => err?.message === "no_credits"
+      );
+    if (isNoCredits) {
+      // Xoay vòng qua các tài khoản chưa hết credits
+      let found = false;
+      for (let i = 0; i < MINEA_CREDENTIALS_POOL.length; i++) {
+        const cred = MINEA_CREDENTIALS_POOL[i];
+        if (!cred.username || exhaustedAccounts.includes(cred.username)) continue;
+        try {
+          mineaToken = await getMineaTokenWithCredential(String(cred.username), String(cred.password));
+          setCookieHeader = `tokenFB=${encodeURIComponent(mineaToken)}; Path=/; Max-Age=${55 * 60}`;
+          mineaRes = await doSearch(mineaToken);
+          mineaData = await mineaRes.json();
+          const stillNoCredits = mineaData?.errors?.some((err: any) => err?.message === "no_credits");
+          if (!stillNoCredits) {
+            found = true;
+            break;
+          } else {
+            exhaustedAccounts.push(cred.username);
+          }
+        } catch {
+          exhaustedAccounts.push(cred.username);
+          continue;
+        }
+      }
+      if (!found) {
+        return withCORS(NextResponse.json({ error: "All accounts exhausted (no credits)" }, { status: 500 }));
+      }
+    }
+    // Save to cache
+    await supabase.from("search_cache").upsert({
+      cache_key: CACHE_KEY,
+      payload_hash: payloadHash,
+      endpoint: "facebook",
+      status: "completed",
+      data: mineaData,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + CACHE_EXPIRATION_HOURS * 60 * 60 * 1000).toISOString(),
+    });
     const res = NextResponse.json(mineaData);
     if (setCookieHeader) res.headers.set("Set-Cookie", setCookieHeader);
     return withCORS(res);

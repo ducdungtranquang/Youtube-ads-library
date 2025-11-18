@@ -25,41 +25,77 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { MultiAsyncCountrySelect } from "@/components/multi-async-country-select";
 
-const adFormats = [
-  { value: "image", label: "Image" },
-  { value: "video", label: "Video" },
-  { value: "carousel", label: "Carousel" },
-  { value: "slideshow", label: "Slideshow" },
-];
+const MEDIA_TYPES = {
+  image: "Image",
+  video: "Video",
+  carousel: "Carousel",
+  album: "Album",
+  multi: "Multi",
+};
+const MEDIA_TYPE_LIST = Object.entries(MEDIA_TYPES);
 
 const sortFields = [
   { value: "creation_date", label: "Publication date (Ngày xuất bản)" },
-  { value: "running_time", label: "Running time (Thời gian chạy)" },
-  { value: "total_adsets", label: "Total adsets (Tổng số adset)" },
-  { value: "spend", label: "Spend (Chi tiêu)" },
+  { value: "days_running", label: "Running time (Thời gian chạy)" },
+  {
+    value: "aggregated_archive_ads.total_ads",
+    label: "Total adsets (Tổng số adset)",
+  },
+  { value: "aggregated_archive_ads.total_reach", label: "Spend (Chi tiêu)" },
 ];
 const sortDirections = [
   { value: "asc", label: "Asc (tăng dần)" },
   { value: "desc", label: "Desc (giảm dần)" },
 ];
 
-const ecommercePlatforms = [
-  { value: "shopify", label: "Shopify" },
-  { value: "woocommerce", label: "WooCommerce" },
-  { value: "custom", label: "Custom Store" },
-];
+const CTA_OPTIONS = {
+  BUY_NOW: "Buy Now",
+  SHOP_NOW: "Shop Now",
+  LEARN_MORE: "Learn More",
+  MESSAGE_PAGE: "Message Page",
+  SIGN_UP: "Sign Up",
+  GET_OFFER: "Get Offer",
+  DOWNLOAD: "Download",
+  APPLY_NOW: "Apply Now",
+  SUBSCRIBE: "Subscribe",
+  WHATSAPP_MESSAGE: "WhatsApp Message",
+  GET_QUOTE: "Get Quote",
+  EVENT_RSVP: "Event RSVP",
+  DONATE_NOW: "Donate Now",
+  PLAY_GAME: "Play Game",
+  CONTACT_US: "Contact Us",
+  GET_DIRECTIONS: "Get Directions",
+  SEE_MENU: "See Menu",
+  LISTEN_NOW: "Listen Now",
+  INSTALL_APP: "Install App",
+  BUY_TICKETS: "Buy Tickets",
+  ORDER_NOW: "Order Now",
+  GET_SHOWTIMES: "Get Showtimes",
+  CALL_NOW: "Call Now",
+  OPEN_LINK: "Open Link",
+};
+const CTA_LIST = Object.entries(CTA_OPTIONS);
+
+const ECOMMERCE_PLATFORMS = {
+  shopify: "Shopify",
+  woocommerce: "WooCommerce",
+  "cart functionality": "Cart Functionality",
+  magento: "Magento",
+  "salesforce commerce cloud": "Salesforce Commerce Cloud",
+};
+const ECOMMERCE_PLATFORM_LIST = Object.entries(ECOMMERCE_PLATFORMS);
 
 export default function FacebookAdsPage() {
   const { user, loading: authLoading } = useAuth();
   const searchQueryRef = useRef<HTMLInputElement>(null);
-  const [adFormat, setAdFormat] = useState("");
-  const [sortField, setSortField] = useState("total_adsets");
+  const [sortField, setSortField] = useState("creation_date");
   const [sortDirection, setSortDirection] = useState("desc");
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
-  const [ecommercePlatform, setEcommercePlatform] = useState("");
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [publicDateFrom, setPublicDateFrom] = useState("");
   const [publicDateTo, setPublicDateTo] = useState("");
-  const [cta, setCta] = useState("");
+  const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
+  const [selectedCtas, setSelectedCtas] = useState<string[]>([]);
   const [isActive, setIsActive] = useState("");
   const ageRanges = [
     { value: "18-24", label: "18–24" },
@@ -82,16 +118,14 @@ export default function FacebookAdsPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ...existing code for building payload...
     const payload: any = {
       page: currentPage,
       per_page: itemsPerPage,
       show_total_count: true,
-      // lang:["vi"],
       sort_by: sortDirection === "desc" ? `-${sortField}` : sortField,
-      format: adFormat ? [adFormat] : undefined,
-      cta: cta ? [cta] : undefined,
-      ecom_platform: ecommercePlatform ? [ecommercePlatform] : undefined,
+      format: selectedFormats.length > 0 ? selectedFormats : undefined,
+      cta: selectedCtas.length > 0 ? selectedCtas : undefined,
+      ecom_platform: selectedPlatforms.length > 0 ? selectedPlatforms : undefined,
       lang: selectedCountries.length > 0 ? selectedCountries : undefined,
       creation_date:
         publicDateFrom && publicDateTo
@@ -212,14 +246,14 @@ export default function FacebookAdsPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                setAdFormat("");
-                setSortField("total_adsets");
+                setSelectedFormats([]);
+                setSortField("creation_date");
                 setSortDirection("desc");
                 setSelectedCountries([]);
-                setEcommercePlatform("");
+                setSelectedPlatforms([]);
                 setPublicDateFrom("");
                 setPublicDateTo("");
-                setCta("");
+                setSelectedCtas([]);
                 setIsActive("");
                 setSelectedAges([]);
                 setTotalAdsMin("");
@@ -233,18 +267,46 @@ export default function FacebookAdsPage() {
             <div className="grid gap-4 lg:grid-cols-2 md:grid-cols-2 grid-cols-1">
               <div className="space-y-2 w-full">
                 <label className="text-sm font-medium">Ad Format</label>
-                <Select value={adFormat} onValueChange={setAdFormat}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {adFormats.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      {selectedFormats.length > 0
+                        ? selectedFormats
+                            .map(
+                              (val) =>
+                                MEDIA_TYPES[val as keyof typeof MEDIA_TYPES]
+                            )
+                            .join(", ")
+                        : "Chọn định dạng"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 max-h-96 overflow-y-auto">
+                    {MEDIA_TYPE_LIST.map(([key, label]) => (
+                      <div key={key} className="flex items-center px-2 py-1">
+                        <Checkbox
+                          checked={selectedFormats.includes(key)}
+                          onCheckedChange={(checked) => {
+                            setSelectedFormats((prev) =>
+                              checked
+                                ? [...prev, key]
+                                : prev.filter((v) => v !== key)
+                            );
+                          }}
+                          id={`format-${key}`}
+                        />
+                        <label
+                          htmlFor={`format-${key}`}
+                          className="ml-2 text-sm cursor-pointer"
+                        >
+                          {label}
+                        </label>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="space-y-2 w-full">
                 <label className="text-sm font-medium">
@@ -289,24 +351,36 @@ export default function FacebookAdsPage() {
                 />
               </div>
               <div className="space-y-2 w-full">
-                <label className="text-sm font-medium">
-                  E-commerce Platform
-                </label>
-                <Select
-                  value={ecommercePlatform}
-                  onValueChange={setEcommercePlatform}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Platform" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ecommercePlatforms.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
+                <label className="text-sm font-medium">E-commerce Platform</label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedPlatforms.length > 0
+                        ? selectedPlatforms.map((val) => ECOMMERCE_PLATFORMS[val as keyof typeof ECOMMERCE_PLATFORMS]).join(", ")
+                        : "Chọn nền tảng"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 max-h-96 overflow-y-auto">
+                    {ECOMMERCE_PLATFORM_LIST.map(([key, label]) => (
+                      <div key={key} className="flex items-center px-2 py-1">
+                        <Checkbox
+                          checked={selectedPlatforms.includes(key)}
+                          onCheckedChange={(checked) => {
+                            setSelectedPlatforms((prev) =>
+                              checked
+                                ? [...prev, key]
+                                : prev.filter((v) => v !== key)
+                            );
+                          }}
+                          id={`platform-${key}`}
+                        />
+                        <label htmlFor={`platform-${key}`} className="ml-2 text-sm cursor-pointer">
+                          {label}
+                        </label>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="space-y-2 w-full">
                 <label className="text-sm font-medium">Public Date From</label>
@@ -328,12 +402,46 @@ export default function FacebookAdsPage() {
               </div>
               <div className="space-y-2 w-full">
                 <label className="text-sm font-medium">CTA</label>
-                <Input
-                  value={cta}
-                  onChange={(e) => setCta(e.target.value)}
-                  placeholder="Call to action"
-                  className="w-full"
-                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between overflow-hidden text-ellipsis"
+                    >
+                      {selectedCtas.length > 0
+                        ? selectedCtas
+                            .map(
+                              (val) =>
+                                CTA_OPTIONS[val as keyof typeof CTA_OPTIONS]
+                            )
+                            .join(", ")
+                        : "Chọn CTA"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 max-h-96 overflow-y-auto">
+                    {CTA_LIST.map(([key, label]) => (
+                      <div key={key} className="flex items-center px-2 py-1">
+                        <Checkbox
+                          checked={selectedCtas.includes(key)}
+                          onCheckedChange={(checked) => {
+                            setSelectedCtas((prev) =>
+                              checked
+                                ? [...prev, key]
+                                : prev.filter((v) => v !== key)
+                            );
+                          }}
+                          id={`cta-${key}`}
+                        />
+                        <label
+                          htmlFor={`cta-${key}`}
+                          className="ml-2 text-sm cursor-pointer"
+                        >
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div className="space-y-2 w-full">
                 <label className="text-sm font-medium">Is Active</label>
