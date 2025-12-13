@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, Loader2 } from "lucide-react";
+import { Search, Filter, Loader2, Sparkles, ArrowRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -173,9 +173,11 @@ export default function FacebookAdsPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container py-8">
-          <Card className="max-w-md mx-auto">
+          <Card className="max-w-md mx-auto border-2">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <Search className="mb-4 h-12 w-12 text-muted-foreground" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white mb-4">
+                <Search className="h-8 w-8" />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-foreground">
                 Đăng nhập để tìm kiếm Facebook Ads
               </h3>
@@ -183,8 +185,11 @@ export default function FacebookAdsPage() {
                 Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo
                 Facebook và phân tích đối thủ
               </p>
-              <Button asChild>
-                <a href="/login">Đăng nhập</a>
+              <Button asChild className="cursor-pointer">
+                <a href="/login">
+                  Đăng nhập
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
               </Button>
             </CardContent>
           </Card>
@@ -196,16 +201,30 @@ export default function FacebookAdsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container px-4 py-8">
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-foreground">
-            Facebook Ads Search
-          </h1>
-          <p className="text-muted-foreground">
-            Tìm kiếm, phân tích quảng cáo Facebook với bộ lọc nâng cao cho
-            marketers và e-commerce
-          </p>
+
+      {/* Hero Section */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 py-12 md:py-16">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
+
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
+              <Sparkles className="h-4 w-4" />
+              Facebook Ads Spy Tool
+            </div>
+            <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
+              Facebook Ads Search
+            </h1>
+            <p className="text-base text-white/80 max-w-xl mx-auto">
+              Tìm kiếm, phân tích quảng cáo Facebook với bộ lọc nâng cao cho marketers và e-commerce
+            </p>
+          </div>
         </div>
+      </section>
+
+      <main className="container px-4 py-8 -mt-6 relative z-20">
 
         {/* Search Bar - Consistent with MKT Search */}
         <form
@@ -220,7 +239,7 @@ export default function FacebookAdsPage() {
               className="pl-10"
             />
           </div>
-          <Button type="submit" disabled={loading} className="mobile:w-full">
+          <Button type="submit" disabled={loading} className="mobile:w-full cursor-pointer">
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -236,7 +255,7 @@ export default function FacebookAdsPage() {
         </form>
 
         {/* Filters - Consistent Card UI */}
-        <Card className="mb-6">
+        <Card className="mb-6 border-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base">
               <Filter className="h-4 w-4" />
@@ -288,7 +307,7 @@ export default function FacebookAdsPage() {
                       <div key={key} className="flex items-center px-2 py-1">
                         <Checkbox
                           checked={selectedFormats.includes(key)}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(checked: any) => {
                             setSelectedFormats((prev) =>
                               checked
                                 ? [...prev, key]
@@ -365,7 +384,7 @@ export default function FacebookAdsPage() {
                       <div key={key} className="flex items-center px-2 py-1">
                         <Checkbox
                           checked={selectedPlatforms.includes(key)}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(checked: any) => {
                             setSelectedPlatforms((prev) =>
                               checked
                                 ? [...prev, key]
@@ -423,7 +442,7 @@ export default function FacebookAdsPage() {
                       <div key={key} className="flex items-center px-2 py-1">
                         <Checkbox
                           checked={selectedCtas.includes(key)}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(checked: any) => {
                             setSelectedCtas((prev) =>
                               checked
                                 ? [...prev, key]
@@ -502,7 +521,7 @@ export default function FacebookAdsPage() {
                       >
                         <Checkbox
                           checked={selectedAges.includes(range.value)}
-                          onCheckedChange={(checked) => {
+                          onCheckedChange={(checked: any) => {
                             setSelectedAges((prev) =>
                               checked
                                 ? [...prev, range.value]
@@ -533,9 +552,9 @@ export default function FacebookAdsPage() {
           ) : (
             <div>
               {results.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <CardTitle>Không tìm thấy kết quả</CardTitle>
-                  <CardContent>
+                <Card className="p-8 text-center border-2">
+                  <CardTitle className="mb-4">Không tìm thấy kết quả</CardTitle>
+                  <CardContent className="text-muted-foreground">
                     Vui lòng thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.
                   </CardContent>
                 </Card>
@@ -558,6 +577,7 @@ export default function FacebookAdsPage() {
                   <Button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
+                    className="cursor-pointer"
                   >
                     Previous
                   </Button>
@@ -567,6 +587,7 @@ export default function FacebookAdsPage() {
                   <Button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
+                    className="cursor-pointer"
                   >
                     Next
                   </Button>
@@ -587,6 +608,12 @@ export default function FacebookAdsPage() {
           )}
         </section>
       </main>
+
+      <footer className="border-t border-border/40 py-8 mt-8">
+        <div className="container text-center text-sm text-muted-foreground">
+          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+        </div>
+      </footer>
     </div>
   );
 }

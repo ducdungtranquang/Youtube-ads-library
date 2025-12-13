@@ -29,6 +29,7 @@ import {
   Loader2,
   Sparkles,
   LogIn,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
@@ -640,9 +641,11 @@ export default function MKTPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container py-8">
-          <Card className="max-w-md mx-auto">
+          <Card className="max-w-md mx-auto border-2">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-red-600 text-white mb-4">
+                <LogIn className="h-8 w-8" />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-foreground">
                 Đăng nhập để tìm kiếm Marketing
               </h3>
@@ -650,8 +653,11 @@ export default function MKTPage() {
                 Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo và
                 phân tích đối thủ
               </p>
-              <Button asChild>
-                <a href="/login">Đăng nhập</a>
+              <Button asChild className="cursor-pointer">
+                <a href="/login">
+                  Đăng nhập
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
               </Button>
             </CardContent>
           </Card>
@@ -664,16 +670,29 @@ export default function MKTPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container px-4 md:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-foreground">
-            Tìm kiếm Marketing
-          </h1>
-          <p className="text-muted-foreground">
-            Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi
-            chiến dịch doanh nghiệp
-          </p>
+      {/* Hero Section */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-br from-red-600 via-red-700 to-orange-600 py-12 md:py-16">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
+              <Sparkles className="h-4 w-4" />
+              YouTube Ads Spy Tool
+            </div>
+            <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
+              Tìm kiếm Marketing
+            </h1>
+            <p className="text-base text-white/80 max-w-xl mx-auto">
+              Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp
+            </p>
+          </div>
         </div>
+      </section>
+
+      <main className="container px-4 md:px-6 lg:px-8 py-8 -mt-6 relative z-20">
 
         <form
           onSubmit={handleSearch}
@@ -687,7 +706,7 @@ export default function MKTPage() {
               className="pl-10"
             />
           </div>
-          <Button type="submit" disabled={loading} className="mobile:w-full">
+          <Button type="submit" disabled={loading} className="mobile:w-full cursor-pointer">
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -703,7 +722,7 @@ export default function MKTPage() {
         </form>
 
         {/* Advanced Filters - Horizontal on Desktop, Vertical on Tablet */}
-        <Card className="mb-6">
+        <Card className="mb-6 border-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Filter className="h-4 w-4" />
@@ -1121,6 +1140,12 @@ export default function MKTPage() {
         company={selectedCompany}
         onClose={() => {}}
       />
+
+      <footer className="border-t border-border/40 py-8 mt-8">
+        <div className="container text-center text-sm text-muted-foreground">
+          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+        </div>
+      </footer>
     </div>
   );
 }

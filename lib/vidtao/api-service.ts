@@ -605,7 +605,7 @@ export class VidTaoAPIService {
         throw new Error('No valid token found for account')
       }
 
-      const response = await fetch(`https://apiv1.vidtao.com/api/videos/${videoId}`, {
+      const response = await fetch(`https://apiv1.vidtao.com/api/videos/${videoId}?encryptedId=`, {
         method: 'GET',
         ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${authToken}`,

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, Video } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Header } from "@/components/header";
 import { VideoCard } from "@/components/video-card";
@@ -74,12 +74,40 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container py-8">
+
+      {/* Hero Section */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 py-12 md:py-16">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl" />
+
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
+              <Sparkles className="h-4 w-4" />
+              Chi tiết thương hiệu
+            </div>
+            <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
+              Video của Brand #{brandId}
+            </h1>
+            <p className="text-base text-white/80 max-w-xl mx-auto">
+              Xem tất cả video quảng cáo của thương hiệu này
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <main className="container py-8 -mt-6 relative z-20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Video của Brand #{brandId}</h1>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+              <Video className="h-5 w-5" />
+            </div>
+            <span className="font-semibold text-foreground">Danh sách video</span>
+          </div>
           <div className="flex gap-2 items-center">
             <span className="font-medium">Loại video:</span>
-            <Select value={filter} onValueChange={(value) => { setFilter(value as 'youtube' | 'shorts'); setPage(1); }}>
+            <Select value={filter} onValueChange={(value: string) => { setFilter(value as 'youtube' | 'shorts'); setPage(1); }}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Chọn loại" />
               </SelectTrigger>
@@ -90,7 +118,7 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
             </Select>
           </div>
         </div>
-        <Card className="mb-8">
+        <Card className="mb-8 border-2">
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
@@ -128,11 +156,11 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
             )}
             {/* Pagination */}
             <div className="flex justify-center gap-4 mt-8">
-              <Button disabled={page <= 1 || loading} onClick={() => handlePageChange(page - 1)}>
+              <Button disabled={page <= 1 || loading} onClick={() => handlePageChange(page - 1)} className="cursor-pointer">
                 Trang trước
               </Button>
               <span className="px-4 py-2">Trang {page}</span>
-              <Button disabled={!hasMore || loading} onClick={() => handlePageChange(page + 1)}>
+              <Button disabled={!hasMore || loading} onClick={() => handlePageChange(page + 1)} className="cursor-pointer">
                 Trang sau
               </Button>
             </div>
@@ -158,6 +186,12 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
           onClose={() => setSelectedVideo(null)}
         />
       </main>
+
+      <footer className="border-t border-border/40 py-8 mt-8">
+        <div className="container text-center text-sm text-muted-foreground">
+          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+        </div>
+      </footer>
     </div>
   );
 }

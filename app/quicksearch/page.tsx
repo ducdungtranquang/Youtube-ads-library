@@ -73,8 +73,8 @@ function QuickSearchPage() {
         throw new Error(result.details || result.error)
       }
 
-      // Handle the response
-      const videos = result?.data || []
+      // Handle the response - extract results from nested structure
+      const videos = result?.data?.data?.results || result?.data?.results || result?.data || []
       setSearchResults(videos)
       setIsSearching(false)
 

@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Heart,
-  Download,
   Trash2,
   Video,
   DollarSign,
@@ -32,6 +31,7 @@ import {
   Building2,
   Building,
   LogIn,
+  ArrowRight,
 } from "lucide-react";
 import { useFavorites } from "@/hooks/use-favorites";
 import { VideoDetailModal } from "@/components/video-detail-modal";
@@ -200,8 +200,11 @@ export default function FavoritesPage() {
             <p className="mb-4 text-sm text-muted-foreground">
               {config.description}
             </p>
-            <Button asChild>
-              <a href={config.actionUrl}>{config.actionText}</a>
+            <Button asChild className="cursor-pointer">
+              <a href={config.actionUrl}>
+                {config.actionText}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </a>
             </Button>
           </CardContent>
         </Card>
@@ -341,17 +344,22 @@ export default function FavoritesPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container py-8">
-          <Card className="max-w-md mx-auto">
+          <Card className="max-w-md mx-auto border-2">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <LogIn className="mb-4 h-12 w-12 text-muted-foreground" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white mb-4">
+                <LogIn className="h-8 w-8" />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-foreground">
                 Đăng nhập để xem yêu thích
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
                 Bạn cần đăng nhập để quản lý danh sách yêu thích của mình
               </p>
-              <Button asChild>
-                <a href="/login">Đăng nhập</a>
+              <Button asChild className="cursor-pointer">
+                <a href="/login">
+                  Đăng nhập
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
               </Button>
             </CardContent>
           </Card>
@@ -364,29 +372,35 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container py-8">
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-foreground">
+      {/* Hero Section */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-br from-pink-600 via-rose-600 to-red-700 py-12 md:py-16">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-rose-500/20 rounded-full blur-3xl" />
+
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
+              <Heart className="h-4 w-4" />
+              Yêu thích của tôi
+            </div>
+            <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
               Danh sách yêu thích
             </h1>
-            <p className="text-muted-foreground">
-              Theo dõi và quản lý ads, offers, affiliates, thương hiệu và doanh
-              nghiệp đã lưu
+            <p className="text-base text-white/80 max-w-xl mx-auto">
+              Theo dõi và quản lý ads, thương hiệu và doanh nghiệp đã lưu
             </p>
           </div>
-          {/* <Button variant="outline" className="bg-transparent">
-            <Download className="mr-2 h-4 w-4" />
-            Xuất CSV
-          </Button> */}
         </div>
+      </section>
 
+      <main className="container py-8 -mt-6 relative z-20">
         {/* Stats Overview */}
-        <div className="mb-8 grid gap-4 md:grid-cols-5">
-          <Card>
+        <div className="mb-8 grid gap-4 md:grid-cols-4">
+          <Card className="border-2 hover:shadow-lg transition-all">
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Video className="h-6 w-6 text-primary" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white">
+                <Video className="h-6 w-6" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Video</p>
@@ -397,34 +411,10 @@ export default function FavoritesPage() {
             </CardContent>
           </Card>
 
-          {/* <Card>
+          <Card className="border-2 hover:shadow-lg transition-all">
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/10">
-                <DollarSign className="h-6 w-6 text-secondary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Offer</p>
-                <p className="text-2xl font-bold text-foreground">{counts.offer}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent">
-                <Users className="h-6 w-6 text-foreground" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Affiliate</p>
-                <p className="text-2xl font-bold text-foreground">{counts.affiliate}</p>
-              </div>
-            </CardContent>
-          </Card> */}
-
-          <Card>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
-                <Building2 className="h-6 w-6 text-green-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                <Building2 className="h-6 w-6" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Thương hiệu</p>
@@ -435,15 +425,29 @@ export default function FavoritesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-2 hover:shadow-lg transition-all">
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-                <Building className="h-6 w-6 text-blue-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                <Building className="h-6 w-6" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Doanh nghiệp</p>
                 <p className="text-2xl font-bold text-foreground">
                   {counts.company}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:shadow-lg transition-all">
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white">
+                <Heart className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Facebook Ads</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {counts.facebook_ad}
                 </p>
               </div>
             </CardContent>
@@ -531,9 +535,6 @@ export default function FavoritesPage() {
             </TabsContent>
           ))}
         </Tabs>
-                "company",
-                "facebook_ad",
-              ] as FavoriteType[]
         <VideoDetailModal
           open={!!selectedVideo}
           onOpenChange={(open) => {
@@ -586,6 +587,12 @@ export default function FavoritesPage() {
           }}
         />
       </main>
+
+      <footer className="border-t border-border/40 py-8 mt-8">
+        <div className="container text-center text-sm text-muted-foreground">
+          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+        </div>
+      </footer>
     </div>
   );
 }
