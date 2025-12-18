@@ -10,10 +10,11 @@ interface CheckParams {
 // GET /api/favorites/check/[type]/[itemId] - Check if item is favorited
 export async function GET(
   request: NextRequest,
-  { params }: { params: CheckParams }
+  { params }: { params: Promise<CheckParams> }
 ) {
+  const { type, itemId } = await params;
+
   try {
-    const { type, itemId } = params
     
     if (!type || !itemId) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })

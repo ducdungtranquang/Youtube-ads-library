@@ -11,12 +11,14 @@ const countriesData = countriesList.map(country => ({
 
 export async function GET(
   request: Request,
-  { params }: { params: { countryId: string } }
+  { params }: { params: Promise<{ countryId: string }> }
 ) {
+  const { countryId } = await params;
+
   try {
-    const countryId = parseInt(params.countryId)
+    const id = parseInt(countryId)
     
-    if (isNaN(countryId)) {
+    if (isNaN(id)) {
       return NextResponse.json(
         { error: 'Invalid country ID' },
         { status: 400 }
@@ -24,7 +26,7 @@ export async function GET(
     }
 
     // Handle special case: countryId = 0 means "Worldwide"
-    if (countryId === 0) {
+    if (id === 0) {
       return NextResponse.json({
         success: true,
         data: {
@@ -37,7 +39,7 @@ export async function GET(
     }
 
     // Find country by countryId
-    const country = countriesData.find(c => c.countryId === countryId)
+    const country = countriesData.find(c => c.countryId === id)
     
     if (!country) {
       return NextResponse.json(

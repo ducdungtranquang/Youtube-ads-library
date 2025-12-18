@@ -28,10 +28,12 @@ const flattened: Record<number, { categoryId: number; name: string }> = {}
 
 export async function GET(
   request: Request,
-  { params }: { params: { categoryId: string } }
+  { params }: { params: Promise<{ categoryId: string }> }
 ) {
+  const { categoryId } = await params;
+
   try {
-    const id = parseInt(params.categoryId)
+    const id = parseInt(categoryId)
     if (isNaN(id)) {
       return NextResponse.json({ error: 'Invalid category id' }, { status: 400 })
     }

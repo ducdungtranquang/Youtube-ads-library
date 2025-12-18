@@ -3,10 +3,11 @@ import { vidTaoManager } from '@/lib/vidtao-manager'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
+  const { companyId } = await params;
+
   try {
-    const companyId = params.companyId
 
     if (!companyId) {
       return NextResponse.json(
