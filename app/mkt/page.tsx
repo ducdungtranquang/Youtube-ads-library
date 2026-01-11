@@ -647,7 +647,7 @@ export default function MKTPage() {
                 <LogIn className="h-8 w-8" />
               </div>
               <h3 className="mb-2 text-lg font-semibold text-foreground">
-                Đăng nhập để tìm kiếm Marketing
+                Đăng nhập để tìm kiếm Youtube Ads
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
                 Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo và
@@ -683,7 +683,7 @@ export default function MKTPage() {
               YouTube Ads Spy Tool
             </div>
             <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
-              Tìm kiếm Marketing
+              Tìm kiếm Youtube Ads
             </h1>
             <p className="text-base text-white/80 max-w-xl mx-auto">
               Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp
@@ -1143,7 +1143,7 @@ export default function MKTPage() {
 
       <footer className="border-t border-border/40 py-8 mt-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>

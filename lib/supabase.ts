@@ -16,6 +16,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 // Types for database tables
+export type SubscriptionStatus = 'free' | 'personal' | 'business' | 'expired'
+
 export type Profile = {
   id: string
   email: string
@@ -23,6 +25,13 @@ export type Profile = {
   avatar_url: string | null
   created_at: string
   updated_at: string
+  // Subscription fields
+  subscription_status: SubscriptionStatus
+  subscription_plan: string | null
+  subscription_start: string | null
+  subscription_end: string | null
+  daily_search_count: number
+  last_search_date: string | null
 }
 
 export type User = {

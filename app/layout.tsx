@@ -9,9 +9,9 @@ import './globals.css'
 
 
 export const metadata: Metadata = {
-  title: 'Youtube Ads Library',
-  description: 'Youtube Ads Library - Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer.',
-  generator: 'Youtube ads library',
+  title: 'Ads Spy Tool',
+  description: 'Ads Spy Tool - Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer.',
+  generator: 'Ads Spy Tool',
   keywords: [
     'Youtube Ads',
     'Ads Library',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     'Marketing Tool',
   ],
   openGraph: {
-    title: 'Youtube Ads Library',
+    title: 'Ads Spy Tool',
     description: 'Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer.',
     url: 'https://your-domain.com/',
     type: 'website',
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
         url: '/marketing-video-thumbnail.png',
         width: 1200,
         height: 630,
-        alt: 'Youtube Ads Library',
+        alt: 'Ads Spy Tool',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Youtube Ads Library',
+    title: 'Ads Spy Tool',
     description: 'Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer.',
     images: ['/marketing-video-thumbnail.png'],
   },
@@ -55,15 +55,15 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Youtube Ads Library - Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer." />
+        <meta name="description" content="Ads Spy Tool - Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer." />
         <meta name="keywords" content="Youtube Ads, Ads Library, Affiliate Marketing, Quảng cáo Youtube, Offers, Brands, Companies, Phân tích quảng cáo, Marketing Tool" />
-        <meta property="og:title" content="Youtube Ads Library" />
+        <meta property="og:title" content="Ads Spy Tool" />
         <meta property="og:description" content="Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer." />
         <meta property="og:image" content="/marketing-video-thumbnail.png" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://your-domain.com/" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Youtube Ads Library" />
+        <meta name="twitter:title" content="Ads Spy Tool" />
         <meta name="twitter:description" content="Tìm kiếm, phân tích quảng cáo Youtube, affiliate offers, brands, companies. Công cụ marketing mạnh mẽ cho nhà quảng cáo và affiliate marketer." />
         <meta name="twitter:image" content="/marketing-video-thumbnail.png" />
       </head>

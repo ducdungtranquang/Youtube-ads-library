@@ -1,84 +1,133 @@
 'use client'
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/header"
-import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users } from "lucide-react"
-
+import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users, Loader2, CreditCard } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { toast } from "sonner"
 
 export default function PricingPage() {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<null | 'personal' | 'business'>(null);
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const [showModal, setShowModal] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<null | 'personal' | 'business'>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState('');
-  const formRef = useRef<HTMLFormElement>(null);
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  // Handle PayOS payment for Personal plan
+  const handlePayment = async (planId: 'personal' | 'business') => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để đăng ký gói')
+      router.push('/login')
+      return
+    }
+
+    if (planId === 'business') {
+      // Business plan uses contact form
+      openModal('business')
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      const response = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email,
+          planId: planId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.checkoutUrl) {
+        // Redirect to PayOS checkout page
+        window.location.href = data.checkoutUrl
+      } else {
+        toast.error(data.error || 'Không thể tạo thanh toán. Vui lòng thử lại.')
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus('');
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitStatus('')
     try {
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxlZrmJH2N_9b4MK5LVtZc6OCQ6lT4CV8nmd4FTtHWvnrPoXCNywMZV0mvaDjrlGoZ6/exec';
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('subject', formData.subject);
-      formDataToSend.append('message', formData.message);
-      formDataToSend.append('timestamp', new Date().toISOString());
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxlZrmJH2N_9b4MK5LVtZc6OCQ6lT4CV8nmd4FTtHWvnrPoXCNywMZV0mvaDjrlGoZ6/exec'
+      const formDataToSend = new FormData()
+      formDataToSend.append('name', formData.name)
+      formDataToSend.append('email', formData.email)
+      formDataToSend.append('subject', formData.subject)
+      formDataToSend.append('message', formData.message)
+      formDataToSend.append('timestamp', new Date().toISOString())
       const response = await fetch(scriptURL, {
         method: 'POST',
         body: formDataToSend,
-      });
+      })
       if (response.ok) {
-        setSubmitStatus('success');
-        setFormData({ name: '', email: '', subject: '', message: '' });
+        setSubmitStatus('success')
+        setFormData({ name: '', email: '', subject: '', message: '' })
       } else {
-        setSubmitStatus('error');
+        setSubmitStatus('error')
       }
     } catch (error) {
-      setSubmitStatus('error');
+      setSubmitStatus('error')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const openModal = (plan: 'personal' | 'business') => {
-    setSelectedPlan(plan);
-    setShowModal(true);
+    setSelectedPlan(plan)
+    setShowModal(true)
     // Set subject and message based on plan
     if (plan === 'personal') {
       setFormData(f => ({
         ...f,
         subject: 'Đăng ký gói Cá nhân',
         message: 'Tôi muốn đăng ký gói Cá nhân. Vui lòng liên hệ tư vấn.'
-      }));
+      }))
     } else {
       setFormData(f => ({
         ...f,
         subject: 'Đăng ký gói Doanh nghiệp',
         message: 'Tôi muốn đăng ký gói Doanh nghiệp. Vui lòng liên hệ tư vấn.'
-      }));
+      }))
     }
-  };
+  }
 
   const closeModal = () => {
-    setShowModal(false);
-    setSelectedPlan(null);
-    setSubmitStatus('');
-  };
+    setShowModal(false)
+    setSelectedPlan(null)
+    setSubmitStatus('')
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -160,7 +209,7 @@ export default function PricingPage() {
               <CardTitle className="text-xl">Cá nhân</CardTitle>
               <CardDescription>Dành cho người dùng cá nhân</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold text-foreground">159.000₫</span>
+                <span className="text-4xl font-bold text-foreground">229.000₫</span>
                 <span className="text-muted-foreground text-sm">/tháng</span>
               </div>
             </CardHeader>
@@ -191,9 +240,22 @@ export default function PricingPage() {
                   <span className="text-sm font-medium">Hỗ trợ qua email</span>
                 </li>
               </ul>
-              <Button className="w-full cursor-pointer" onClick={() => openModal('personal')}>
-                Đăng ký ngay
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Button
+                className="w-full cursor-pointer"
+                onClick={() => handlePayment('personal')}
+                disabled={isProcessing || authLoading}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Thanh toán ngay
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -235,7 +297,7 @@ export default function PricingPage() {
                   <span className="text-sm font-medium">Tư vấn triển khai</span>
                 </li>
               </ul>
-              <Button variant="outline" className="w-full cursor-pointer" onClick={() => openModal('business')}>
+              <Button variant="outline" className="w-full cursor-pointer" onClick={() => handlePayment('business')}>
                 Liên hệ tư vấn
               </Button>
             </CardContent>
@@ -281,17 +343,9 @@ export default function PricingPage() {
             </div>
           </div>
         </div>
-
-        {/* Trial Info */}
-        {/* <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-green-100 dark:bg-green-900/30 px-4 py-2 text-sm text-green-700 dark:text-green-300">
-            <CheckCircle className="h-4 w-4" />
-            Tất cả các gói đều có 14 ngày dùng thử miễn phí. Không cần thẻ tín dụng.
-          </div>
-        </div> */}
       </main>
 
-      {/* Modal Form */}
+      {/* Modal Form for Business Plan */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-background rounded-2xl shadow-2xl max-w-lg w-full mx-4 relative animate-fadeInUp border">
@@ -379,7 +433,7 @@ export default function PricingPage() {
 
       <footer className="border-t border-border/40 py-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>

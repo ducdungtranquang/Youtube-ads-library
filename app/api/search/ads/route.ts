@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       meta: {
         account: result.account,
         timestamp: Date.now(),
-        source: 'YouTube Ads Library API'
+        source: 'Ads Spy Tool API'
       }
     }
 
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
       meta: {
         account: result.account,
         timestamp: Date.now(),
-        source: 'YouTube Ads Library API'
+        source: 'Ads Spy Tool API'
       }
     }
 

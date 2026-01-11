@@ -146,7 +146,7 @@ export default function FavoritesPage() {
         video: {
           icon: Video,
           title: "Chưa có video yêu thích",
-          description: "Bắt đầu lưu video từ trang Tìm kiếm Marketing",
+          description: "Bắt đầu lưu video từ trang Tìm kiếm Youtube Ads",
           actionText: "Duyệt Video",
           actionUrl: "/mkt",
         },
@@ -167,14 +167,14 @@ export default function FavoritesPage() {
         brand: {
           icon: Building2,
           title: "Chưa có thương hiệu yêu thích",
-          description: "Bắt đầu lưu thương hiệu từ trang Tìm kiếm Marketing",
+          description: "Bắt đầu lưu thương hiệu từ trang Tìm kiếm Youtube Ads",
           actionText: "Duyệt Thương hiệu",
           actionUrl: "/mkt",
         },
         company: {
           icon: Building,
           title: "Chưa có doanh nghiệp yêu thích",
-          description: "Bắt đầu lưu doanh nghiệp từ trang Tìm kiếm Marketing",
+          description: "Bắt đầu lưu doanh nghiệp từ trang Tìm kiếm Youtube Ads",
           actionText: "Duyệt Doanh nghiệp",
           actionUrl: "/mkt",
         },
@@ -590,7 +590,7 @@ export default function FavoritesPage() {
 
       <footer className="border-t border-border/40 py-8 mt-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>

@@ -44,7 +44,7 @@ export function Header() {
 
   const navigationItems = [
     { href: "/quicksearch", icon: Search, label: "Tìm kiếm nhanh" },
-    { href: "/mkt", icon: TrendingUp, label: "Marketing" },
+    { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
@@ -57,7 +57,7 @@ export function Header() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <Video className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="mobile:text-lg tablet:text-xl font-bold text-foreground">YouTube ADS Library</span>
+            <span className="mobile:text-lg tablet:text-xl font-bold text-foreground">Ads Spy Tool</span>
           </Link>
 
           {/* Desktop Navigation - Hidden on 1024px and below */}

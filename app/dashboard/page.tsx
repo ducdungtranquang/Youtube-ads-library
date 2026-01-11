@@ -9,25 +9,42 @@ import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, Arrow
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect, useState } from "react"
 import { useFavorites } from '@/hooks/use-favorites'
+import { supabase } from "@/lib/supabase"
 
 function DashboardPage() {
+  const SUBSCRIPTION_MAP: Record<string, { label: string; color: string }> = {
+    free: { label: "Miễn phí", color: "text-muted-foreground" },
+    personal: { label: "Cá nhân", color: "text-blue-600 dark:text-blue-400" },
+    company: { label: "Doanh nghiệp", color: "text-purple-600 dark:text-purple-400" },
+  };
   const { user } = useAuth()
   const { getFavoritesCounts, loading: countsLoading } = useFavorites()
   const [counts, setCounts] = useState({ video: 0, offer: 0, affiliate: 0, brand: 0, company: 0 })
   const [loading, setLoading] = useState(true)
+  const [dbProfile, setDbProfile] = useState<any>(null)
 
   useEffect(() => {
     async function loadCounts() {
       if (!user) return setLoading(false)
       setLoading(true)
       const data = await getFavoritesCounts()
-      if (data) setCounts(data)
+      if (data) setCounts(data);
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('subscription_plan')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        setDbProfile(profile)
+      }
       setLoading(false)
     }
     loadCounts()
   }, [user, getFavoritesCounts])
 
-  const subscriptionType = user?.user_metadata?.subscription_type || "Miễn phí"
+  const rawPlan = dbProfile?.subscription_plan || user?.user_metadata?.subscription_plan || "free"
+  const planInfo = SUBSCRIPTION_MAP[rawPlan] || SUBSCRIPTION_MAP.free;
   const totalFavorites = counts.video + counts.offer + counts.affiliate + counts.brand + counts.company
 
   return (
@@ -81,9 +98,16 @@ function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Gói tài khoản</p>
-                  <p className="font-medium text-foreground">{subscriptionType}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className={`font-bold ${planInfo.color}`}>
+                      {planInfo.label}
+                    </p>
+                    {rawPlan !== "free" && (
+                      <BadgeCheck className={`h-4 w-4 ${planInfo.color}`} />
+                    )}
+                  </div>
                 </div>
-                {subscriptionType === "Miễn phí" && (
+                {rawPlan === "free" && (
                   <Link href="/pricing">
                     <Button size="sm" className="cursor-pointer">
                       Nâng cấp
@@ -270,7 +294,7 @@ function DashboardPage() {
 
       <footer className="border-t border-border/40 py-8 mt-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>

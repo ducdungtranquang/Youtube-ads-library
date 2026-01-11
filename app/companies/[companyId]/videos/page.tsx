@@ -217,7 +217,7 @@ export default function CompanyVideosPage({
 
       <footer className="border-t border-border/40 py-8 mt-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 YouTube ADS Library. Được xây dựng cho marketers và affiliate marketers.</p>
+          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>
