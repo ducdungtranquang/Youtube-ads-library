@@ -18,20 +18,20 @@ export const DEFAULT_ACCOUNTS = [
     requestCount: 0,
     isBlocked: false
   },
-  {
-    id: 'account2', 
-    email: process.env.VIDTAO_EMAIL_2 || '',
-    password: process.env.VIDTAO_PASSWORD_2 || '',
-    lastUsed: 0,
-    requestCount: 0,
-    isBlocked: false
-  },
-  {
-    id: 'account3',
-    email: process.env.VIDTAO_EMAIL_3 || '',
-    password: process.env.VIDTAO_PASSWORD_3 || '',
-    lastUsed: 0,
-    requestCount: 0,
-    isBlocked: false
-  }
+  // {
+  //   id: 'account2', 
+  //   email: process.env.VIDTAO_EMAIL_2 || '',
+  //   password: process.env.VIDTAO_PASSWORD_2 || '',
+  //   lastUsed: 0,
+  //   requestCount: 0,
+  //   isBlocked: false
+  // },
+  // {
+  //   id: 'account3',
+  //   email: process.env.VIDTAO_EMAIL_3 || '',
+  //   password: process.env.VIDTAO_PASSWORD_3 || '',
+  //   lastUsed: 0,
+  //   requestCount: 0,
+  //   isBlocked: false
+  // }
 ]
