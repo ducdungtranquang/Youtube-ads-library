@@ -167,7 +167,7 @@ export class VidTaoAPIService {
         sortProp: params.sortProp || ""
       }
 
-      const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/videos/quickSearch`, {
+      const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/public/videos/quick`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${account.token}`,
