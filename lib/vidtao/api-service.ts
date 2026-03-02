@@ -167,7 +167,7 @@ export class VidTaoAPIService {
         sortProp: params.sortProp || ""
       }
 
-      const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/videos/quickSearch`, {
+      const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/public/videos/quickSearch`, {
         method: 'POST',
         ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
@@ -605,7 +605,7 @@ export class VidTaoAPIService {
         throw new Error('No valid token found for account')
       }
 
-      const response = await fetch(`https://apiv1.vidtao.com/api/videos/${videoId}?encryptedId=`, {
+      const response = await fetch(`https://apiv1.vidtao.com/api/public/videos/${videoId}?encryptedId=`, {
         method: 'GET',
         ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${authToken}`,
