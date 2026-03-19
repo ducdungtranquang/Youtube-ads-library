@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const {
       query,
       page = 1,
-      limit = 500, // Set to 1000 for better FE pagination
+      limit = 300, 
       ...otherParams
     } = body
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const searchParams = {
       query: query.trim(),
       page: 1, // Always use page 1 for better caching
-      limit: 500, // Get more results for FE pagination
+      limit: 300, // Get more results for FE pagination
       ...otherParams
     }
 

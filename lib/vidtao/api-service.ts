@@ -266,7 +266,7 @@ export class VidTaoAPIService {
       // Prepare request body for VidTao API (using quickSearch format for brands)
       const requestBody = {
         searchTerm: params.searchTerm,
-        limit: params.limit || 500,
+        limit: params.limit || 300,
         page: params.page || 1,
         sortProp: mapBrandsSortProp(params.sortProp || 'date'),
         orderAsc: params.orderAsc || false,

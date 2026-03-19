@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       showVideos = 'unlisted',
       sortProp = 'date',
       orderAsc = false,
-      limit = 500, // Set to 1000 for better FE pagination
+      limit = 300, 
       page = 1
     } = body
 
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       showVideos: showVideos,
       sortProp: sortProp,
       orderAsc: orderAsc,
-      limit: 500, // Get more results for FE pagination
+      limit: 300,
       page: 1 // Always use page 1 for better caching
     }
 

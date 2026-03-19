@@ -434,7 +434,7 @@ export default function MKTPage() {
           type: "ads",
           searchTerm: searchQuery,
           page: 1, // Always use page 1 since API returns 1000 results
-          limit: 500, // Get more results for FE pagination
+          limit: 300, // Get more results for FE pagination
           filters: {
             countryId: parseInt(selectedCountry),
             language:
@@ -509,7 +509,7 @@ export default function MKTPage() {
           type: "brands",
           searchTerm: searchQuery,
           page: 1, // Always use page 1 since API returns many results
-          limit: 500, // Get more results for FE pagination
+          limit: 300, // Get more results for FE pagination
           filters: {
             countryId: parseInt(selectedCountry),
             categoryIds:
@@ -575,7 +575,7 @@ export default function MKTPage() {
           type: "companies",
           searchTerm: searchQuery,
           page: 1, // Always use page 1 since API returns many results
-          limit: 500, // Get more results for FE pagination
+          limit: 300, // Get more results for FE pagination
           filters: {
             countryId: parseInt(selectedCountry),
             categoryIds:
