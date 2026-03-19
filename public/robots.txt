@@ -1,4 +1,9 @@
+# *
 User-agent: *
 Allow: /
 
+# Host
+Host: https://ads-spy-tool.tech
+
+# Sitemaps
 Sitemap: https://ads-spy-tool.tech/sitemap.xml
