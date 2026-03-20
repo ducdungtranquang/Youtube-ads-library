@@ -135,14 +135,14 @@
     padding-right: 1rem !important;
     max-width: none !important;
   }
-  
+
   @media (min-width: 640px) {
     .container {
       padding-left: 2rem !important;
       padding-right: 2rem !important;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .container {
       padding-left: 4rem !important;
@@ -158,14 +158,41 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+
+  /* Chrome, Edge, Safari */
+  .custom-scroll::-webkit-scrollbar {
+    height: 4px;
+    /* thanh ngang */
+  }
+
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: rgba(100, 100, 100, 0.2);
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+  }
+
+  /* hover mới rõ */
+  .custom-scroll:hover::-webkit-scrollbar-thumb {
+    background: rgba(100, 100, 100, 0.5);
+  }
+
+  /* Firefox */
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+  }
+
   @media (min-width: 640px) {
     .container-full {
       padding-left: 2rem;
       padding-right: 2rem;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .container-full {
       padding-left: 4rem;

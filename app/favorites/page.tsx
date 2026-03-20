@@ -369,7 +369,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       <Header />
 
       {/* Hero Section */}
@@ -459,7 +459,7 @@ export default function FavoritesPage() {
           onValueChange={handleTabChange}
           className="w-full"
         >
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 flex w-full overflow-x-auto whitespace-nowrap custom-scroll">
             <TabsTrigger value="video" className=" cursor-pointer">
               <Video className="mr-2 h-4 w-4" />
               Video yêu thích

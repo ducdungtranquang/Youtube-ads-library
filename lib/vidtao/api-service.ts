@@ -265,7 +265,7 @@ export class VidTaoAPIService {
 
       // Prepare request body for VidTao API (using quickSearch format for brands)
       const requestBody = {
-        searchTerm: params.searchTerm,
+        searchTerm: params.searchTerm.length > 1 ? params.searchTerm : params.searchTerm + "a",
         limit: params.limit || 300,
         page: params.page || 1,
         sortProp: mapBrandsSortProp(params.sortProp || 'date'),
@@ -280,7 +280,8 @@ export class VidTaoAPIService {
         language: params.language || '',
         showVideos: 'unlisted',
         dateFrom: params.dateFrom || '',
-        dateTo: params.dateTo || ''
+        dateTo: params.dateTo || '',
+        similarityThreshold: 0.4,
       }
 
       const response = await fetch('https://apiv2.vidtao.com/search/brands/enhanced', {

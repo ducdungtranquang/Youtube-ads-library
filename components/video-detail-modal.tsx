@@ -270,7 +270,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
               {displayData.description && (
                 <div className="overflow-hidden">
                   <h3 className="mb-2 text-sm font-medium text-muted-foreground">Mô tả</h3>
-                  <p className="text-sm text-foreground leading-relaxed line-clamp-3">{displayData.description}</p>
+                  <p className="text-sm text-foreground leading-relaxed line-clamp-3 break-all">{displayData.description}</p>
                 </div>
               )}
 
