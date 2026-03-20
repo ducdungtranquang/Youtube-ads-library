@@ -117,7 +117,7 @@ export function CompanyDetailModal({ open, onOpenChange, company, companyId, onC
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[85vw] desktop:max-w-6xl max-h-[95vh] overflow-y-auto mobile:max-w-[calc(100vw-1rem)] mobile:max-h-[95vh] mobile:m-2">
+      <DialogContent className="max-w-[90vw] lg:max-w-6xl max-h-[90vh] overflow-y-auto mobile:max-w-[calc(100vw-1rem)] mobile:max-h-[90vh] lg:m-2 mx-auto pb-2">
         <DialogHeader>
           <div className="flex items-start gap-4">
             <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
@@ -354,7 +354,7 @@ export function CompanyDetailModal({ open, onOpenChange, company, companyId, onC
                 <FavoriteButton itemType="company" itemId={effectiveCompanyId || 'unknown'} itemData={favoriteData} showText className="flex-1" />
                 <Button
                   variant="secondary"
-                  className="max-sm:w-full"
+                  className="max-sm:w-full mb-2"
                   onClick={() => {
                     if (effectiveCompanyId) {
                       window.open(`/companies/${effectiveCompanyId}/videos`, '_blank');

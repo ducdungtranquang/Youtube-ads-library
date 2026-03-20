@@ -85,8 +85,8 @@ export function BrandCard({
               className="h-full w-full object-cover"
             />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="mb-1 font-semibold text-foreground truncate">
+          <div className="flex-1 min-w-0 ">
+            <h3 className="mb-1 font-semibold text-foreground line-clamp-3">
               {name}
             </h3>
             <p className="text-sm text-muted-foreground line-clamp-2">

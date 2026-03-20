@@ -123,7 +123,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="lg:w-[80vw] lg:h-[80vh] max-w-none overflow-y-auto w-[95vw] h-[90vh] m-2">
+      <DialogContent className="lg:w-[80vw] lg:h-[80vh] max-w-none overflow-y-auto w-[95vw] h-[90vh] lg:m-2 mx-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">{displayData.title}</DialogTitle>
           <DialogDescription className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
               {/* Description */}
               {displayData.description && (
-                <div>
+                <div className="overflow-hidden">
                   <h3 className="mb-2 text-sm font-medium text-muted-foreground">Mô tả</h3>
                   <p className="text-sm text-foreground leading-relaxed line-clamp-3">{displayData.description}</p>
                 </div>

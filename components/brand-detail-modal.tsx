@@ -144,10 +144,10 @@ export function BrandDetailModal({
       return (
         <div className="space-y-6">
           <div className="flex items-start gap-4">
-            <Skeleton className="h-20 w-20 rounded-lg" />
+            <Skeleton className="h-12 w-12 lg:w-20 lg:h-20 rounded-lg" />
             <div className="flex-1">
-              <Skeleton className="h-6 w-48 mb-2" />
-              <Skeleton className="h-4 w-96" />
+              <Skeleton className="h-6 w-12 lg:w-32 mb-2" />
+              <Skeleton className="h-4 w-32 lg:w-64" />
             </div>
           </div>
           <div className="grid gap-4 tablet:grid-cols-4 mobile:grid-cols-2">
@@ -194,7 +194,7 @@ export function BrandDetailModal({
     };
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6  max-w-[90vw] h-[80vh]">
         <div className="flex items-start gap-4">
           <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
             <YouTubeImage
@@ -537,7 +537,7 @@ export function BrandDetailModal({
           />
           <Button
             variant="secondary"
-            className="max-sm:w-full"
+            className="max-sm:w-full mb-2"
             onClick={() => {
               if (brandId) {
                 window.open(`/brands/${brandId}/videos`, '_blank');
@@ -553,7 +553,7 @@ export function BrandDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[85vw] desktop:max-w-6xl max-h-[95vh] overflow-y-auto mobile:max-w-[calc(100vw-1rem)] mobile:max-h-[95vh] mobile:m-2">
+      <DialogContent className="max-w-[90vw] lg:max-w-6xl max-h-[90vh] overflow-y-auto mobile:max-w-[calc(100vw-1rem)] mobile:max-h-[90vh] lg:m-2 mx-auto pb-2">
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {brandDetails?.brand.name || "Chi tiết thương hiệu"}
