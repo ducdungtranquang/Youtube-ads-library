@@ -158,7 +158,7 @@ export default function HomePage() {
                     <Search className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Tìm kiếm nhanh</h3>
+                    <h2 className="font-semibold text-foreground">Tìm kiếm nhanh</h2>
                     <p className="text-sm text-muted-foreground">Tìm ads theo từ khóa</p>
                   </div>
                   <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -172,7 +172,7 @@ export default function HomePage() {
                     <TrendingUp className="h-6 w-6 text-blue-500" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">YouTube Ads</h3>
+                    <h2 className="font-semibold text-foreground">YouTube Ads</h2>
                     <p className="text-sm text-muted-foreground">Spy ads YouTube</p>
                   </div>
                   <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground group-hover:text-blue-500 transition-colors" />
@@ -186,7 +186,7 @@ export default function HomePage() {
                     <DollarSign className="h-6 w-6 text-indigo-500" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Facebook Ads</h3>
+                    <h2 className="font-semibold text-foreground">Facebook Ads</h2>
                     <p className="text-sm text-muted-foreground">Spy ads Facebook</p>
                   </div>
                   <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground group-hover:text-indigo-500 transition-colors" />
