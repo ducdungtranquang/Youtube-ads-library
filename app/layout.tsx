@@ -12,9 +12,9 @@ import './globals.css'
    SEO METADATA (Next.js 14)
 ========================= */
 export const metadata: Metadata = {
-  metadataBase: new URL('https://your-domain.com'),
+  metadataBase: new URL('https://ads-spy-tool.tech'),
   title: {
-    default: 'Ads Spy Tool – Advanced Ads Intelligence Platform',
+    default: 'Ads Spy Tool - Spy Quảng Cáo Facebook, YouTube & Affiliate',
     template: '%s | Ads Spy Tool',
   },
   description:
@@ -39,10 +39,10 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Ads Spy Tool – Advanced Ads Intelligence Platform',
+    title: 'Ads Spy Tool - Spy Quảng Cáo Facebook, YouTube & Affiliate',
     description:
-      'Spy & phân tích quảng cáo Youtube, Affiliate Offers, Brands, Companies. Công cụ Ads Spy mạnh mẽ cho Marketer và Affiliate.',
-    url: 'https://your-domain.com/',
+      'Công cụ Ads Spy mạnh mẽ giúp bạn tìm, phân tích và theo dõi quảng cáo Youtube, Facebook & Affiliate. Tối ưu chiến dịch nhanh chóng.',
+    url: 'https://ads-spy-tool.tech/',
     siteName: 'Ads Spy Tool',
     type: 'website',
     images: [
@@ -50,34 +50,60 @@ export const metadata: Metadata = {
         url: '/marketing-video-thumbnail.png',
         width: 1200,
         height: 630,
-        alt: 'Ads Spy Tool – Ads Intelligence Platform',
+        alt: 'Ads Spy Tool - Spy Quảng Cáo Facebook, YouTube & Affiliate',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ads Spy Tool – Advanced Ads Intelligence Platform',
+    title: 'Ads Spy Tool - Spy Quảng Cáo Facebook, YouTube & Affiliate',
     description:
-      'Spy & phân tích quảng cáo Youtube, Affiliate Offers, Brands. Ads Spy Tool dành cho Marketer & Affiliate.',
+      'Công cụ Ads Spy mạnh mẽ giúp bạn tìm, phân tích và theo dõi quảng cáo Youtube, Facebook & Affiliate. Tối ưu chiến dịch nhanh chóng.',
     images: ['/marketing-video-thumbnail.png'],
   },
   alternates: {
-    canonical: 'https://your-domain.com/',
+    canonical: 'https://ads-spy-tool.tech/',
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+  },
+  themeColor: '#000000',
 }
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+        <Script
+          id="structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Ads Spy Tool",
+              url: "https://ads-spy-tool.tech",
+              description:
+                "Ads Spy Tool giúp bạn phân tích quảng cáo Youtube, Facebook, Affiliate.",
+              potentialAction: {
+                "@type": "SearchAction",
+                target:
+                  "https://ads-spy-tool.tech/search?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
 
         {/* =========================
             FACEBOOK META PIXEL
         ========================= */}
-        <Script id="facebook-pixel" strategy="afterInteractive">
+        {/* <Script id="facebook-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -99,7 +125,7 @@ export default function RootLayout({
             style={{ display: 'none' }}
             src="https://www.facebook.com/tr?id=2402506086846191&ev=PageView&noscript=1"
           />
-        </noscript>
+        </noscript> */}
       </head>
 
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
