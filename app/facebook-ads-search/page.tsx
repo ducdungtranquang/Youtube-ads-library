@@ -89,6 +89,73 @@ export default function FacebookAdsPage() {
   const [results, setResults] = useState<any[]>([]);
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const normalizeAdForModal = (ad: any) => {
+    const imageItem = ad?.images?.[0];
+    const videoItem = ad?.videos?.[0];
+    const mediaUrl =
+      imageItem?.resized_image_url ||
+      imageItem?.original_image_url ||
+      imageItem?.watermarked_resized_image_url ||
+      videoItem?.video_hd_url ||
+      videoItem?.video_sd_url;
+    const mediaType = videoItem?.video_hd_url || videoItem?.video_sd_url ? "video" : "image";
+    const attachment = mediaUrl
+      ? [{
+          media_url: mediaUrl,
+          media_poster_url: imageItem?.resized_image_url || imageItem?.original_image_url || undefined,
+          media_url_type: mediaType,
+          title: ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
+          description: ad?.text || ad?.description || "",
+        }]
+      : [];
+
+    return {
+      ...ad,
+      page_name: ad?.page_name || "Facebook Ad",
+      page_profile_image_url: ad?.page_profile_image_url,
+      text: ad?.text || ad?.description || "",
+      link: ad?.link || ad?.link_url || null,
+      attachments: attachment,
+      snapshot: {
+        ...(ad?.snapshot || {}),
+        page_name: ad?.page_name || "Facebook Ad",
+        page_profile_picture_url: ad?.page_profile_image_url,
+        title: ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
+        body: { text: ad?.text || ad?.description || "" },
+        link_url: ad?.link || ad?.link_url || null,
+        videos: ad?.videos || [],
+        cards: attachment,
+      },
+    };
+  };
+
+  const handleAdClick = async (ad: any) => {
+    const itemId = ad?.ad_archive_id || ad?._id || ad?.id;
+    const normalizedAd = normalizeAdForModal(ad);
+
+    setSelectedAd(normalizedAd);
+    setModalOpen(true);
+    setDetailLoading(Boolean(itemId));
+
+    if (!itemId) {
+      setDetailLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}`);
+      const result = await res.json();
+      const detailAd = result?.success ? result.data : ad;
+      setSelectedAd(normalizeAdForModal(detailAd || ad));
+    } catch (err) {
+      console.error("Lỗi gọi API chi tiết Facebook Ad:", err);
+      setSelectedAd(normalizedAd);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   // Quản lý Phân trang (Đã đồng bộ trực tiếp Server-side Pagination)
   const [currentPage, setCurrentPage] = useState(1);
@@ -354,12 +421,9 @@ export default function FacebookAdsPage() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {results.map((ad, idx) => (
                     <FacebookAdCard
-                      key={ad.ad_archive_id || ad.id || idx}
+                      key={ad.ad_archive_id || ad._id || ad.id || idx}
                       ad={ad}
-                      onClick={() => {
-                        setSelectedAd(ad);
-                        setModalOpen(true);
-                      }}
+                      onClick={() => handleAdClick(ad)}
                     />
                   ))}
                 </div>
@@ -394,9 +458,13 @@ export default function FacebookAdsPage() {
                   open={modalOpen}
                   onOpenChange={(open) => {
                     setModalOpen(open);
-                    if (!open) setSelectedAd(null);
+                    if (!open) {
+                      setSelectedAd(null);
+                      setDetailLoading(false);
+                    }
                   }}
                   ad={selectedAd}
+                  loading={detailLoading}
                 />
               )}
             </div>

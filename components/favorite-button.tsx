@@ -96,13 +96,13 @@ export function FavoriteButton({
   const isLoading = loading || isChecking
 
   return (
-    <div onClick={handleToggle} className="inline-flex">
+    <div onClick={handleToggle} className="inline-flex cursor-pointer">
       <Button
         variant={variant}
         size={size}
         disabled={isLoading}
         className={cn(
-          'transition-colors',
+          'transition-colors cursor-pointer',
           isFavorited && 'text-red-500 hover:text-red-600',
           className
         )}

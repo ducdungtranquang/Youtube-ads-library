@@ -88,6 +88,7 @@ export interface FavoriteCountsByType {
   affiliate: number
   brand: number
   company: number
+  facebook_ad: number
 }
 
 export interface FavoritesResponse {
@@ -146,8 +147,9 @@ export const validateFavoriteData = (type: FavoriteType, data: any): boolean => 
     case 'company':
       return !!(data.name && data.companyId)
     case 'facebook_ad':
-      // Minimal validation: require id and page_name
-      return !!(data.id && data.page_name)
+      const facebookAdId = data.id || data.ad_archive_id || data._id || data.adArchiveId || data.ad_id
+      const facebookAdPageName = data.page_name || data.pageName || data.page || data.title || data.text || data.description
+      return !!(facebookAdId && facebookAdPageName)
     default:
       return false
   }

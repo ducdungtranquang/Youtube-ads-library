@@ -320,13 +320,10 @@ export default function FavoritesPage() {
               );
             }
             case "facebook_ad": {
-              // Use FacebookAdCard for facebook_ad type
               const adData = favorite.item_data;
               return (
-                <div key={favorite.id} className="flex justify-center items-center">
-                  <div className="w-72 h-72">
-                    <FacebookAdCard ad={adData} />
-                  </div>
+                <div key={favorite.id} className="w-full">
+                  <FacebookAdCard ad={adData} />
                 </div>
               );
             }

@@ -233,11 +233,11 @@ export function useFavorites() {
   const getFavoritesCounts = useCallback(async (): Promise<FavoriteCountsByType | null> => {
     try {
       if (!user) throw new Error('Bạn cần đăng nhập để sử dụng tính năng này')
-      
+
       const { data, error } = await supabase
-        .rpc('get_favorites_count_by_type', {
-          user_uuid: user.id
-        })
+        .from('favorites')
+        .select('item_type')
+        .eq('user_id', user.id)
 
       if (error) {
         console.error('Error getting favorites count:', error)
@@ -246,23 +246,27 @@ export function useFavorites() {
           offer: 0,
           affiliate: 0,
           brand: 0,
-          company: 0
+          company: 0,
+          facebook_ad: 0
         }
       }
 
-      // Convert array response to object
       const counts: FavoriteCountsByType = {
         video: 0,
         offer: 0,
         affiliate: 0,
         brand: 0,
-        company: 0
+        company: 0,
+        facebook_ad: 0
       }
 
       if (data && Array.isArray(data)) {
         data.forEach((item: any) => {
-          if (item.item_type && item.count) {
-            counts[item.item_type as FavoriteType] = Number(item.count)
+          if (item.item_type) {
+            const type = item.item_type as FavoriteType
+            if (type in counts) {
+              counts[type] = (counts[type] || 0) + 1
+            }
           }
         })
       }
