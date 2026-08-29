@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/favorite-button";
 import { FacebookMediaFallback } from "@/components/facebook-media-fallback";
+import { ExternalLink, Heart, MessageCircle, Play, Share2 } from "lucide-react";
 
 interface FacebookAdCardProps {
   ad: any;
@@ -50,34 +51,30 @@ export function FacebookAdCard({ ad, onClick }: FacebookAdCardProps) {
   };
 
   return (
-    <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
-      <CardContent className="p-4 h-full">
-        <div className="flex gap-4">
-          <div className="relative flex-shrink-0">
-            <div className="relative w-32 h-24 bg-muted rounded-lg overflow-hidden">
+    <Card className="group h-full overflow-hidden rounded-2xl border-border/80 py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer" onClick={onClick}>
+      <CardContent className="flex h-full flex-col p-0">
+          <div className="relative aspect-video overflow-hidden bg-muted">
               <FacebookMediaFallback
                 src={mediaUrl}
                 alt={title || pageName}
-                className="h-full w-full object-cover rounded-lg"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 fallbackClassName="h-full w-full bg-muted flex items-center justify-center px-2 text-center text-[11px] text-muted-foreground"
                 fallbackText={isVideo ? "Video hết hạn" : "Ảnh hết hạn"}
                 isVideo={isVideo}
                 poster={mediaPoster}
-                videoClassName="h-full w-full object-cover rounded-lg"
+                videoClassName="h-full w-full object-cover"
               />
-            </div>
+              <span className="absolute left-3 top-3 rounded-full bg-slate-950/75 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">{isVideo && <Play className="mr-1 inline size-3 fill-current" />}Facebook ad</span>
           </div>
-
-          <div className="flex-1 min-w-0 space-y-3">
+          <div className="flex flex-1 flex-col p-4">
             <div>
-              <h3 className="line-clamp-2 font-semibold text-foreground text-sm leading-tight mb-1">{title}</h3>
-              <p className="text-xs text-muted-foreground truncate">{pageName}</p>
+              <h3 className="line-clamp-2 font-semibold leading-5 text-foreground">{title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground truncate">{pageName}</p>
               {description && (
-                <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{description}</p>
               )}
             </div>
-
-            <div className="flex flex-wrap gap-1">
+            <div className="mt-4 flex flex-wrap gap-1.5">
               {ad?.level && <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">{ad.level}</Badge>}
               {ad?.scaling_level && <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">{ad.scaling_level}</Badge>}
               {ad?.score != null && <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">Score: {ad.score}</Badge>}
@@ -85,7 +82,10 @@ export function FacebookAdCard({ ad, onClick }: FacebookAdCardProps) {
               {link && <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">Link</Badge>}
             </div>
 
-            <div className="flex gap-2">
+            <div className="mt-4 flex items-center justify-between border-y border-border/70 py-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1"><Heart className="size-3.5 text-primary" />{ad?.likes ?? "—"}</span><span className="flex items-center gap-1"><MessageCircle className="size-3.5 text-primary" />{ad?.comments ?? "—"}</span><span className="flex items-center gap-1"><Share2 className="size-3.5 text-primary" />{ad?.shares ?? "—"}</span>
+            </div>
+            <div className="mt-3 flex gap-2">
               <div onClick={(e) => e.stopPropagation()}>
                 <FavoriteButton
                   itemType="facebook_ad"
@@ -93,20 +93,19 @@ export function FacebookAdCard({ ad, onClick }: FacebookAdCardProps) {
                   itemData={favoriteData}
                   size="sm"
                   variant="outline"
-                  className="flex-1 bg-transparent h-7 text-xs"
+                  className="flex-1 bg-transparent text-xs"
                   showText
                 />
               </div>
               {link && (
-                <Button size="sm" variant="outline" className="bg-transparent h-7 px-2" asChild onClick={(e) => e.stopPropagation()}>
+                <Button size="sm" variant="outline" className="bg-transparent px-2" asChild onClick={(e) => e.stopPropagation()}>
                   <a href={link} target="_blank" rel="noopener noreferrer">
-                    Visit
+                    Visit <ExternalLink className="ml-1 size-3" />
                   </a>
                 </Button>
               )}
             </div>
           </div>
-        </div>
       </CardContent>
     </Card>
   );

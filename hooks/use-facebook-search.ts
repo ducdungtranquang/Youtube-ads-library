@@ -12,6 +12,11 @@ interface FacebookSearchFilters {
   level?: string;
   page?: number;
   limit?: number;
+  // Các trường mới được thêm vào từ BE
+  estimated_spend?: string; // Dạng chuỗi, ví dụ: "LOW,MEDIUM"
+  min_trending_score?: string;
+  funnel?: string; // Dạng chuỗi, ví dụ: "TOF,MOF"
+  scaling_level?: string;
 
   /* --- CÁC FILTER CŨ TẠM KHÔNG DÙNG ĐẾN ---
   per_page?: number;

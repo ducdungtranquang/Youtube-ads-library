@@ -122,7 +122,7 @@ export default function FavoritesPage() {
   const renderFavoriteCards = () => {
     if (isLoading) {
       return (
-        <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-6">
@@ -212,7 +212,7 @@ export default function FavoritesPage() {
     }
 
     return (
-      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {favorites.map((favorite) => {
           switch (favorite.item_type) {
             case "video": {

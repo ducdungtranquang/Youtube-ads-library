@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FavoriteButton } from "@/components/favorite-button"
 import { YouTubeImage } from "@/components/youtube-image"
-import { Eye, Calendar, TrendingUp, ExternalLink, Building2 } from "lucide-react"
+import { Eye, Calendar, TrendingUp, ExternalLink, Building2, Play } from "lucide-react"
 import { VideoFavoriteData } from "@/lib/favorites"
 
 interface VideoCardProps {
@@ -53,31 +53,23 @@ export function VideoCard({
     companyName
   }
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
-      <CardContent className="p-4">
-        <div className="flex gap-4">
-          {/* YouTube Thumbnail - Fixed size container */}
-          <div className="relative flex-shrink-0">
-            <div className="relative w-32 h-24 bg-muted rounded-lg overflow-hidden">
+    <Card className="group h-full overflow-hidden rounded-2xl border-border/80 py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer" onClick={onClick}>
+      <CardContent className="flex h-full flex-col p-0">
+        <div className="relative aspect-video overflow-hidden bg-muted">
               <YouTubeImage 
                 src={thumbnail || "/placeholder.svg"} 
                 alt={title} 
-                width={128}
-                height={96}
-                className="h-full w-full object-contain rounded-lg"
+                // width={128}
+                // height={96}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              {/* <Badge className="absolute right-1 top-1 bg-background/90 text-foreground text-[10px] px-1 py-0.5">
-                <Eye className="mr-0.5 h-2 w-2" />
-                {views}
-              </Badge> */}
-            </div>
+              <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/75 px-2 py-1 text-[11px] font-medium text-white backdrop-blur"><Play className="size-3 fill-current" />YouTube ad</span>
+              {duration && <span className="absolute bottom-3 right-3 rounded bg-slate-950/80 px-1.5 py-0.5 text-xs font-medium text-white">{duration}</span>}
           </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0 space-y-3">
+          <div className="flex flex-1 flex-col p-4">
             <div>
-              <h3 className="line-clamp-2 font-semibold text-foreground text-sm leading-tight mb-1">{title}</h3>
-              <p className="text-xs text-muted-foreground truncate">{channel}</p>
+              <h3 className="line-clamp-2 font-semibold leading-5 text-foreground">{title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground truncate">{channel}</p>
             </div>
 
             {companyName && (
@@ -93,18 +85,12 @@ export function VideoCard({
               </button>
             )}
 
-            <div className="flex flex-wrap gap-1">
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                <TrendingUp className="mr-0.5 h-2 w-2" />
-                CTR: {ctr}
-              </Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                <Calendar className="mr-0.5 h-2 w-2" />
-                {date}
-              </Badge>
+            <div className="mt-4 grid grid-cols-2 gap-2 border-y border-border/70 py-3 text-xs">
+              <span className="flex items-center gap-1.5 text-muted-foreground"><Eye className="size-3.5 text-primary" />{views || "—"}</span>
+              <span className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="size-3.5 text-primary" />CTR {ctr || "—"}</span>
+              <span className="col-span-2 flex items-center gap-1.5 text-muted-foreground"><Calendar className="size-3.5" />{date || "Chưa rõ ngày chạy"}</span>
             </div>
-
-            <div className="flex gap-2">
+            <div className="mt-3 flex gap-2">
               <div onClick={(e) => e.stopPropagation()}>
                 <FavoriteButton
                   itemType="video"
@@ -112,12 +98,12 @@ export function VideoCard({
                   itemData={favoriteData}
                   size="sm"
                   variant="outline"
-                  className="flex-1 bg-transparent h-7 text-xs"
+                  className="flex-1 bg-transparent text-xs"
                   showText
                 />
               </div>
               {url && (
-                <Button size="sm" variant="outline" className="bg-transparent h-7 px-2" asChild onClick={(e) => e.stopPropagation()}>
+                <Button size="sm" variant="outline" className="bg-transparent px-2" asChild onClick={(e) => e.stopPropagation()}>
                   <a href={url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-2 w-2" />
                   </a>
@@ -125,7 +111,6 @@ export function VideoCard({
               )}
             </div>
           </div>
-        </div>
       </CardContent>
     </Card>
   )

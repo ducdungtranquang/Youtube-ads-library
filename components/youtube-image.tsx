@@ -15,8 +15,8 @@ interface YouTubeImageProps {
 export function YouTubeImage({ 
   src, 
   alt, 
-  width = 320, 
-  height = 240, 
+  width, 
+  height, 
   className = "",
   fallback = "/placeholder.svg"
 }: YouTubeImageProps) {
@@ -33,15 +33,17 @@ export function YouTubeImage({
       : src || fallback
 
   return (
-    <div className={`relative ${className}`} style={{ width, height }}>
+    <div className={`relative ${className}`} 
+    // style={{ width, height }}
+    >
       {isLoading && (
         <div className="absolute inset-0 bg-muted animate-pulse rounded" />
       )}
       <Image
         src={imageSrc}
         alt={alt}
-        width={width}
-        height={height}
+        width={320}
+        height={240}
         className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
         onLoad={() => setIsLoading(false)}
         onError={() => {

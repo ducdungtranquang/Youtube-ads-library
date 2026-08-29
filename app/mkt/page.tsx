@@ -47,6 +47,17 @@ import {
 } from "@/hooks/use-cache-polling";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useAuth } from "@/contexts/auth-context";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
+import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
+import { YoutubeAdsFilters } from "@/components/ads-spy/youtube-ads-filters";
 
 // Pre-process static data once at module level for better performance
 const sortOptions = [
@@ -71,7 +82,7 @@ const SortSelect = memo(
     onValueChange: (value: string) => void;
   }) => (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
+      <SelectTrigger className="h-9 text-sm">
         <SelectValue placeholder="Sắp xếp theo" />
       </SelectTrigger>
       <SelectContent>
@@ -95,7 +106,7 @@ const ShowVideosSelect = memo(
     onValueChange: (value: string) => void;
   }) => (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
+      <SelectTrigger className="h-9 text-sm">
         <SelectValue placeholder="Hiển thị video" />
       </SelectTrigger>
       <SelectContent>
@@ -109,6 +120,129 @@ const ShowVideosSelect = memo(
   )
 );
 ShowVideosSelect.displayName = "ShowVideosSelect";
+
+const heroSlides = [
+  {
+    badge: "YouTube Ads Spy Tool",
+    title: "Tìm kiếm Youtube Ads",
+    description:
+      "Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp",
+  },
+  {
+    badge: "Affiliate Placement",
+    title: "Đặt banner affiliate của bạn tại đây",
+    description:
+      "Một vị trí nổi bật giữa hành trình nghiên cứu quảng cáo. Tiếp cận hàng ngàn marketer và agency.",
+    buttonText: "Đăng ký đối tác",
+    buttonHref: "#",
+  },
+  {
+    badge: "Featured Partner",
+    title: "Khám phá công cụ tăng trưởng mới",
+    description:
+      "Dễ dàng thay bằng ưu đãi, landing page hoặc link đối tác của bạn để tối ưu hiệu suất.",
+    buttonText: "Tìm hiểu thêm",
+    buttonHref: "#",
+  },
+  {
+    badge: "Growth Toolkit",
+    title: "Tối ưu creative nhanh hơn",
+    description:
+      "Đưa đúng lời mời hành động đến đúng nhóm người dùng mục tiêu với dữ liệu quảng cáo chính xác.",
+    buttonText: "Khám phá ngay",
+    buttonHref: "#",
+  },
+];
+
+const HeroSlider = memo(() => {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap());
+    };
+
+    api.on("select", onSelect);
+
+    const timer = setInterval(() => {
+      api.scrollNext();
+    }, 2500);
+
+    return () => {
+      api.off("select", onSelect);
+      clearInterval(timer);
+    };
+  }, [api]);
+
+  return (
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-800 to-blue-950 py-10 md:py-14 text-white">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+      <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container relative z-10 mx-auto px-4">
+        <Carousel
+          setApi={setApi}
+          opts={{ loop: true }}
+          className="w-full max-w-4xl mx-auto"
+        >
+          <CarouselContent>
+            {heroSlides.map((slide, idx) => (
+              <CarouselItem key={idx}>
+                <div className="flex flex-col items-center justify-center text-center px-4 md:px-12 py-4 min-h-[160px]">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold text-white uppercase tracking-wider">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {slide.badge}
+                  </div>
+                  <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
+                    {slide.title}
+                  </h1>
+                  <p className="text-sm md:text-base text-white/80 max-w-xl mx-auto">
+                    {slide.description}
+                  </p>
+                  {slide.buttonText && (
+                    <div className="mt-4">
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-full gap-2 bg-white text-indigo-900 hover:bg-white/90 shadow-md transition-all hover:scale-105"
+                      >
+                        <a href={slide.buttonHref || "#"}>
+                          {slide.buttonText}
+                          <ArrowRight className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-2 md:-left-8 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" />
+          <CarouselNext className="right-2 md:-right-8 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" />
+        </Carousel>
+
+        {/* Indicator dots */}
+        <div className="flex justify-center gap-2 mt-4">
+          {heroSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => api?.scrollTo(idx)}
+              className={`h-2 rounded-full transition-all duration-300 ${current === idx ? "w-6 bg-white" : "w-2 bg-white/40 hover:bg-white/60"
+                }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+});
+HeroSlider.displayName = "HeroSlider";
 
 // Cute No Data Component
 const NoDataDisplay = memo(
@@ -294,10 +428,10 @@ export default function MKTPage() {
     activeTab === "ads"
       ? adsSearchLoading
       : activeTab === "brands"
-      ? brandsSearchLoading
-      : activeTab === "companies"
-      ? companiesSearchLoading
-      : false;
+        ? brandsSearchLoading
+        : activeTab === "companies"
+          ? companiesSearchLoading
+          : false;
 
   // Hook for refreshing favorite status
   const { refreshFavoriteStatus } = useFavorites();
@@ -420,10 +554,6 @@ export default function MKTPage() {
       if (e) e.preventDefault();
 
       const searchQuery = searchQueryRef.current?.value?.trim();
-      // if (!searchQuery) {
-      //   toast.error("Vui lòng nhập từ khóa tìm kiếm");
-      //   return;
-      // }
 
       if (page === 1) {
         setAdsSearchResults(null);
@@ -454,12 +584,10 @@ export default function MKTPage() {
         });
 
         if (result?.pending) {
-          // Don't show any toast for pending - polling will handle it
-          setAdsSearchResults(null); // Clear previous results
+          setAdsSearchResults(null);
         } else if (result?.success && result?.data) {
           setAdsSearchResults(result.data);
 
-          // Only show success toast for completed results
           const resultCount = result.data?.data?.results?.length || 0;
           if (resultCount > 0) {
             toast.success(
@@ -495,10 +623,6 @@ export default function MKTPage() {
       if (e) e.preventDefault();
 
       const searchQuery = searchQueryRef.current?.value?.trim();
-      // if (!searchQuery) {
-      //   toast.error("Vui lòng nhập từ khóa tìm kiếm");
-      //   return;
-      // }
 
       if (page === 1) {
         setBrandsSearchResults(null);
@@ -508,8 +632,8 @@ export default function MKTPage() {
         const result = await searchBrandsWithCache({
           type: "brands",
           searchTerm: searchQuery,
-          page: 1, // Always use page 1 since API returns many results
-          limit: 300, // Get more results for FE pagination
+          page: 1,
+          limit: 300,
           filters: {
             countryId: parseInt(selectedCountry),
             categoryIds:
@@ -531,7 +655,6 @@ export default function MKTPage() {
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm thương hiệu, vui lòng đợi...");
           } else {
-            // Direct result from cache
             setBrandsSearchResults(result.data);
 
             const resultCount = result.data?.data?.results?.length || 0;
@@ -561,10 +684,6 @@ export default function MKTPage() {
       if (e) e.preventDefault();
 
       const searchQuery = searchQueryRef.current?.value?.trim();
-      // if (!searchQuery) {
-      //   toast.error("Vui lòng nhập từ khóa tìm kiếm");
-      //   return;
-      // }
 
       if (page === 1) {
         setCompaniesSearchResults(null);
@@ -574,8 +693,8 @@ export default function MKTPage() {
         const result = await searchCompaniesWithCache({
           type: "companies",
           searchTerm: searchQuery,
-          page: 1, // Always use page 1 since API returns many results
-          limit: 300, // Get more results for FE pagination
+          page: 1,
+          limit: 300,
           filters: {
             countryId: parseInt(selectedCountry),
             categoryIds:
@@ -597,7 +716,6 @@ export default function MKTPage() {
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm doanh nghiệp, vui lòng đợi...");
           } else {
-            // Direct result from cache
             setCompaniesSearchResults(result.data);
 
             const resultCount = result.data?.data?.results?.length || 0;
@@ -670,436 +788,363 @@ export default function MKTPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-br from-red-600 via-red-700 to-orange-600 py-12 md:py-16">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
-        <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl" />
+      {/* Hero Section Slider */}
+      <HeroSlider />
 
-        <div className="container relative z-10 mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
-              <Sparkles className="h-4 w-4" />
-              YouTube Ads Spy Tool
-            </div>
-            <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
-              Tìm kiếm Youtube Ads
-            </h1>
-            <p className="text-base text-white/80 max-w-xl mx-auto">
-              Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp
-            </p>
+      <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
+        {/* Thu hẹp cột bộ lọc xuống 250px và thêm items-start để sticky hoạt động */}
+        <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] items-start">
+
+          {/* Vùng chứa bộ lọc - Thêm class sticky */}
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+            <AdsSpyFilterPanel
+              title="Bộ lọc"
+              onClear={() => { setSelectedCountry("0"); setSelectedLanguage("all"); setSelectedCategory("0"); setShowVideos("unlisted"); setDateFrom(""); setDateTo(""); }}
+            >
+              <div className="mt-4">
+                <YoutubeAdsFilters
+                  country={selectedCountry}
+                  setCountry={setSelectedCountry}
+                  language={selectedLanguage}
+                  setLanguage={setSelectedLanguage}
+                  category={selectedCategory}
+                  setCategory={setSelectedCategory}
+                  showVideos={showVideos}
+                  setShowVideos={setShowVideos}
+                  dateFrom={dateFrom}
+                  setDateFrom={setDateFrom}
+                  dateTo={dateTo}
+                  setDateTo={setDateTo}
+                />
+              </div>
+            </AdsSpyFilterPanel>
           </div>
-        </div>
-      </section>
 
-      <main className="container px-4 md:px-6 lg:px-8 py-8 -mt-6 relative z-20">
-
-        <form
-          onSubmit={handleSearch}
-          className="mb-6 flex gap-2 mobile:flex-col"
-        >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              ref={searchQueryRef}
-              placeholder="Tìm kiếm bằng từ khóa, URL hoặc tên thương hiệu..."
-              className="pl-10"
-            />
-          </div>
-          <Button type="submit" disabled={loading} className="mobile:w-full cursor-pointer">
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Đang tìm kiếm...
-              </>
-            ) : (
-              <>
-                <Search className="h-4 w-4 mr-2" />
-                Tìm kiếm
-              </>
-            )}
-          </Button>
-        </form>
-
-        {/* Advanced Filters - Horizontal on Desktop, Vertical on Tablet */}
-        <Card className="mb-6 border-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Filter className="h-4 w-4" />
-              Bộ lọc nâng cao
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 lg:grid-cols-2 md:grid-cols-2 grid-cols-1">
-              {/* Row 1 - Country & Language */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Quốc gia
-                </label>
-                <SimpleAsyncCountrySelect
-                  value={selectedCountry}
-                  onValueChange={setSelectedCountry}
-                  className="w-full"
+          <div className="min-w-0">
+            <form
+              onSubmit={handleSearch}
+              className="mb-6 flex gap-2 mobile:flex-col"
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  ref={searchQueryRef}
+                  placeholder="Tìm kiếm bằng từ khóa, URL hoặc tên thương hiệu..."
+                  className="pl-10"
                 />
               </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ngôn ngữ</label>
-                <SimpleStaticLanguageSelect
-                  value={selectedLanguage}
-                  onValueChange={setSelectedLanguage}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Row 2 - Category & Video Type */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Danh mục</label>
-                <SimpleAsyncCategorySelect
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Loại video</label>
-                <ShowVideosSelect
-                  value={showVideos}
-                  onValueChange={setShowVideos}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Ngày bắt đầu
-                </label>
-                <div className="grid md:grid-cols-2 gap-2">
-                  <Input
-                    type="date"
-                    placeholder="Từ ngày"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Ngày kết thúc
-                </label>
-                <div className="grid md:grid-cols-2 gap-2">
-                  <Input
-                    type="date"
-                    placeholder="Đến ngày"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="w-full">
-          <Tabs
-            value={activeTab}
-            onValueChange={handleTabChange}
-            className="w-full"
-          >
-            <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
-              <TabsTrigger value="ads" className="mobile:text-xs">
-                Tìm kiếm quảng cáo
-              </TabsTrigger>
-              <TabsTrigger value="brands" className="mobile:text-xs">
-                Thương hiệu
-              </TabsTrigger>
-              <TabsTrigger value="companies" className="mobile:text-xs">
-                Doanh nghiệp
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="ads" className="space-y-4">
-              {/* Loading State */}
-              <SearchLoadingState
-                isSearching={loading}
-                isPending={activeTab === "ads" && adsSearchStatus === "pending"}
-                searchType="ads"
-                className="mb-6"
-              />
-
-              {/* Ads Search Results */}
-              {adsSearchResults ? (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">
-                      Kết quả tìm kiếm quảng cáo
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Tìm thấy {adsPagination.totalItems} quảng cáo (
-                      {adsSearchResults.total_available || 0} tổng cộng có sẵn)
-                      {adsPagination.totalPages > 1 && (
-                        <span>
-                          {" "}
-                          - Trang {adsPagination.currentPage} của{" "}
-                          {adsPagination.totalPages}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-
-                  {adsPagination.totalItems > 0 ? (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                        {adsPagination.currentItems.map(
-                          (video: any, index: number) => (
-                            <VideoCard
-                              key={video.ytVideoId || `video-${index}`}
-                              {...video}
-                              onClick={() => setSelectedVideo(video)}
-                              onCompanyClick={() => handleOpenBrandModal(video.brandId)}
-                            />
-                          )
-                        )}
-                      </div>
-
-                      {/* Frontend Pagination */}
-                      <FrontendPagination
-                        currentPage={adsPagination.currentPage}
-                        totalPages={adsPagination.totalPages}
-                        totalItems={adsPagination.totalItems}
-                        itemsPerPage={20}
-                        hasNextPage={adsPagination.hasNextPage}
-                        hasPrevPage={adsPagination.hasPrevPage}
-                        onNextPage={adsPagination.nextPage}
-                        onPrevPage={adsPagination.prevPage}
-                        onGoToPage={adsPagination.goToPage}
-                        className="mt-8"
-                      />
-                    </>
-                  ) : (
-                    <NoDataDisplay type="ads" hasSearched={true} />
-                  )}
-                </div>
-              ) : (
-                <NoDataDisplay type="ads" hasSearched={false} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="brands" className="space-y-4">
-              {/* Loading State */}
-              <SearchLoadingState
-                isSearching={loading}
-                isPending={
-                  activeTab === "brands" && brandsSearchStatus === "pending"
-                }
-                searchType="brands"
-                className="mb-6"
-              />
-
-              {/* Brands Search Results */}
-              {brandsSearchResults ? (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">
-                      Kết quả tìm kiếm thương hiệu
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Tìm thấy {brandsPagination.totalItems} thương hiệu (
-                      {brandsSearchResults.total_available || 0} tổng cộng có
-                      sẵn)
-                      {brandsPagination.totalPages > 1 && (
-                        <span>
-                          {" "}
-                          - Trang {brandsPagination.currentPage} của{" "}
-                          {brandsPagination.totalPages}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-
-                  {brandsPagination.totalItems > 0 ? (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                        {brandsPagination.currentItems.map(
-                          (brand: any, index: number) => (
-                            <BrandCard
-                              key={brand.brandId || `brand-${index}`}
-                              brandId={
-                                brand.brandId?.toString() || `brand-${index}`
-                              }
-                              name={brand.name || `Brand ${index + 1}`}
-                              description={
-                                brand.description || "Không có mô tả"
-                              }
-                              logo={brand.thumbnail || "/placeholder.svg"}
-                              totalAds={
-                                brand.summary_data?.total_spend ||
-                                brand.totalSpend ||
-                                0
-                              }
-                              totalViews={String(
-                                brand.summary_data?.total_views ||
-                                  brand.totalViews ||
-                                  0
-                              )}
-                              activeMonths={
-                                Math.ceil(
-                                  (brand.summary_data?.spend_365 || 0) / 30
-                                ) || 1
-                              }
-                              totalSpend={
-                                brand.summary_data?.total_spend ||
-                                brand.totalSpend ||
-                                0
-                              }
-                              summaryDate={brand.summary_data?.summary_date}
-                              onClick={() => setSelectedBrand(brand)}
-                            />
-                          )
-                        )}
-                      </div>
-
-                      {/* Frontend Pagination */}
-                      <FrontendPagination
-                        currentPage={brandsPagination.currentPage}
-                        totalPages={brandsPagination.totalPages}
-                        totalItems={brandsPagination.totalItems}
-                        itemsPerPage={20}
-                        hasNextPage={brandsPagination.hasNextPage}
-                        hasPrevPage={brandsPagination.hasPrevPage}
-                        onNextPage={brandsPagination.nextPage}
-                        onPrevPage={brandsPagination.prevPage}
-                        onGoToPage={brandsPagination.goToPage}
-                        className="mt-8"
-                      />
-                    </>
-                  ) : (
-                    <NoDataDisplay type="brands" hasSearched={true} />
-                  )}
-                </div>
-              ) : (
-                <NoDataDisplay type="brands" hasSearched={false} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="companies" className="space-y-4">
-              {/* Loading State */}
-              <SearchLoadingState
-                isSearching={loading}
-                isPending={
-                  activeTab === "companies" &&
-                  companiesSearchStatus === "pending"
-                }
-                searchType="companies"
-                className="mb-6"
-              />
-
-              {/* Companies Search Results */}
-              {companiesSearchResults ? (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">
-                      Kết quả tìm kiếm doanh nghiệp
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Tìm thấy {companiesPagination.totalItems} doanh nghiệp (
-                      {companiesSearchResults.total_available || 0} tổng cộng có
-                      sẵn)
-                      {companiesPagination.totalPages > 1 && (
-                        <span>
-                          {" "}
-                          - Trang {companiesPagination.currentPage} của{" "}
-                          {companiesPagination.totalPages}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-
-                  {companiesPagination.totalItems > 0 ? (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                        {companiesPagination.currentItems.map(
-                          (company: any, index: number) => (
-                            <CompanyCard
-                              key={company.companyId || `company-${index}`}
-                              name={
-                                company.legalName ||
-                                company.summary_data?.legal_name ||
-                                "Tên không xác định"
-                              }
-                              description={`Doanh nghiệp ${
-                                company.isAffiliate ? "Affiliate" : "Marketing"
-                              } - ID: ${company.companyId}`}
-                              totalBrands={1} // Companies API không trả về totalBrands, default 1
-                              // totalAds={Math.floor((company.summary_data?.total_spend || company.totalSpend || 0) / 1000)} // Estimate ads from spend
-                              markets={[
-                                `Quốc gia ID: ${
-                                  company.countryId ||
-                                  company.summary_data?.country_id ||
-                                  "N/A"
-                                }`,
-                              ]}
-                              estimatedSpend={`$${(
-                                (company.summary_data?.total_spend ||
-                                  company.totalSpend ||
-                                  0) / 1000000
-                              ).toFixed(1)}M`}
-                              totalSpend={Math.floor(
-                                company.summary_data?.total_spend ||
-                                  company.totalSpend ||
-                                  0
-                              )}
-                              summaryDate={company.summary_data?.summary_date}
-                              onClick={() => setSelectedCompany(company)}
-                              companyId={company.companyId?.toString() || ""}
-                              isAffiliate={company.isAffiliate || false}
-                              totalVideos={Math.floor(
-                                company.summary_data?.total_views || 0
-                              )}
-                            />
-                          )
-                        )}
-                      </div>
-
-                      {/* Frontend Pagination */}
-                      <FrontendPagination
-                        currentPage={companiesPagination.currentPage}
-                        totalPages={companiesPagination.totalPages}
-                        totalItems={companiesPagination.totalItems}
-                        itemsPerPage={20}
-                        hasNextPage={companiesPagination.hasNextPage}
-                        hasPrevPage={companiesPagination.hasPrevPage}
-                        onNextPage={companiesPagination.nextPage}
-                        onPrevPage={companiesPagination.prevPage}
-                        onGoToPage={companiesPagination.goToPage}
-                        className="mt-8"
-                      />
-                    </>
-                  ) : (
-                    <NoDataDisplay type="companies" hasSearched={true} />
-                  )}
-                </div>
-              ) : (
-                <NoDataDisplay type="companies" hasSearched={false} />
-              )}
-            </TabsContent>
-          </Tabs>
-
-          {/* Error State */}
-          {adsSearchError && (
-            <Card className="p-8 text-center border-destructive">
-              <h3 className="text-lg font-semibold mb-2 text-destructive">
-                Lỗi tìm kiếm
-              </h3>
-              <p className="text-muted-foreground mb-4">{adsSearchError}</p>
-              <Button onClick={() => handleSearch(null)} variant="outline">
-                Thử lại
+              <Button type="submit" disabled={loading} className="mobile:w-full cursor-pointer">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Đang tìm kiếm...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Tìm kiếm
+                  </>
+                )}
               </Button>
-            </Card>
-          )}
+            </form>
+
+            <div className="w-full">
+              <AdsSpyResultsToolbar title="Thư viện quảng cáo" count={activeTab === "ads" ? adsPagination.totalItems : activeTab === "brands" ? brandsPagination.totalItems : companiesPagination.totalItems} />
+              <Tabs
+                value={activeTab}
+                onValueChange={handleTabChange}
+                className="w-full mt-4"
+              >
+                <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
+                  <TabsTrigger value="ads" className="mobile:text-xs">
+                    Tìm kiếm quảng cáo
+                  </TabsTrigger>
+                  <TabsTrigger value="brands" className="mobile:text-xs">
+                    Thương hiệu
+                  </TabsTrigger>
+                  <TabsTrigger value="companies" className="mobile:text-xs">
+                    Doanh nghiệp
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="ads" className="space-y-4">
+                  {/* Loading State */}
+                  <SearchLoadingState
+                    isSearching={loading}
+                    isPending={activeTab === "ads" && adsSearchStatus === "pending"}
+                    searchType="ads"
+                    className="mb-6"
+                  />
+
+                  {/* Ads Search Results */}
+                  {adsSearchResults ? (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold">
+                          Kết quả tìm kiếm quảng cáo
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          Tìm thấy {adsPagination.totalItems} quảng cáo (
+                          {adsSearchResults.total_available || 0} tổng cộng có sẵn)
+                          {adsPagination.totalPages > 1 && (
+                            <span>
+                              {" "}
+                              - Trang {adsPagination.currentPage} của{" "}
+                              {adsPagination.totalPages}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      {adsPagination.totalItems > 0 ? (
+                        <>
+                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                            {adsPagination.currentItems.map(
+                              (video: any, index: number) => (
+                                <VideoCard
+                                  key={video.ytVideoId || `video-${index}`}
+                                  {...video}
+                                  onClick={() => setSelectedVideo(video)}
+                                  onCompanyClick={() => handleOpenBrandModal(video.brandId)}
+                                />
+                              )
+                            )}
+                          </div>
+
+                          {/* Frontend Pagination */}
+                          <FrontendPagination
+                            currentPage={adsPagination.currentPage}
+                            totalPages={adsPagination.totalPages}
+                            totalItems={adsPagination.totalItems}
+                            itemsPerPage={20}
+                            hasNextPage={adsPagination.hasNextPage}
+                            hasPrevPage={adsPagination.hasPrevPage}
+                            onNextPage={adsPagination.nextPage}
+                            onPrevPage={adsPagination.prevPage}
+                            onGoToPage={adsPagination.goToPage}
+                            className="mt-8"
+                          />
+                        </>
+                      ) : (
+                        <NoDataDisplay type="ads" hasSearched={true} />
+                      )}
+                    </div>
+                  ) : (
+                    <NoDataDisplay type="ads" hasSearched={false} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="brands" className="space-y-4">
+                  {/* Loading State */}
+                  <SearchLoadingState
+                    isSearching={loading}
+                    isPending={
+                      activeTab === "brands" && brandsSearchStatus === "pending"
+                    }
+                    searchType="brands"
+                    className="mb-6"
+                  />
+
+                  {/* Brands Search Results */}
+                  {brandsSearchResults ? (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold">
+                          Kết quả tìm kiếm thương hiệu
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          Tìm thấy {brandsPagination.totalItems} thương hiệu (
+                          {brandsSearchResults.total_available || 0} tổng cộng có
+                          sẵn)
+                          {brandsPagination.totalPages > 1 && (
+                            <span>
+                              {" "}
+                              - Trang {brandsPagination.currentPage} của{" "}
+                              {brandsPagination.totalPages}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      {brandsPagination.totalItems > 0 ? (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-2 grid-cols-1 lg:grid-cols-3">
+                            {brandsPagination.currentItems.map(
+                              (brand: any, index: number) => (
+                                <BrandCard
+                                  key={brand.brandId || `brand-${index}`}
+                                  brandId={
+                                    brand.brandId?.toString() || `brand-${index}`
+                                  }
+                                  name={brand.name || `Brand ${index + 1}`}
+                                  description={
+                                    brand.description || "Không có mô tả"
+                                  }
+                                  logo={brand.thumbnail || "/placeholder.svg"}
+                                  totalAds={
+                                    brand.summary_data?.total_spend ||
+                                    brand.totalSpend ||
+                                    0
+                                  }
+                                  totalViews={String(
+                                    brand.summary_data?.total_views ||
+                                    brand.totalViews ||
+                                    0
+                                  )}
+                                  activeMonths={
+                                    Math.ceil(
+                                      (brand.summary_data?.spend_365 || 0) / 30
+                                    ) || 1
+                                  }
+                                  totalSpend={
+                                    brand.summary_data?.total_spend ||
+                                    brand.totalSpend ||
+                                    0
+                                  }
+                                  summaryDate={brand.summary_data?.summary_date}
+                                  onClick={() => setSelectedBrand(brand)}
+                                />
+                              )
+                            )}
+                          </div>
+
+                          {/* Frontend Pagination */}
+                          <FrontendPagination
+                            currentPage={brandsPagination.currentPage}
+                            totalPages={brandsPagination.totalPages}
+                            totalItems={brandsPagination.totalItems}
+                            itemsPerPage={20}
+                            hasNextPage={brandsPagination.hasNextPage}
+                            hasPrevPage={brandsPagination.hasPrevPage}
+                            onNextPage={brandsPagination.nextPage}
+                            onPrevPage={brandsPagination.prevPage}
+                            onGoToPage={brandsPagination.goToPage}
+                            className="mt-8"
+                          />
+                        </>
+                      ) : (
+                        <NoDataDisplay type="brands" hasSearched={true} />
+                      )}
+                    </div>
+                  ) : (
+                    <NoDataDisplay type="brands" hasSearched={false} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="companies" className="space-y-4">
+                  {/* Loading State */}
+                  <SearchLoadingState
+                    isSearching={loading}
+                    isPending={
+                      activeTab === "companies" &&
+                      companiesSearchStatus === "pending"
+                    }
+                    searchType="companies"
+                    className="mb-6"
+                  />
+
+                  {/* Companies Search Results */}
+                  {companiesSearchResults ? (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold">
+                          Kết quả tìm kiếm doanh nghiệp
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          Tìm thấy {companiesPagination.totalItems} doanh nghiệp (
+                          {companiesSearchResults.total_available || 0} tổng cộng có
+                          sẵn)
+                          {companiesPagination.totalPages > 1 && (
+                            <span>
+                              {" "}
+                              - Trang {companiesPagination.currentPage} của{" "}
+                              {companiesPagination.totalPages}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      {companiesPagination.totalItems > 0 ? (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-2 grid-cols-1 lg:grid-cols-3">
+                            {companiesPagination.currentItems.map(
+                              (company: any, index: number) => (
+                                <CompanyCard
+                                  key={company.companyId || `company-${index}`}
+                                  name={
+                                    company.legalName ||
+                                    company.summary_data?.legal_name ||
+                                    "Tên không xác định"
+                                  }
+                                  description={`Doanh nghiệp ${company.isAffiliate ? "Affiliate" : "Marketing"
+                                    } - ID: ${company.companyId}`}
+                                  totalBrands={1}
+                                  markets={[
+                                    `Quốc gia ID: ${company.countryId ||
+                                    company.summary_data?.country_id ||
+                                    "N/A"
+                                    }`,
+                                  ]}
+                                  estimatedSpend={`$${(
+                                    (company.summary_data?.total_spend ||
+                                      company.totalSpend ||
+                                      0) / 1000000
+                                  ).toFixed(1)}M`}
+                                  totalSpend={Math.floor(
+                                    company.summary_data?.total_spend ||
+                                    company.totalSpend ||
+                                    0
+                                  )}
+                                  summaryDate={company.summary_data?.summary_date}
+                                  onClick={() => setSelectedCompany(company)}
+                                  companyId={company.companyId?.toString() || ""}
+                                  isAffiliate={company.isAffiliate || false}
+                                  totalVideos={Math.floor(
+                                    company.summary_data?.total_views || 0
+                                  )}
+                                />
+                              )
+                            )}
+                          </div>
+
+                          {/* Frontend Pagination */}
+                          <FrontendPagination
+                            currentPage={companiesPagination.currentPage}
+                            totalPages={companiesPagination.totalPages}
+                            totalItems={companiesPagination.totalItems}
+                            itemsPerPage={20}
+                            hasNextPage={companiesPagination.hasNextPage}
+                            hasPrevPage={companiesPagination.hasPrevPage}
+                            onNextPage={companiesPagination.nextPage}
+                            onPrevPage={companiesPagination.prevPage}
+                            onGoToPage={companiesPagination.goToPage}
+                            className="mt-8"
+                          />
+                        </>
+                      ) : (
+                        <NoDataDisplay type="companies" hasSearched={true} />
+                      )}
+                    </div>
+                  ) : (
+                    <NoDataDisplay type="companies" hasSearched={false} />
+                  )}
+                </TabsContent>
+              </Tabs>
+
+              {/* Error State */}
+              {adsSearchError && (
+                <Card className="p-8 text-center border-destructive mt-4">
+                  <h3 className="text-lg font-semibold mb-2 text-destructive">
+                    Lỗi tìm kiếm
+                  </h3>
+                  <p className="text-muted-foreground mb-4">{adsSearchError}</p>
+                  <Button onClick={() => handleSearch(null)} variant="outline">
+                    Thử lại
+                  </Button>
+                </Card>
+              )}
+            </div>
+          </div>
         </div>
       </main>
 
@@ -1120,10 +1165,10 @@ export default function MKTPage() {
           engagement: selectedVideo?.engagement || "",
           avgViewDuration: selectedVideo?.avgViewDuration || "",
           ytVideoId: selectedVideo?.ytVideoId || selectedVideo?.videoId || "",
-          brandId: selectedVideo?.brandId // Pass brandId if available
+          brandId: selectedVideo?.brandId
         }}
         onCompanyClick={() => handleOpenBrandModal(selectedVideo?.brandId)}
-        onClose={() => {}}
+        onClose={() => { }}
       />
 
       <BrandDetailModal
@@ -1138,7 +1183,7 @@ export default function MKTPage() {
         onOpenChange={(open) => !open && setSelectedCompany(null)}
         companyId={selectedCompany?.companyId?.toString() || null}
         company={selectedCompany}
-        onClose={() => {}}
+        onClose={() => { }}
       />
 
       <footer className="border-t border-border/40 py-8 mt-8">
