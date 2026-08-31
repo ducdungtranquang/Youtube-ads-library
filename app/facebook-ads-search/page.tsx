@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useCallback, useRef, useMemo, memo, useEffect } from "react";
+import Image from "next/image";
+import { Header } from "@/components/header";
 import { useFacebookAdsSearch } from "@/hooks/use-facebook-search";
 import { useAuth } from "@/contexts/auth-context";
-import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { FacebookAdCard } from "@/components/facebook-ad-card";
@@ -16,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Loader2, Sparkles, ArrowRight } from "lucide-react";
+import { Search, Loader2, Sparkles, ArrowRight, LogIn } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -59,36 +60,34 @@ const SCALING_LEVEL_OPTIONS = [
   { value: "HIGH", label: "Scaling cao" },
 ];
 
+// 📌 Banners & Slogans
 const heroSlides = [
   {
-    badge: "Facebook Ads Spy Tool",
-    title: "Tìm kiếm Facebook Ads",
-    description:
-      "Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp",
+    badge: "Scale Up Doanh Thu",
+    title: "Tiếp Cận 70 Triệu Khách Hàng Zalo",
+    description: "Tối ưu chi phí, bùng nổ đơn hàng với Zalo Ads. Giải pháp quảng cáo nội địa hiệu quả nhất hiện nay.",
+    buttonText: "Nhận Ưu Đãi Zalo Ads",
+    buttonHref: "https://zalo.me/s/ads",
+    image: "/zalo_ad.png",
+    alt: "Zalo Ads Platform"
   },
   {
-    badge: "Affiliate Placement",
-    title: "Đặt banner affiliate của bạn tại đây",
-    description:
-      "Một vị trí nổi bật giữa hành trình nghiên cứu quảng cáo. Tiếp cận hàng ngàn marketer và agency.",
-    buttonText: "Đăng ký đối tác",
-    buttonHref: "#",
+    badge: "Công Cụ Livestream #1",
+    title: "Livestream Đa Nền Tảng Chuyên Nghiệp",
+    description: "Phát lại video có sẵn, tăng mắt xem tự nhiên và chốt sale tự động với GoStream.",
+    buttonText: "Dùng Thử GoStream Miễn Phí",
+    buttonHref: "https://gostream.co",
+    image: "/gostream.png",
+    alt: "GoStream Livestream Tool"
   },
   {
-    badge: "Featured Partner",
-    title: "Khám phá công cụ tăng trưởng mới",
-    description:
-      "Dễ dàng thay bằng ưu đãi, landing page hoặc link đối tác của bạn để tối ưu hiệu suất.",
-    buttonText: "Tìm hiểu thêm",
-    buttonHref: "#",
-  },
-  {
-    badge: "Growth Toolkit",
-    title: "Tối ưu creative nhanh hơn",
-    description:
-      "Đưa đúng lời mời hành động đến đúng nhóm người dùng mục tiêu với dữ liệu quảng cáo chính xác.",
-    buttonText: "Khám phá ngay",
-    buttonHref: "#",
+    badge: "Nâng Cấp Kỹ Năng",
+    title: "Trở Thành Chuyên Gia Digital Marketing",
+    description: "Khóa học thực chiến từ cơ bản đến nâng cao trên Gotihi. Áp dụng ngay để vít ads ra đơn.",
+    buttonText: "Đăng Ký Khóa Học Gotihi",
+    buttonHref: "https://gotihi.com",
+    image: "/gitiho.png",
+    alt: "Gotihi Online Courses"
   },
 ];
 
@@ -107,7 +106,7 @@ const HeroSlider = memo(() => {
 
     const timer = setInterval(() => {
       api.scrollNext();
-    }, 2500);
+    }, 4500);
 
     return () => {
       api.off("select", onSelect);
@@ -116,61 +115,75 @@ const HeroSlider = memo(() => {
   }, [api]);
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-800 to-blue-950 py-10 md:py-14 text-white">
+    <section className="relative w-full overflow-hidden bg-slate-950 py-12 md:py-20 text-white border-b border-slate-800">
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
-      <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-10 left-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container relative z-10 mx-auto px-4">
         <Carousel
           setApi={setApi}
           opts={{ loop: true }}
-          className="w-full max-w-4xl mx-auto"
+          className="w-full max-w-5xl mx-auto"
         >
           <CarouselContent>
             {heroSlides.map((slide, idx) => (
               <CarouselItem key={idx}>
-                <div className="flex flex-col items-center justify-center text-center px-4 md:px-12 py-4 min-h-[160px]">
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold text-white uppercase tracking-wider">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {slide.badge}
-                  </div>
-                  <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
-                    {slide.title}
-                  </h1>
-                  <p className="text-sm md:text-base text-white/80 max-w-xl mx-auto">
-                    {slide.description}
-                  </p>
-                  {slide.buttonText && (
-                    <div className="mt-4">
-                      <Button
-                        asChild
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-full gap-2 bg-white text-indigo-900 hover:bg-white/90 shadow-md transition-all hover:scale-105 cursor-pointer"
-                      >
-                        <a href={slide.buttonHref || "#"}>
-                          {slide.buttonText}
-                          <ArrowRight className="h-4 w-4" />
-                        </a>
-                      </Button>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 px-4 md:px-8 py-4">
+                  {/* Cột chữ (Slogan) */}
+                  <div className="flex-1 text-center md:text-left space-y-4">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 border border-slate-700 px-4 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {slide.badge}
                     </div>
-                  )}
+                    <h1 className="text-2xl font-black tracking-tight text-white md:text-4xl lg:text-5xl leading-tight">
+                      {slide.title}
+                    </h1>
+                    <p className="text-sm md:text-base text-slate-300 max-w-xl leading-relaxed">
+                      {slide.description}
+                    </p>
+                    {slide.buttonText && (
+                      <div className="pt-2">
+                        <Button
+                          asChild
+                          size="lg"
+                          className="rounded-full gap-2 bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-1"
+                        >
+                          <a href={slide.buttonHref} target="_blank" rel="noopener noreferrer">
+                            {slide.buttonText}
+                            <ArrowRight className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Cột ảnh (Banner) */}
+                  <div className="flex-1 w-full max-w-md relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl shadow-indigo-950/50 group">
+                    <div className="aspect-video w-full bg-slate-900 relative">
+                      <Image
+                        src={slide.image}
+                        alt={slide.alt}
+                        fill
+                        className="object-fit transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  </div>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-2 md:-left-8 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" />
-          <CarouselNext className="right-2 md:-right-8 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" />
+          <CarouselPrevious className="left-2 md:-left-8 border-slate-700 bg-slate-800/80 text-white hover:bg-slate-700 hover:text-white" />
+          <CarouselNext className="right-2 md:-right-8 border-slate-700 bg-slate-800/80 text-white hover:bg-slate-700 hover:text-white" />
         </Carousel>
 
         {/* Indicator dots */}
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mt-8">
           {heroSlides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => api?.scrollTo(idx)}
-              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${current === idx ? "w-6 bg-white" : "w-2 bg-white/40 hover:bg-white/60"
+              className={`h-2 rounded-full transition-all duration-300 ${current === idx ? "w-8 bg-indigo-500" : "w-2 bg-slate-700 hover:bg-slate-500"
                 }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
@@ -186,7 +199,6 @@ export default function FacebookAdsPage() {
   const { user, loading: authLoading } = useAuth();
   const searchQueryRef = useRef<HTMLInputElement>(null);
 
-  // Các state lưu bộ lọc tương thích trực tiếp với searchApi mới
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [publicDateFrom, setPublicDateFrom] = useState("");
   const [publicDateTo, setPublicDateTo] = useState("");
@@ -271,12 +283,10 @@ export default function FacebookAdsPage() {
     }
   };
 
-  // Quản lý Phân trang (Đã đồng bộ trực tiếp Server-side Pagination)
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 20;
 
-  // Trigger tìm kiếm lại khi bấm nút chuyển trang (Pagination)
   useEffect(() => {
     if (user) {
       executeSearch();
@@ -330,21 +340,21 @@ export default function FacebookAdsPage() {
 
   if (!authLoading && !user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Header />
-        <main className="container py-8">
-          <Card className="max-w-md mx-auto border-2">
+        <main className="container py-12">
+          <Card className="max-w-md mx-auto border border-slate-200 bg-white shadow-xl rounded-2xl">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white mb-4">
-                <Search className="h-8 w-8" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-6 border border-indigo-100">
+                <LogIn className="h-8 w-8" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-foreground">
+              <h3 className="mb-2 text-xl font-bold text-slate-900">
                 Đăng nhập để tìm kiếm Facebook Ads
               </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-6 text-sm text-slate-500">
                 Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo Facebook.
               </p>
-              <Button asChild className="cursor-pointer">
+              <Button asChild className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-200 w-full max-w-[200px] transition-all">
                 <a href="/login">
                   Đăng nhập
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -358,218 +368,222 @@ export default function FacebookAdsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    // 📌 Chuyển vùng nội dung sang Light Theme
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
       <Header />
 
       {/* Hero Section */}
       <HeroSlider />
 
-      <main className="container px-4 py-8 relative z-20">
-        {/* Thu hẹp cột bộ lọc xuống 250px và thêm items-start để sticky hoạt động */}
+      <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
         <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] items-start">
 
-          {/* Vùng chứa bộ lọc - Thêm class sticky */}
-          <div className="sticky top-24 max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-            <AdsSpyFilterPanel
-              title="Bộ lọc"
-              onClear={() => {
-                setSelectedCountry("");
-                setPublicDateFrom("");
-                setPublicDateTo("");
-                setMinScore("");
-                setMaxScore("");
-                setSelectedLevel("");
-                setSelectedSpends([]);
-                setMinTrendingScore("");
-                setSelectedFunnels([]);
-                setScalingLevel("");
-              }}
-            >
-              {/* Giảm gap từ 5 xuống 3 để nhỏ gọn hơn */}
-              <div className="flex flex-col gap-3 mt-4">
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Quốc gia / Nền tảng hiển thị</label>
-                  <Input
-                    type="text"
-                    placeholder="Ví dụ: VN, US, IG..."
-                    value={selectedCountry}
-                    onChange={(e) => setSelectedCountry(e.target.value)}
-                    className="h-9 text-sm"
-                  />
-                </div>
+          {/* Vùng chứa bộ lọc - Chuyển sang Light Theme */}
+          <div className="sticky top-24 max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5">
+              <AdsSpyFilterPanel
+                title="Bộ lọc"
+                onClear={() => {
+                  setSelectedCountry("");
+                  setPublicDateFrom("");
+                  setPublicDateTo("");
+                  setMinScore("");
+                  setMaxScore("");
+                  setSelectedLevel("");
+                  setSelectedSpends([]);
+                  setMinTrendingScore("");
+                  setSelectedFunnels([]);
+                  setScalingLevel("");
+                }}
+              >
+                <div className="flex flex-col gap-3 mt-4">
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Quốc gia / Nền tảng hiển thị</label>
+                    <Input
+                      type="text"
+                      placeholder="Ví dụ: VN, US, IG..."
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
+                      className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
+                    />
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Cấp độ Quảng cáo</label>
-                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                    <SelectTrigger className="w-full h-9 text-sm">
-                      <SelectValue placeholder="Tất cả cấp độ" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LEVEL_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Cấp độ Quảng cáo</label>
+                    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                      <SelectTrigger className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
+                        <SelectValue placeholder="Tất cả cấp độ" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
+                        {LEVEL_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="focus:bg-slate-100 cursor-pointer">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Điểm số thấp nhất</label>
-                  <Input
-                    type="number"
-                    placeholder="Ví dụ: 7"
-                    value={minScore}
-                    onChange={(e) => setMinScore(e.target.value)}
-                    className="h-9 text-sm"
-                  />
-                </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    <div className="space-y-1.5 w-full">
+                      <label className="text-xs font-semibold text-slate-700">Điểm tối thiểu</label>
+                      <Input
+                        type="number"
+                        placeholder="VD: 7"
+                        value={minScore}
+                        onChange={(e) => setMinScore(e.target.value)}
+                        className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5 w-full">
+                      <label className="text-xs font-semibold text-slate-700">Điểm tối đa</label>
+                      <Input
+                        type="number"
+                        placeholder="VD: 25"
+                        value={maxScore}
+                        onChange={(e) => setMaxScore(e.target.value)}
+                        className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
+                      />
+                    </div>
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Điểm số cao nhất</label>
-                  <Input
-                    type="number"
-                    placeholder="Ví dụ: 25"
-                    value={maxScore}
-                    onChange={(e) => setMaxScore(e.target.value)}
-                    className="h-9 text-sm"
-                  />
-                </div>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Từ ngày</label>
+                    <Input
+                      type="date"
+                      value={publicDateFrom}
+                      onChange={(e) => setPublicDateFrom(e.target.value)}
+                      className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm focus-visible:ring-indigo-500"
+                    />
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Từ ngày</label>
-                  <Input
-                    type="date"
-                    value={publicDateFrom}
-                    onChange={(e) => setPublicDateFrom(e.target.value)}
-                    className="w-full h-9 text-sm"
-                  />
-                </div>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Đến ngày</label>
+                    <Input
+                      type="date"
+                      value={publicDateTo}
+                      onChange={(e) => setPublicDateTo(e.target.value)}
+                      className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm focus-visible:ring-indigo-500"
+                    />
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Đến ngày</label>
-                  <Input
-                    type="date"
-                    value={publicDateTo}
-                    onChange={(e) => setPublicDateTo(e.target.value)}
-                    className="w-full h-9 text-sm"
-                  />
-                </div>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Mức chi tiêu</label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start font-normal whitespace-normal h-auto text-left py-2 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
+                          {selectedSpends.length > 0
+                            ? selectedSpends.map(s => ESTIMATED_SPEND_OPTIONS[s as keyof typeof ESTIMATED_SPEND_OPTIONS]).join(', ')
+                            : "Chọn mức chi tiêu"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full bg-white border-slate-200 text-slate-900 shadow-lg">
+                        {Object.entries(ESTIMATED_SPEND_OPTIONS).map(([value, label]) => (
+                          <div key={value} className="flex items-center p-2 hover:bg-slate-50 rounded-md">
+                            <Checkbox
+                              id={`spend-${value}`}
+                              checked={selectedSpends.includes(value)}
+                              onCheckedChange={(checked) => {
+                                setSelectedSpends(
+                                  checked
+                                    ? [...selectedSpends, value]
+                                    : selectedSpends.filter((v) => v !== value)
+                                );
+                              }}
+                              className="border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                            />
+                            <label htmlFor={`spend-${value}`} className="ml-2 text-sm cursor-pointer w-full">
+                              {label}
+                            </label>
+                          </div>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Mức chi tiêu</label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start font-normal whitespace-normal h-auto text-left py-2 text-sm">
-                        {selectedSpends.length > 0
-                          ? selectedSpends.map(s => ESTIMATED_SPEND_OPTIONS[s as keyof typeof ESTIMATED_SPEND_OPTIONS]).join(', ')
-                          : "Chọn mức chi tiêu"}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
-                      {Object.entries(ESTIMATED_SPEND_OPTIONS).map(([value, label]) => (
-                        <div key={value} className="flex items-center p-2">
-                          <Checkbox
-                            id={`spend-${value}`}
-                            checked={selectedSpends.includes(value)}
-                            onCheckedChange={(checked) => {
-                              setSelectedSpends(
-                                checked
-                                  ? [...selectedSpends, value]
-                                  : selectedSpends.filter((v) => v !== value)
-                              );
-                            }}
-                          />
-                          <label htmlFor={`spend-${value}`} className="ml-2 text-sm cursor-pointer">
-                            {label}
-                          </label>
-                        </div>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Điểm xu hướng từ</label>
+                    <Input
+                      type="number"
+                      placeholder="Ví dụ: 80"
+                      value={minTrendingScore}
+                      onChange={(e) => setMinTrendingScore(e.target.value)}
+                      className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
+                    />
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Điểm xu hướng từ</label>
-                  <Input
-                    type="number"
-                    placeholder="Ví dụ: 80"
-                    value={minTrendingScore}
-                    onChange={(e) => setMinTrendingScore(e.target.value)}
-                    className="h-9 text-sm"
-                  />
-                </div>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Phễu Marketing (Funnel)</label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start font-normal whitespace-normal h-auto text-left py-2 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
+                          {selectedFunnels.length > 0
+                            ? selectedFunnels.map(f => FUNNEL_OPTIONS[f as keyof typeof FUNNEL_OPTIONS]).join(', ')
+                            : "Chọn phễu"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full bg-white border-slate-200 text-slate-900 shadow-lg">
+                        {Object.entries(FUNNEL_OPTIONS).map(([value, label]) => (
+                          <div key={value} className="flex items-center p-2 hover:bg-slate-50 rounded-md">
+                            <Checkbox
+                              id={`funnel-${value}`}
+                              checked={selectedFunnels.includes(value)}
+                              onCheckedChange={(checked) => {
+                                setSelectedFunnels(
+                                  checked
+                                    ? [...selectedFunnels, value]
+                                    : selectedFunnels.filter((v) => v !== value)
+                                );
+                              }}
+                              className="border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                            />
+                            <label htmlFor={`funnel-${value}`} className="ml-2 text-sm cursor-pointer w-full">{label}</label>
+                          </div>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Phễu Marketing (Funnel)</label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start font-normal whitespace-normal h-auto text-left py-2 text-sm">
-                        {selectedFunnels.length > 0
-                          ? selectedFunnels.map(f => FUNNEL_OPTIONS[f as keyof typeof FUNNEL_OPTIONS]).join(', ')
-                          : "Chọn phễu"}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full">
-                      {Object.entries(FUNNEL_OPTIONS).map(([value, label]) => (
-                        <div key={value} className="flex items-center p-2">
-                          <Checkbox
-                            id={`funnel-${value}`}
-                            checked={selectedFunnels.includes(value)}
-                            onCheckedChange={(checked) => {
-                              setSelectedFunnels(
-                                checked
-                                  ? [...selectedFunnels, value]
-                                  : selectedFunnels.filter((v) => v !== value)
-                              );
-                            }}
-                          />
-                          <label htmlFor={`funnel-${value}`} className="ml-2 text-sm cursor-pointer">{label}</label>
-                        </div>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="space-y-1.5 w-full">
+                    <label className="text-xs font-semibold text-slate-700">Mức độ Scaling</label>
+                    <Select value={scalingLevel} onValueChange={setScalingLevel}>
+                      <SelectTrigger className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
+                        <SelectValue placeholder="Tất cả" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
+                        {SCALING_LEVEL_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="focus:bg-slate-100 cursor-pointer">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-
-                <div className="space-y-1.5 w-full">
-                  <label className="text-xs font-medium">Mức độ Scaling</label>
-                  <Select value={scalingLevel} onValueChange={setScalingLevel}>
-                    <SelectTrigger className="w-full h-9 text-sm">
-                      <SelectValue placeholder="Tất cả" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SCALING_LEVEL_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </AdsSpyFilterPanel>
+              </AdsSpyFilterPanel>
+            </div>
           </div>
 
           <div className="min-w-0">
-            {/* Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="mb-6 flex md:flex-row gap-2 flex-col">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            {/* Search Bar - Light Theme */}
+            <form onSubmit={handleSearchSubmit} className="mb-6 flex md:flex-row gap-3 flex-col">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
                   placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết ..."
-                  className="pl-10"
+                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-sm transition-all"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="mobile:w-full cursor-pointer">
+              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 cursor-pointer transition-all">
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                     Đang tìm kiếm...
                   </>
                 ) : (
                   <>
-                    <Search className="h-4 w-4 mr-2" />
+                    <Search className="h-5 w-5 mr-2" />
                     Tìm kiếm
                   </>
                 )}
@@ -580,20 +594,27 @@ export default function FacebookAdsPage() {
             <section>
               <AdsSpyResultsToolbar title="Kết quả Facebook Ads" count={results.length} />
               {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className="flex justify-center items-center py-20">
+                  <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
                 </div>
               ) : (
-                <div>
+                <div className="mt-6">
                   {results.length === 0 ? (
-                    <Card className="p-8 text-center border-2 mt-4">
-                      <CardTitle className="mb-4">Không tìm thấy dữ liệu kết quả</CardTitle>
-                      <CardContent className="text-muted-foreground">
-                        Không tìm thấy dữ liệu nào phù hợp với mốc điều kiện tìm kiếm của bạn.
-                      </CardContent>
+                    <Card className="p-12 text-center border-dashed border-2 border-slate-200 bg-slate-50/80 shadow-sm mt-4">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+                          <Search className="w-8 h-8 text-indigo-500" />
+                        </div>
+                        <div className="space-y-2">
+                          <h3 className="text-xl font-bold text-slate-900">Không tìm thấy dữ liệu</h3>
+                          <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
+                            Không tìm thấy dữ liệu nào phù hợp với điều kiện tìm kiếm của bạn. Hãy thử thay đổi bộ lọc hoặc từ khóa.
+                          </p>
+                        </div>
+                      </div>
                     </Card>
                   ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
+                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                       {results.map((ad, idx) => (
                         <FacebookAdCard
                           key={ad.ad_archive_id || ad._id || ad.id || idx}
@@ -604,23 +625,25 @@ export default function FacebookAdsPage() {
                     </div>
                   )}
 
-                  {/* Server-Side Pagination Controller */}
+                  {/* Server-Side Pagination Controller - Light Theme */}
                   {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-4 mt-8">
+                    <div className="flex justify-center items-center gap-4 mt-10">
                       <Button
+                        variant="outline"
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        className="cursor-pointer"
+                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                       >
                         Trang trước
                       </Button>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Trang {currentPage} trên tổng {totalPages}
+                      <span className="text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-md shadow-sm">
+                        Trang {currentPage} / {totalPages}
                       </span>
                       <Button
+                        variant="outline"
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className="cursor-pointer"
+                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                       >
                         Trang sau
                       </Button>
@@ -649,9 +672,9 @@ export default function FacebookAdsPage() {
         </div>
       </main>
 
-      <footer className="border-t border-border/40 py-8 mt-8">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2026 Ads Spy Tool. Dữ liệu phân tích quảng cáo.</p>
+      <footer className="border-t border-slate-200 py-8 mt-12 bg-white">
+        <div className="container text-center text-sm text-slate-500">
+          <p>© 2026 Ads Spy Tool. Dữ liệu phân tích quảng cáo chuyên sâu.</p>
         </div>
       </footer>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, memo, useEffect } from "react";
+import Image from "next/image";
 import { Header } from "@/components/header";
 import { VideoCard } from "@/components/video-card";
 import { BrandCard } from "@/components/brand-card";
@@ -30,6 +31,7 @@ import {
   Sparkles,
   LogIn,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useFrontendPagination } from "@/hooks/use-frontend-pagination";
@@ -82,12 +84,12 @@ const SortSelect = memo(
     onValueChange: (value: string) => void;
   }) => (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="h-9 text-sm">
+      <SelectTrigger className="h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 transition-colors">
         <SelectValue placeholder="Sắp xếp theo" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
         {sortOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={option.value} className="focus:bg-slate-100 focus:text-slate-900 cursor-pointer">
             {option.label}
           </SelectItem>
         ))}
@@ -106,12 +108,12 @@ const ShowVideosSelect = memo(
     onValueChange: (value: string) => void;
   }) => (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="h-9 text-sm">
+      <SelectTrigger className="h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 transition-colors">
         <SelectValue placeholder="Hiển thị video" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
         {showVideosOptions.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={option.value} className="focus:bg-slate-100 focus:text-slate-900 cursor-pointer">
             {option.label}
           </SelectItem>
         ))}
@@ -121,36 +123,34 @@ const ShowVideosSelect = memo(
 );
 ShowVideosSelect.displayName = "ShowVideosSelect";
 
+// 📌 Tích hợp 3 Affiliate Banners kèm Slogan kích thích chuyển đổi (Theme tối)
 const heroSlides = [
   {
-    badge: "YouTube Ads Spy Tool",
-    title: "Tìm kiếm Youtube Ads",
-    description:
-      "Nghiên cứu quảng cáo đối thủ, phân tích thương hiệu và theo dõi chiến dịch doanh nghiệp",
+    badge: "Scale Up Doanh Thu",
+    title: "Tiếp Cận 70 Triệu Khách Hàng Zalo",
+    description: "Tối ưu chi phí, bùng nổ đơn hàng với Zalo Ads. Giải pháp quảng cáo nội địa hiệu quả nhất hiện nay.",
+    buttonText: "Nhận Ưu Đãi Zalo Ads",
+    buttonHref: "https://zalo.me/s/ads",
+    image: "/zalo_ad.png",
+    alt: "Zalo Ads Platform"
   },
   {
-    badge: "Affiliate Placement",
-    title: "Đặt banner affiliate của bạn tại đây",
-    description:
-      "Một vị trí nổi bật giữa hành trình nghiên cứu quảng cáo. Tiếp cận hàng ngàn marketer và agency.",
-    buttonText: "Đăng ký đối tác",
-    buttonHref: "#",
+    badge: "Công Cụ Livestream #1",
+    title: "Livestream Đa Nền Tảng Chuyên Nghiệp",
+    description: "Phát lại video có sẵn, tăng mắt xem tự nhiên và chốt sale tự động với GoStream.",
+    buttonText: "Dùng Thử GoStream Miễn Phí",
+    buttonHref: "https://gostream.co",
+    image: "/gostream.png",
+    alt: "GoStream Livestream Tool"
   },
   {
-    badge: "Featured Partner",
-    title: "Khám phá công cụ tăng trưởng mới",
-    description:
-      "Dễ dàng thay bằng ưu đãi, landing page hoặc link đối tác của bạn để tối ưu hiệu suất.",
-    buttonText: "Tìm hiểu thêm",
-    buttonHref: "#",
-  },
-  {
-    badge: "Growth Toolkit",
-    title: "Tối ưu creative nhanh hơn",
-    description:
-      "Đưa đúng lời mời hành động đến đúng nhóm người dùng mục tiêu với dữ liệu quảng cáo chính xác.",
-    buttonText: "Khám phá ngay",
-    buttonHref: "#",
+    badge: "Nâng Cấp Kỹ Năng",
+    title: "Trở Thành Chuyên Gia Digital Marketing",
+    description: "Khóa học thực chiến từ cơ bản đến nâng cao trên Gotihi. Áp dụng ngay để vít ads ra đơn.",
+    buttonText: "Đăng Ký Khóa Học Gotihi",
+    buttonHref: "https://gotihi.com",
+    image: "/gitiho.png",
+    alt: "Gotihi Online Courses"
   },
 ];
 
@@ -169,7 +169,7 @@ const HeroSlider = memo(() => {
 
     const timer = setInterval(() => {
       api.scrollNext();
-    }, 2500);
+    }, 4500);
 
     return () => {
       api.off("select", onSelect);
@@ -178,61 +178,72 @@ const HeroSlider = memo(() => {
   }, [api]);
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-800 to-blue-950 py-10 md:py-14 text-white">
+    <section className="relative w-full overflow-hidden bg-slate-950 py-12 md:py-20 text-white border-b border-slate-800">
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
-      <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-10 left-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container relative z-10 mx-auto px-4">
         <Carousel
           setApi={setApi}
           opts={{ loop: true }}
-          className="w-full max-w-4xl mx-auto"
+          className="w-full max-w-5xl mx-auto"
         >
           <CarouselContent>
             {heroSlides.map((slide, idx) => (
               <CarouselItem key={idx}>
-                <div className="flex flex-col items-center justify-center text-center px-4 md:px-12 py-4 min-h-[160px]">
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold text-white uppercase tracking-wider">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {slide.badge}
-                  </div>
-                  <h1 className="mb-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl lg:text-4xl">
-                    {slide.title}
-                  </h1>
-                  <p className="text-sm md:text-base text-white/80 max-w-xl mx-auto">
-                    {slide.description}
-                  </p>
-                  {slide.buttonText && (
-                    <div className="mt-4">
-                      <Button
-                        asChild
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-full gap-2 bg-white text-indigo-900 hover:bg-white/90 shadow-md transition-all hover:scale-105"
-                      >
-                        <a href={slide.buttonHref || "#"}>
-                          {slide.buttonText}
-                          <ArrowRight className="h-4 w-4" />
-                        </a>
-                      </Button>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 px-4 md:px-8 py-4">
+                  <div className="flex-1 text-center md:text-left space-y-4">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 border border-slate-700 px-4 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {slide.badge}
                     </div>
-                  )}
+                    <h1 className="text-2xl font-black tracking-tight text-white md:text-4xl lg:text-5xl leading-tight">
+                      {slide.title}
+                    </h1>
+                    <p className="text-sm md:text-base text-slate-300 max-w-xl leading-relaxed">
+                      {slide.description}
+                    </p>
+                    {slide.buttonText && (
+                      <div className="pt-2">
+                        <Button
+                          asChild
+                          size="lg"
+                          className="rounded-full gap-2 bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-1"
+                        >
+                          <a href={slide.buttonHref} target="_blank" rel="noopener noreferrer">
+                            {slide.buttonText}
+                            <ArrowRight className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 w-full max-w-md relative rounded-2xl overflow-hidden border border-slate-700 shadow-2xl shadow-indigo-950/50 group">
+                    <div className="aspect-video w-full bg-slate-900 relative">
+                      <Image
+                        src={slide.image}
+                        alt={slide.alt}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  </div>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-2 md:-left-8 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" />
-          <CarouselNext className="right-2 md:-right-8 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" />
+          <CarouselPrevious className="left-2 md:-left-8 border-slate-700 bg-slate-800/80 text-white hover:bg-slate-700 hover:text-white" />
+          <CarouselNext className="right-2 md:-right-8 border-slate-700 bg-slate-800/80 text-white hover:bg-slate-700 hover:text-white" />
         </Carousel>
 
-        {/* Indicator dots */}
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mt-8">
           {heroSlides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => api?.scrollTo(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${current === idx ? "w-6 bg-white" : "w-2 bg-white/40 hover:bg-white/60"
+              className={`h-2 rounded-full transition-all duration-300 ${current === idx ? "w-8 bg-indigo-500" : "w-2 bg-slate-700 hover:bg-slate-500"
                 }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
@@ -244,7 +255,7 @@ const HeroSlider = memo(() => {
 });
 HeroSlider.displayName = "HeroSlider";
 
-// Cute No Data Component
+// Cute No Data Component - Chuyển sang theme sáng
 const NoDataDisplay = memo(
   ({
     type,
@@ -302,25 +313,22 @@ const NoDataDisplay = memo(
     const { title, subtitle } = getDisplayText();
 
     return (
-      <Card className="p-12 text-center border-dashed border-2 border-muted-foreground/20 bg-gradient-to-br from-muted/10 to-muted/5">
+      <Card className="p-12 text-center border-dashed border-2 border-slate-200 bg-slate-50/80 shadow-sm">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary/60" />
-            </div>
-            <div className="absolute -top-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-              <span className="text-xs">✨</span>
+            <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+              <Sparkles className="w-8 h-8 text-indigo-500" />
             </div>
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-foreground">{title}</h3>
-            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+            <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+            <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
               {subtitle}
             </p>
           </div>
           {!hasSearched && (
-            <div className="mt-4 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
-              <span className="text-sm text-primary font-medium">
+            <div className="mt-4 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm">
+              <span className="text-sm text-indigo-600 font-medium">
                 💡 Mẹo nhỏ: Sử dụng từ khóa cụ thể để có kết quả tốt hơn
               </span>
             </div>
@@ -346,57 +354,33 @@ export default function MKTPage() {
   >("date");
 
   const { user, loading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">("ads");
 
-  // Tab management state
-  const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">(
-    "ads"
-  );
-
-  // Search results for each tab
   const [adsSearchResults, setAdsSearchResults] = useState<any>(null);
   const [brandsSearchResults, setBrandsSearchResults] = useState<any>(null);
-  const [companiesSearchResults, setCompaniesSearchResults] =
-    useState<any>(null);
+  const [companiesSearchResults, setCompaniesSearchResults] = useState<any>(null);
 
-  // Frontend pagination for each tab
-  const adsPagination = useFrontendPagination(
-    adsSearchResults?.data?.results || [],
-    { itemsPerPage: 20 }
-  );
-  const brandsPagination = useFrontendPagination(
-    brandsSearchResults?.data?.results || [],
-    { itemsPerPage: 20 }
-  );
-  const companiesPagination = useFrontendPagination(
-    companiesSearchResults?.data?.results || [],
-    { itemsPerPage: 20 }
-  );
+  const adsPagination = useFrontendPagination(adsSearchResults?.data?.results || [], { itemsPerPage: 20 });
+  const brandsPagination = useFrontendPagination(brandsSearchResults?.data?.results || [], { itemsPerPage: 20 });
+  const companiesPagination = useFrontendPagination(companiesSearchResults?.data?.results || [], { itemsPerPage: 20 });
 
-  // Modal states
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
 
-  // Handler to open brand modal from video card or detail modal
   const handleOpenBrandModal = useCallback((brandId: string | number | undefined) => {
     if (brandId) {
       setSelectedBrand({ brandId });
     }
   }, []);
 
-  // Fetch category for selected company
   useEffect(() => {
-    if (
-      selectedCompany?.categoryId ||
-      selectedCompany?.summary_data?.category_id
-    ) {
-      const categoryId =
-        selectedCompany.categoryId || selectedCompany.summary_data.category_id;
+    if (selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id) {
+      const categoryId = selectedCompany.categoryId || selectedCompany.summary_data.category_id;
       fetchCategory(categoryId);
     }
   }, [selectedCompany, fetchCategory]);
 
-  // Use MKT search with cache polling for ads
   const {
     searchWithCache: searchAdsWithCache,
     loading: adsSearchLoading,
@@ -405,7 +389,6 @@ export default function MKTPage() {
     status: adsSearchStatus,
   } = useMKTSearchWithCache();
 
-  // Use Brands search with cache polling
   const {
     searchWithCache: searchBrandsWithCache,
     loading: brandsSearchLoading,
@@ -414,7 +397,6 @@ export default function MKTPage() {
     status: brandsSearchStatus,
   } = useBrandsSearchWithCache();
 
-  // Use Companies search with cache polling
   const {
     searchWithCache: searchCompaniesWithCache,
     loading: companiesSearchLoading,
@@ -423,7 +405,6 @@ export default function MKTPage() {
     status: companiesSearchStatus,
   } = useCompaniesSearchWithCache();
 
-  // Determine loading state based on active tab
   const loading =
     activeTab === "ads"
       ? adsSearchLoading
@@ -433,112 +414,56 @@ export default function MKTPage() {
           ? companiesSearchLoading
           : false;
 
-  // Hook for refreshing favorite status
   const { refreshFavoriteStatus } = useFavorites();
 
-  // Handle polling results for ads
   useEffect(() => {
-    if (
-      activeTab === "ads" &&
-      adsSearchStatus === "completed" &&
-      adsSearchData
-    ) {
-      console.log(
-        "MKT Ads Polling completed, updating results:",
-        adsSearchData
-      );
-
+    if (activeTab === "ads" && adsSearchStatus === "completed" && adsSearchData) {
       setAdsSearchResults(adsSearchData);
-
-      // Show success toast for completed polling
       const resultCount = adsSearchData?.data?.results?.length || 0;
       if (resultCount > 0) {
-        toast.success(
-          `Found ${resultCount} ads from ${adsSearchData.total_available} available`
-        );
+        toast.success(`Tìm thấy ${resultCount} quảng cáo từ ${adsSearchData.total_available} có sẵn`);
       } else {
-        toast.info("No results found");
+        toast.info("Không tìm thấy kết quả");
       }
     } else if (activeTab === "ads" && adsSearchStatus === "error") {
-      console.log("MKT Ads Polling failed with error:", adsSearchError);
       setAdsSearchResults(null);
       toast.error(adsSearchError || "Tìm kiếm thất bại");
     }
   }, [activeTab, adsSearchStatus, adsSearchData, adsSearchError]);
 
-  // Handle polling results for brands
   useEffect(() => {
-    if (
-      activeTab === "brands" &&
-      brandsSearchStatus === "completed" &&
-      brandsSearchData
-    ) {
-      console.log(
-        "MKT Brands Polling completed, updating results:",
-        brandsSearchData
-      );
-
+    if (activeTab === "brands" && brandsSearchStatus === "completed" && brandsSearchData) {
       setBrandsSearchResults(brandsSearchData);
-
-      // Show success toast for completed polling
       const resultCount = brandsSearchData?.data?.results?.length || 0;
       if (resultCount > 0) {
-        toast.success(
-          `Tìm thấy ${resultCount} thương hiệu từ ${brandsSearchData.total_available} có sẵn`
-        );
+        toast.success(`Tìm thấy ${resultCount} thương hiệu từ ${brandsSearchData.total_available} có sẵn`);
       } else {
         toast.info("Không tìm thấy thương hiệu");
       }
     } else if (activeTab === "brands" && brandsSearchStatus === "error") {
-      console.log("MKT Brands Polling failed with error:", brandsSearchError);
       setBrandsSearchResults(null);
       toast.error(brandsSearchError || "Tìm kiếm thương hiệu thất bại");
     }
   }, [activeTab, brandsSearchStatus, brandsSearchData, brandsSearchError]);
 
-  // Handle polling results for companies
   useEffect(() => {
-    if (
-      activeTab === "companies" &&
-      companiesSearchStatus === "completed" &&
-      companiesSearchData
-    ) {
-      console.log(
-        "MKT Companies Polling completed, updating results:",
-        companiesSearchData
-      );
-
+    if (activeTab === "companies" && companiesSearchStatus === "completed" && companiesSearchData) {
       setCompaniesSearchResults(companiesSearchData);
-
-      // Show success toast for completed polling
       const resultCount = companiesSearchData?.data?.results?.length || 0;
       if (resultCount > 0) {
-        toast.success(
-          `Tìm thấy ${resultCount} doanh nghiệp từ ${companiesSearchData.total_available} có sẵn`
-        );
+        toast.success(`Tìm thấy ${resultCount} doanh nghiệp từ ${companiesSearchData.total_available} có sẵn`);
       } else {
         toast.info("Không tìm thấy doanh nghiệp");
       }
     } else if (activeTab === "companies" && companiesSearchStatus === "error") {
-      console.log(
-        "MKT Companies Polling failed with error:",
-        companiesSearchError
-      );
       setCompaniesSearchResults(null);
       toast.error(companiesSearchError || "Tìm kiếm doanh nghiệp thất bại");
     }
-  }, [
-    activeTab,
-    companiesSearchStatus,
-    companiesSearchData,
-    companiesSearchError,
-  ]);
+  }, [activeTab, companiesSearchStatus, companiesSearchData, companiesSearchError]);
 
-  // Tab change handler
   const handleTabChange = useCallback((value: string) => {
     const newTab = value as "ads" | "brands" | "companies";
     setActiveTab(newTab);
-    // Reset search results when switching tabs
     if (newTab === "ads") {
       setAdsSearchResults(null);
     } else if (newTab === "brands") {
@@ -548,33 +473,22 @@ export default function MKTPage() {
     }
   }, []);
 
-  // Ads search function
   const handleAdsSearch = useCallback(
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
-
       const searchQuery = searchQueryRef.current?.value?.trim();
-
-      if (page === 1) {
-        setAdsSearchResults(null);
-      }
+      if (page === 1) setAdsSearchResults(null);
 
       try {
         const result = await searchAdsWithCache({
           type: "ads",
           searchTerm: searchQuery,
-          page: 1, // Always use page 1 since API returns 1000 results
-          limit: 300, // Get more results for FE pagination
+          page: 1,
+          limit: 300,
           filters: {
             countryId: parseInt(selectedCountry),
-            language:
-              selectedLanguage && selectedLanguage !== "all"
-                ? selectedLanguage
-                : "",
-            categoryIds:
-              selectedCategory && selectedCategory !== "0"
-                ? [parseInt(selectedCategory)]
-                : [],
+            language: selectedLanguage && selectedLanguage !== "all" ? selectedLanguage : "",
+            categoryIds: selectedCategory && selectedCategory !== "0" ? [parseInt(selectedCategory)] : [],
             dateFrom: dateFrom || "",
             dateTo: dateTo || "",
             showVideos: showVideos as "unlisted" | "all" | "public",
@@ -587,12 +501,9 @@ export default function MKTPage() {
           setAdsSearchResults(null);
         } else if (result?.success && result?.data) {
           setAdsSearchResults(result.data);
-
           const resultCount = result.data?.data?.results?.length || 0;
           if (resultCount > 0) {
-            toast.success(
-              `Tìm thấy ${resultCount} quảng cáo từ ${result.data.total_available} có sẵn`
-            );
+            toast.success(`Tìm thấy ${resultCount} quảng cáo từ ${result.data.total_available} có sẵn`);
           } else {
             toast.info("Không tìm thấy kết quả");
           }
@@ -605,28 +516,14 @@ export default function MKTPage() {
         setAdsSearchResults(null);
       }
     },
-    [
-      searchAdsWithCache,
-      selectedCountry,
-      selectedLanguage,
-      selectedCategory,
-      dateFrom,
-      dateTo,
-      showVideos,
-      sortBy,
-    ]
+    [searchAdsWithCache, selectedCountry, selectedLanguage, selectedCategory, dateFrom, dateTo, showVideos, sortBy]
   );
 
-  // Brands search function with cache polling
   const handleBrandsSearch = useCallback(
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
-
       const searchQuery = searchQueryRef.current?.value?.trim();
-
-      if (page === 1) {
-        setBrandsSearchResults(null);
-      }
+      if (page === 1) setBrandsSearchResults(null);
 
       try {
         const result = await searchBrandsWithCache({
@@ -636,14 +533,8 @@ export default function MKTPage() {
           limit: 300,
           filters: {
             countryId: parseInt(selectedCountry),
-            categoryIds:
-              selectedCategory && selectedCategory !== "0"
-                ? [parseInt(selectedCategory)]
-                : [],
-            language:
-              selectedLanguage && selectedLanguage !== "all"
-                ? selectedLanguage
-                : "",
+            categoryIds: selectedCategory && selectedCategory !== "0" ? [parseInt(selectedCategory)] : [],
+            language: selectedLanguage && selectedLanguage !== "all" ? selectedLanguage : "",
             dateFrom: dateFrom || "",
             dateTo: dateTo || "",
             sortProp: sortBy,
@@ -656,12 +547,9 @@ export default function MKTPage() {
             toast.info("Bắt đầu tìm kiếm thương hiệu, vui lòng đợi...");
           } else {
             setBrandsSearchResults(result.data);
-
             const resultCount = result.data?.data?.results?.length || 0;
             if (resultCount > 0) {
-              toast.success(
-                `Tìm thấy ${resultCount} thương hiệu từ ${result.data.total_available} có sẵn`
-              );
+              toast.success(`Tìm thấy ${resultCount} thương hiệu từ ${result.data.total_available} có sẵn`);
             } else {
               toast.info("Không tìm thấy thương hiệu");
             }
@@ -678,16 +566,11 @@ export default function MKTPage() {
     [searchBrandsWithCache, selectedCountry, selectedCategory, sortBy]
   );
 
-  // Companies search function with cache polling
   const handleCompaniesSearch = useCallback(
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
-
       const searchQuery = searchQueryRef.current?.value?.trim();
-
-      if (page === 1) {
-        setCompaniesSearchResults(null);
-      }
+      if (page === 1) setCompaniesSearchResults(null);
 
       try {
         const result = await searchCompaniesWithCache({
@@ -697,14 +580,8 @@ export default function MKTPage() {
           limit: 300,
           filters: {
             countryId: parseInt(selectedCountry),
-            categoryIds:
-              selectedCategory && selectedCategory !== "0"
-                ? [parseInt(selectedCategory)]
-                : [],
-            language:
-              selectedLanguage && selectedLanguage !== "all"
-                ? selectedLanguage
-                : "",
+            categoryIds: selectedCategory && selectedCategory !== "0" ? [parseInt(selectedCategory)] : [],
+            language: selectedLanguage && selectedLanguage !== "all" ? selectedLanguage : "",
             dateFrom: dateFrom || "",
             dateTo: dateTo || "",
             sortProp: sortBy,
@@ -717,12 +594,9 @@ export default function MKTPage() {
             toast.info("Bắt đầu tìm kiếm doanh nghiệp, vui lòng đợi...");
           } else {
             setCompaniesSearchResults(result.data);
-
             const resultCount = result.data?.data?.results?.length || 0;
             if (resultCount > 0) {
-              toast.success(
-                `Tìm thấy ${resultCount} doanh nghiệp từ ${result.data.total_available} có sẵn`
-              );
+              toast.success(`Tìm thấy ${resultCount} doanh nghiệp từ ${result.data.total_available} có sẵn`);
             } else {
               toast.info("Không tìm thấy doanh nghiệp");
             }
@@ -739,7 +613,6 @@ export default function MKTPage() {
     [searchCompaniesWithCache, selectedCountry, selectedCategory, sortBy]
   );
 
-  // Generic search handler that delegates to the appropriate search function
   const handleSearch = useCallback(
     (e: React.FormEvent | null, page: number = 1) => {
       if (activeTab === "ads") {
@@ -753,25 +626,24 @@ export default function MKTPage() {
     [activeTab, handleAdsSearch, handleBrandsSearch, handleCompaniesSearch]
   );
 
-  // Show login prompt if not authenticated
   if (!authLoading && !user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <Header />
-        <main className="container py-8">
-          <Card className="max-w-md mx-auto border-2">
+        <main className="container py-12">
+          <Card className="max-w-md mx-auto border border-slate-200 bg-white shadow-xl rounded-2xl">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-red-600 text-white mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-6 border border-indigo-100">
                 <LogIn className="h-8 w-8" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-foreground">
+              <h3 className="mb-2 text-xl font-bold text-slate-900">
                 Đăng nhập để tìm kiếm Youtube Ads
               </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-6 text-sm text-slate-500">
                 Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo và
                 phân tích đối thủ
               </p>
-              <Button asChild className="cursor-pointer">
+              <Button asChild className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-200 w-full max-w-[200px] transition-all">
                 <a href="/login">
                   Đăng nhập
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -785,63 +657,66 @@ export default function MKTPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    // 📌 Đổi vùng nội dung tìm kiếm thành nền sáng (bg-slate-50, text-slate-900)
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
       <Header />
 
-      {/* Hero Section Slider */}
+      {/* Hero Section Slider giữ nguyên nền đen để nổi bật */}
       <HeroSlider />
 
       <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
-        {/* Thu hẹp cột bộ lọc xuống 250px và thêm items-start để sticky hoạt động */}
         <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] items-start">
 
-          {/* Vùng chứa bộ lọc - Thêm class sticky */}
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-            <AdsSpyFilterPanel
-              title="Bộ lọc"
-              onClear={() => { setSelectedCountry("0"); setSelectedLanguage("all"); setSelectedCategory("0"); setShowVideos("unlisted"); setDateFrom(""); setDateTo(""); }}
-            >
-              <div className="mt-4">
-                <YoutubeAdsFilters
-                  country={selectedCountry}
-                  setCountry={setSelectedCountry}
-                  language={selectedLanguage}
-                  setLanguage={setSelectedLanguage}
-                  category={selectedCategory}
-                  setCategory={setSelectedCategory}
-                  showVideos={showVideos}
-                  setShowVideos={setShowVideos}
-                  dateFrom={dateFrom}
-                  setDateFrom={setDateFrom}
-                  dateTo={dateTo}
-                  setDateTo={setDateTo}
-                />
-              </div>
-            </AdsSpyFilterPanel>
+          {/* Cột bộ lọc - Theme sáng */}
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5">
+              <AdsSpyFilterPanel
+                title="Bộ lọc"
+                onClear={() => { setSelectedCountry("0"); setSelectedLanguage("all"); setSelectedCategory("0"); setShowVideos("unlisted"); setDateFrom(""); setDateTo(""); }}
+              >
+                <div className="mt-4">
+                  <YoutubeAdsFilters
+                    country={selectedCountry}
+                    setCountry={setSelectedCountry}
+                    language={selectedLanguage}
+                    setLanguage={setSelectedLanguage}
+                    category={selectedCategory}
+                    setCategory={setSelectedCategory}
+                    showVideos={showVideos}
+                    setShowVideos={setShowVideos}
+                    dateFrom={dateFrom}
+                    setDateFrom={setDateFrom}
+                    dateTo={dateTo}
+                    setDateTo={setDateTo}
+                  />
+                </div>
+              </AdsSpyFilterPanel>
+            </div>
           </div>
 
+          {/* Cột nội dung chính - Theme sáng */}
           <div className="min-w-0">
             <form
               onSubmit={handleSearch}
-              className="mb-6 flex gap-2 mobile:flex-col"
+              className="mb-8 flex gap-3 mobile:flex-col"
             >
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative flex-1 group">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
                   placeholder="Tìm kiếm bằng từ khóa, URL hoặc tên thương hiệu..."
-                  className="pl-10"
+                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-sm transition-all"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="mobile:w-full cursor-pointer">
+              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 cursor-pointer transition-all">
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Đang tìm kiếm...
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Đang quét...
                   </>
                 ) : (
                   <>
-                    <Search className="h-4 w-4 mr-2" />
+                    <Search className="h-5 w-5 mr-2" />
                     Tìm kiếm
                   </>
                 )}
@@ -850,25 +725,25 @@ export default function MKTPage() {
 
             <div className="w-full">
               <AdsSpyResultsToolbar title="Thư viện quảng cáo" count={activeTab === "ads" ? adsPagination.totalItems : activeTab === "brands" ? brandsPagination.totalItems : companiesPagination.totalItems} />
+
               <Tabs
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full mt-4"
+                className="w-full mt-6"
               >
-                <TabsList className="mb-6 w-full justify-start mobile:grid mobile:grid-cols-3">
-                  <TabsTrigger value="ads" className="mobile:text-xs">
+                <TabsList className="mb-6 w-full justify-start bg-slate-100/80 border border-slate-200 p-1.5 rounded-xl mobile:grid mobile:grid-cols-3">
+                  <TabsTrigger value="ads" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">
                     Tìm kiếm quảng cáo
                   </TabsTrigger>
-                  <TabsTrigger value="brands" className="mobile:text-xs">
+                  <TabsTrigger value="brands" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">
                     Thương hiệu
                   </TabsTrigger>
-                  <TabsTrigger value="companies" className="mobile:text-xs">
+                  <TabsTrigger value="companies" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">
                     Doanh nghiệp
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="ads" className="space-y-4">
-                  {/* Loading State */}
                   <SearchLoadingState
                     isSearching={loading}
                     isPending={activeTab === "ads" && adsSearchStatus === "pending"}
@@ -876,29 +751,20 @@ export default function MKTPage() {
                     className="mb-6"
                   />
 
-                  {/* Ads Search Results */}
                   {adsSearchResults ? (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold">
-                          Kết quả tìm kiếm quảng cáo
+                        <h2 className="text-xl font-bold text-slate-900">
+                          Kết quả tìm kiếm
                         </h2>
-                        <p className="text-sm text-muted-foreground">
-                          Tìm thấy {adsPagination.totalItems} quảng cáo (
-                          {adsSearchResults.total_available || 0} tổng cộng có sẵn)
-                          {adsPagination.totalPages > 1 && (
-                            <span>
-                              {" "}
-                              - Trang {adsPagination.currentPage} của{" "}
-                              {adsPagination.totalPages}
-                            </span>
-                          )}
+                        <p className="text-sm text-slate-500">
+                          {adsPagination.totalItems} kết quả
                         </p>
                       </div>
 
                       {adsPagination.totalItems > 0 ? (
                         <>
-                          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                          <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                             {adsPagination.currentItems.map(
                               (video: any, index: number) => (
                                 <VideoCard
@@ -911,7 +777,6 @@ export default function MKTPage() {
                             )}
                           </div>
 
-                          {/* Frontend Pagination */}
                           <FrontendPagination
                             currentPage={adsPagination.currentPage}
                             totalPages={adsPagination.totalPages}
@@ -935,92 +800,21 @@ export default function MKTPage() {
                 </TabsContent>
 
                 <TabsContent value="brands" className="space-y-4">
-                  {/* Loading State */}
-                  <SearchLoadingState
-                    isSearching={loading}
-                    isPending={
-                      activeTab === "brands" && brandsSearchStatus === "pending"
-                    }
-                    searchType="brands"
-                    className="mb-6"
-                  />
-
-                  {/* Brands Search Results */}
+                  <SearchLoadingState isSearching={loading} isPending={activeTab === "brands" && brandsSearchStatus === "pending"} searchType="brands" className="mb-6" />
                   {brandsSearchResults ? (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold">
-                          Kết quả tìm kiếm thương hiệu
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          Tìm thấy {brandsPagination.totalItems} thương hiệu (
-                          {brandsSearchResults.total_available || 0} tổng cộng có
-                          sẵn)
-                          {brandsPagination.totalPages > 1 && (
-                            <span>
-                              {" "}
-                              - Trang {brandsPagination.currentPage} của{" "}
-                              {brandsPagination.totalPages}
-                            </span>
-                          )}
-                        </p>
+                        <h2 className="text-xl font-bold text-slate-900">Kết quả tìm kiếm</h2>
+                        <p className="text-sm text-slate-500">{brandsPagination.totalItems} kết quả</p>
                       </div>
-
                       {brandsPagination.totalItems > 0 ? (
                         <>
-                          <div className="grid gap-4 md:grid-cols-2 grid-cols-1 lg:grid-cols-3">
-                            {brandsPagination.currentItems.map(
-                              (brand: any, index: number) => (
-                                <BrandCard
-                                  key={brand.brandId || `brand-${index}`}
-                                  brandId={
-                                    brand.brandId?.toString() || `brand-${index}`
-                                  }
-                                  name={brand.name || `Brand ${index + 1}`}
-                                  description={
-                                    brand.description || "Không có mô tả"
-                                  }
-                                  logo={brand.thumbnail || "/placeholder.svg"}
-                                  totalAds={
-                                    brand.summary_data?.total_spend ||
-                                    brand.totalSpend ||
-                                    0
-                                  }
-                                  totalViews={String(
-                                    brand.summary_data?.total_views ||
-                                    brand.totalViews ||
-                                    0
-                                  )}
-                                  activeMonths={
-                                    Math.ceil(
-                                      (brand.summary_data?.spend_365 || 0) / 30
-                                    ) || 1
-                                  }
-                                  totalSpend={
-                                    brand.summary_data?.total_spend ||
-                                    brand.totalSpend ||
-                                    0
-                                  }
-                                  summaryDate={brand.summary_data?.summary_date}
-                                  onClick={() => setSelectedBrand(brand)}
-                                />
-                              )
-                            )}
+                          <div className="grid gap-5 md:grid-cols-2 grid-cols-1 lg:grid-cols-3">
+                            {brandsPagination.currentItems.map((brand: any, index: number) => (
+                              <BrandCard key={brand.brandId || `brand-${index}`} brandId={brand.brandId?.toString() || `brand-${index}`} name={brand.name || `Brand ${index + 1}`} description={brand.description || "Không có mô tả"} logo={brand.thumbnail || "/placeholder.svg"} totalAds={brand.summary_data?.total_spend || brand.totalSpend || 0} totalViews={String(brand.summary_data?.total_views || brand.totalViews || 0)} activeMonths={Math.ceil((brand.summary_data?.spend_365 || 0) / 30) || 1} totalSpend={brand.summary_data?.total_spend || brand.totalSpend || 0} summaryDate={brand.summary_data?.summary_date} onClick={() => setSelectedBrand(brand)} />
+                            ))}
                           </div>
-
-                          {/* Frontend Pagination */}
-                          <FrontendPagination
-                            currentPage={brandsPagination.currentPage}
-                            totalPages={brandsPagination.totalPages}
-                            totalItems={brandsPagination.totalItems}
-                            itemsPerPage={20}
-                            hasNextPage={brandsPagination.hasNextPage}
-                            hasPrevPage={brandsPagination.hasPrevPage}
-                            onNextPage={brandsPagination.nextPage}
-                            onPrevPage={brandsPagination.prevPage}
-                            onGoToPage={brandsPagination.goToPage}
-                            className="mt-8"
-                          />
+                          <FrontendPagination currentPage={brandsPagination.currentPage} totalPages={brandsPagination.totalPages} totalItems={brandsPagination.totalItems} itemsPerPage={20} hasNextPage={brandsPagination.hasNextPage} hasPrevPage={brandsPagination.hasPrevPage} onNextPage={brandsPagination.nextPage} onPrevPage={brandsPagination.prevPage} onGoToPage={brandsPagination.goToPage} className="mt-8" />
                         </>
                       ) : (
                         <NoDataDisplay type="brands" hasSearched={true} />
@@ -1032,94 +826,21 @@ export default function MKTPage() {
                 </TabsContent>
 
                 <TabsContent value="companies" className="space-y-4">
-                  {/* Loading State */}
-                  <SearchLoadingState
-                    isSearching={loading}
-                    isPending={
-                      activeTab === "companies" &&
-                      companiesSearchStatus === "pending"
-                    }
-                    searchType="companies"
-                    className="mb-6"
-                  />
-
-                  {/* Companies Search Results */}
+                  <SearchLoadingState isSearching={loading} isPending={activeTab === "companies" && companiesSearchStatus === "pending"} searchType="companies" className="mb-6" />
                   {companiesSearchResults ? (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold">
-                          Kết quả tìm kiếm doanh nghiệp
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          Tìm thấy {companiesPagination.totalItems} doanh nghiệp (
-                          {companiesSearchResults.total_available || 0} tổng cộng có
-                          sẵn)
-                          {companiesPagination.totalPages > 1 && (
-                            <span>
-                              {" "}
-                              - Trang {companiesPagination.currentPage} của{" "}
-                              {companiesPagination.totalPages}
-                            </span>
-                          )}
-                        </p>
+                        <h2 className="text-xl font-bold text-slate-900">Kết quả tìm kiếm</h2>
+                        <p className="text-sm text-slate-500">{companiesPagination.totalItems} kết quả</p>
                       </div>
-
                       {companiesPagination.totalItems > 0 ? (
                         <>
-                          <div className="grid gap-4 md:grid-cols-2 grid-cols-1 lg:grid-cols-3">
-                            {companiesPagination.currentItems.map(
-                              (company: any, index: number) => (
-                                <CompanyCard
-                                  key={company.companyId || `company-${index}`}
-                                  name={
-                                    company.legalName ||
-                                    company.summary_data?.legal_name ||
-                                    "Tên không xác định"
-                                  }
-                                  description={`Doanh nghiệp ${company.isAffiliate ? "Affiliate" : "Marketing"
-                                    } - ID: ${company.companyId}`}
-                                  totalBrands={1}
-                                  markets={[
-                                    `Quốc gia ID: ${company.countryId ||
-                                    company.summary_data?.country_id ||
-                                    "N/A"
-                                    }`,
-                                  ]}
-                                  estimatedSpend={`$${(
-                                    (company.summary_data?.total_spend ||
-                                      company.totalSpend ||
-                                      0) / 1000000
-                                  ).toFixed(1)}M`}
-                                  totalSpend={Math.floor(
-                                    company.summary_data?.total_spend ||
-                                    company.totalSpend ||
-                                    0
-                                  )}
-                                  summaryDate={company.summary_data?.summary_date}
-                                  onClick={() => setSelectedCompany(company)}
-                                  companyId={company.companyId?.toString() || ""}
-                                  isAffiliate={company.isAffiliate || false}
-                                  totalVideos={Math.floor(
-                                    company.summary_data?.total_views || 0
-                                  )}
-                                />
-                              )
-                            )}
+                          <div className="grid gap-5 md:grid-cols-2 grid-cols-1 lg:grid-cols-3">
+                            {companiesPagination.currentItems.map((company: any, index: number) => (
+                              <CompanyCard key={company.companyId || `company-${index}`} name={company.legalName || company.summary_data?.legal_name || "Tên không xác định"} description={`Doanh nghiệp ${company.isAffiliate ? "Affiliate" : "Marketing"} - ID: ${company.companyId}`} totalBrands={1} markets={[`Quốc gia ID: ${company.countryId || company.summary_data?.country_id || "N/A"}`]} estimatedSpend={`$${((company.summary_data?.total_spend || company.totalSpend || 0) / 1000000).toFixed(1)}M`} totalSpend={Math.floor(company.summary_data?.total_spend || company.totalSpend || 0)} summaryDate={company.summary_data?.summary_date} onClick={() => setSelectedCompany(company)} companyId={company.companyId?.toString() || ""} isAffiliate={company.isAffiliate || false} totalVideos={Math.floor(company.summary_data?.total_views || 0)} />
+                            ))}
                           </div>
-
-                          {/* Frontend Pagination */}
-                          <FrontendPagination
-                            currentPage={companiesPagination.currentPage}
-                            totalPages={companiesPagination.totalPages}
-                            totalItems={companiesPagination.totalItems}
-                            itemsPerPage={20}
-                            hasNextPage={companiesPagination.hasNextPage}
-                            hasPrevPage={companiesPagination.hasPrevPage}
-                            onNextPage={companiesPagination.nextPage}
-                            onPrevPage={companiesPagination.prevPage}
-                            onGoToPage={companiesPagination.goToPage}
-                            className="mt-8"
-                          />
+                          <FrontendPagination currentPage={companiesPagination.currentPage} totalPages={companiesPagination.totalPages} totalItems={companiesPagination.totalItems} itemsPerPage={20} hasNextPage={companiesPagination.hasNextPage} hasPrevPage={companiesPagination.hasPrevPage} onNextPage={companiesPagination.nextPage} onPrevPage={companiesPagination.prevPage} onGoToPage={companiesPagination.goToPage} className="mt-8" />
                         </>
                       ) : (
                         <NoDataDisplay type="companies" hasSearched={true} />
@@ -1131,14 +852,13 @@ export default function MKTPage() {
                 </TabsContent>
               </Tabs>
 
-              {/* Error State */}
               {adsSearchError && (
-                <Card className="p-8 text-center border-destructive mt-4">
-                  <h3 className="text-lg font-semibold mb-2 text-destructive">
+                <Card className="p-8 text-center border-red-200 bg-red-50 mt-6 shadow-sm">
+                  <h3 className="text-lg font-bold mb-2 text-red-600">
                     Lỗi tìm kiếm
                   </h3>
-                  <p className="text-muted-foreground mb-4">{adsSearchError}</p>
-                  <Button onClick={() => handleSearch(null)} variant="outline">
+                  <p className="text-red-500/80 mb-4">{adsSearchError}</p>
+                  <Button onClick={() => handleSearch(null)} variant="outline" className="border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700">
                     Thử lại
                   </Button>
                 </Card>
@@ -1186,9 +906,9 @@ export default function MKTPage() {
         onClose={() => { }}
       />
 
-      <footer className="border-t border-border/40 py-8 mt-8">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
+      <footer className="border-t border-slate-200 py-8 mt-12 bg-white">
+        <div className="container text-center text-sm text-slate-500">
+          <p>© 2026 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
         </div>
       </footer>
     </div>

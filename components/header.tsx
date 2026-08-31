@@ -43,21 +43,21 @@ export function Header() {
   }
 
   const navigationItems = [
-    { href: "/quicksearch", icon: Search, label: "Tìm kiếm nhanh" },
+    { href: "/", icon: Search, label: "Trang chủ" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md supports-[backdrop-filter]:bg-slate-950/80">
       <div className="container px-4 md:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Video className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 shadow-lg shadow-indigo-600/30">
+              <Video className="h-5 w-5 text-white" />
             </div>
-            <span className="mobile:text-lg tablet:text-xl font-bold text-foreground">Ads Spy Tool</span>
+            <span className="text-lg md:text-xl font-bold text-white tracking-tight">Ads Spy Tool</span>
           </Link>
 
           {/* Desktop Navigation - Hidden on 1024px and below */}
@@ -69,11 +69,10 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                    isActive 
-                      ? 'text-primary border-b-2 border-primary pb-1' 
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive
+                      ? 'text-indigo-400 border-b-2 border-indigo-500 pb-1'
+                      : 'text-slate-400 hover:text-white'
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
@@ -87,16 +86,16 @@ export function Header() {
           {/* Mobile Menu Button - Show on 1024px and below */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="xl:hidden">
+              <Button variant="ghost" size="sm" className="xl:hidden text-slate-300 hover:text-white hover:bg-slate-900">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Mở menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80">
+            <SheetContent side="left" className="w-80 bg-slate-950 border-r border-slate-800 text-slate-100">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                    <Video className="h-4 w-4 text-primary-foreground" />
+                <SheetTitle className="flex items-center gap-2 text-white">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
+                    <Video className="h-4 w-4 text-white" />
                   </div>
                   Menu
                 </SheetTitle>
@@ -110,11 +109,10 @@ export function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'text-primary bg-primary/10 border border-primary/20'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                      }`}
+                      className={`flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-colors ${isActive
+                          ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Icon className="h-5 w-5" />
@@ -122,11 +120,11 @@ export function Header() {
                     </Link>
                   )
                 })}
-                
-                <div className="border-t border-border pt-4">
+
+                <div className="border-t border-slate-800 pt-4">
                   <Link
                     href="/pricing"
-                    className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <TrendingUp className="h-5 w-5" />
@@ -136,29 +134,29 @@ export function Header() {
 
                 {/* User Section in Mobile Menu */}
                 {user ? (
-                  <div className="border-t border-border pt-4 space-y-2">
-                    <div className="flex items-center gap-3 p-3">
+                  <div className="border-t border-slate-800 pt-4 space-y-2">
+                    <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-slate-800">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage 
-                          src={user.user_metadata?.avatar_url} 
-                          alt={user.user_metadata?.full_name || user.email} 
+                        <AvatarImage
+                          src={user.user_metadata?.avatar_url}
+                          alt={user.user_metadata?.full_name || user.email}
                         />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-indigo-600 text-white">
                           {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col">
-                        <p className="text-sm font-medium leading-none">
+                      <div className="flex flex-col overflow-hidden">
+                        <p className="text-sm font-medium leading-none text-white truncate">
                           {user.user_metadata?.full_name || 'Người dùng'}
                         </p>
-                        <p className="text-xs leading-none text-muted-foreground mt-1">
+                        <p className="text-xs leading-none text-slate-400 mt-1 truncate">
                           {user.email}
                         </p>
                       </div>
                     </div>
                     <Link
                       href="/change-password"
-                      className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
@@ -169,24 +167,24 @@ export function Header() {
                         handleSignOut()
                         setMobileMenuOpen(false)
                       }}
-                      className="flex w-full items-center gap-3 rounded-lg p-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      className="flex w-full items-center gap-3 rounded-lg p-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
                     >
                       <LogOut className="h-5 w-5" />
                       Đăng xuất
                     </button>
                   </div>
                 ) : (
-                  <div className="border-t border-border pt-4 space-y-2">
+                  <div className="border-t border-slate-800 pt-4 space-y-2">
                     <Link
                       href="/login"
-                      className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/80 transition-colors"
+                      className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors border border-slate-800"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Đăng nhập
                     </Link>
                     <Link
                       href="/register"
-                      className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                      className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/30"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Đăng ký
@@ -199,74 +197,74 @@ export function Header() {
 
           {/* Desktop Pricing Link - Hidden on mobile */}
           <Link href="/pricing" className="hidden xl:block">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-slate-900">
               Bảng giá
             </Button>
           </Link>
 
           {loading ? (
-            <div className="w-20 h-8 bg-accent animate-pulse rounded hidden xl:block" />
+            <div className="w-20 h-8 bg-slate-900 animate-pulse rounded hidden xl:block" />
           ) : user ? (
             /* Desktop User Dropdown - Hidden on mobile */
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full hidden xl:flex">
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full hidden xl:flex hover:bg-slate-900">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage 
-                      src={user.user_metadata?.avatar_url} 
-                      alt={user.user_metadata?.full_name || user.email} 
+                    <AvatarImage
+                      src={user.user_metadata?.avatar_url}
+                      alt={user.user_metadata?.full_name || user.email}
                     />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-indigo-600 text-white">
                       {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-slate-900 border-slate-800 text-slate-200" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
+                    <p className="text-sm font-medium leading-none text-white">
                       {user.user_metadata?.full_name || 'Người dùng'}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-xs leading-none text-slate-400">
                       {user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                <DropdownMenuSeparator className="bg-slate-800" />
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
                   <Link href="/dashboard">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Bảng điều khiển
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/quicksearch">
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
+                  <Link href="/">
                     <Search className="mr-2 h-4 w-4" />
-                    Tìm kiếm nhanh
+                    Trang chủ
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
                   <Link href="/facebook-ads-search">
                     <Video className="mr-2 h-4 w-4" />
                     Facebook Ads
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
                   <Link href="/favorites">
                     <Heart className="mr-2 h-4 w-4" />
                     Yêu thích
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                <DropdownMenuSeparator className="bg-slate-800" />
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
                   <Link href="/change-password">
                     <User className="mr-2 h-4 w-4" />
                     Đổi mật khẩu
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuSeparator className="bg-slate-800" />
+                <DropdownMenuItem onClick={handleSignOut} className="focus:bg-rose-500/20 focus:text-rose-400 cursor-pointer text-rose-400">
                   <LogOut className="mr-2 h-4 w-4" />
                   Đăng xuất
                 </DropdownMenuItem>
@@ -276,12 +274,12 @@ export function Header() {
             /* Desktop Auth Buttons - Hidden on mobile */
             <div className="hidden xl:flex items-center gap-2">
               <Link href="/login">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-slate-900">
                   Đăng nhập
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">
+                <Button size="sm" className="bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30">
                   Đăng ký
                 </Button>
               </Link>
