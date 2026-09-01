@@ -11,6 +11,7 @@ import {
   type BlogCategory,
   type BlogPostSummary,
 } from '@/sanity/queries';
+import { Header } from '@/components/header';
 
 const POST_LIMIT = 6;
 
@@ -41,38 +42,43 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   }
 
   return (
-    <BlogShell
-      categories={categories}
-      title="Blog & Insights"
-      description="Khám phá các bài viết, chiến lược quảng cáo, hướng dẫn và insight từ đội ngũ Ads Spy Tool."
-    >
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Hiển thị <span className="font-semibold text-slate-900 dark:text-white">{posts.length}</span> bài viết trên <span className="font-semibold text-slate-900 dark:text-white">{totalCount}</span>
-          </p>
-          <Link
-            href="/studio"
-            className="inline-flex items-center rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500"
-          >
-            Open Studio
-          </Link>
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950">
+      {/* Tích hợp Header chung đồng bộ giao diện */}
+      <Header />
+
+      <BlogShell
+        categories={categories}
+        title="Blog & Insights"
+        description="Khám phá các bài viết, chiến lược quảng cáo, hướng dẫn và insight từ đội ngũ Ads Spy Tool."
+      >
+        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              Hiển thị <span className="font-bold text-slate-900 dark:text-white">{posts.length}</span> bài viết trên tổng số <span className="font-bold text-slate-900 dark:text-white">{totalCount}</span>
+            </p>
+            <Link
+              href="/studio"
+              className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition-all hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+            >
+              Open Studio
+            </Link>
+          </div>
+
+          {posts.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {posts.map((post) => (
+                <BlogPostCard key={post._id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-slate-300 bg-white/50 p-12 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">
+              Chưa có bài viết nào để hiển thị.
+            </div>
+          )}
+
+          <BlogPagination currentPage={safePage} totalPages={totalPages} basePath="/blog" />
         </div>
-
-        {posts.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {posts.map((post) => (
-              <BlogPostCard key={post._id} post={post} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
-            Chưa có bài viết nào để hiển thị.
-          </div>
-        )}
-
-        <BlogPagination currentPage={safePage} totalPages={totalPages} basePath="/blog" />
-      </div>
-    </BlogShell>
+      </BlogShell>
+    </div>
   );
 }
