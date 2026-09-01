@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: '%s | Ads Spy Tool',
   },
   description:
-    'Ads Spy Tool giúp bạn spy, phân tích và theo dõi quảng cáo Youtube, Affiliate Offers, Brands & Companies. Công cụ Ads Intelligence mạnh mẽ cho Marketer và Affiliate.',
+    'Ads Spy Tool giúp bạn spy, phân tích và theo dõi quảng cáo Youtube, Facebook, Brands & Companies. Công cụ Ads Intelligence mạnh mẽ cho Marketer và Affiliate.',
   applicationName: 'Ads Spy Tool',
   generator: 'Ads Spy Tool',
   keywords: [
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
     'Ads Intelligence Tool',
     'Affiliate Ads Spy',
     'Ads Library',
-    'Spy Youtube Ads',
-    'Affiliate Marketing Tool',
+    'Facebook Ads',
+    'Facebook Marketing Tool',
     'Quảng cáo Youtube',
     'Phân tích quảng cáo',
     'Marketing Tool',
