@@ -143,8 +143,8 @@ const HeroSlider = memo(() => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-2 md:-left-12 border-white/20 bg-white/10 text-white hover:bg-white/25 hover:text-white cursor-pointer transition-all hidden sm:flex" />
-          <CarouselNext className="right-2 md:-right-12 border-white/20 bg-white/10 text-white hover:bg-white/25 hover:text-white cursor-pointer transition-all hidden sm:flex" />
+         <CarouselPrevious className="left-2 md:-left-12 border-white/20 bg-white/10 text-white hover:bg-white/25 hover:text-white cursor-pointer transition-all hidden lg:flex" />
+<CarouselNext className="right-2 md:-right-12 border-white/20 bg-white/10 text-white hover:bg-white/25 hover:text-white cursor-pointer transition-all hidden lg:flex" />
         </Carousel>
 
         {/* Thống kê động (Counter animation) */}
