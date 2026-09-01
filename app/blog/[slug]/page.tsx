@@ -5,7 +5,7 @@ import { PortableText, type PortableTextComponents } from '@portabletext/react';
 import { CalendarDays, UserCircle2, ArrowLeft } from 'lucide-react';
 import { client, sanityFetch, urlFor } from '@/sanity/client';
 import { GET_POST_BY_SLUG_QUERY, type BlogPostDetail } from '@/sanity/queries';
-import { Header } from "d:/Projects/Youtube-ads-library/Youtube-ads-library/components/header" // Giả định component Header chung của dự án
+import { Header } from '@/components/header';
 
 interface BlogDetailPageProps {
     params: Promise<{ slug: string }>;
