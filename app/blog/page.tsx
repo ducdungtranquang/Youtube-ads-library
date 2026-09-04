@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Newspaper } from 'lucide-react';
 import { BlogPagination } from '@/components/blog/blog-pagination';
 import { BlogPostCard } from '@/components/blog/blog-post-card';
 import { BlogShell } from '@/components/blog/blog-shell';
@@ -42,26 +43,26 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
       {/* Tích hợp Header chung đồng bộ giao diện */}
       <Header />
 
       <BlogShell
         categories={categories}
         title="Blog & Insights"
-        description="Khám phá các bài viết, chiến lược quảng cáo, hướng dẫn và insight từ đội ngũ Ads Spy Tool."
+        description="Khám phá các bài viết, chiến lược quảng cáo, hướng dẫn và insight chuyên sâu từ đội ngũ Ads Spy Tool."
       >
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-              Hiển thị <span className="font-bold text-slate-900 dark:text-white">{posts.length}</span> bài viết trên tổng số <span className="font-bold text-slate-900 dark:text-white">{totalCount}</span>
-            </p>
-            <Link
-              href="/studio"
-              className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition-all hover:bg-slate-700 dark:bg-indigo-600 dark:hover:bg-indigo-500"
-            >
-              Open Studio
-            </Link>
+        <div className="space-y-8">
+          {/* Thanh thông tin số lượng bài viết được tối ưu gọn gàng, bỏ nút Open Studio */}
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl px-6 py-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <Newspaper className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-slate-300">
+                Đang hiển thị <span className="font-bold text-white">{posts.length}</span> trên tổng số <span className="font-bold text-white">{totalCount}</span> bài viết
+              </p>
+            </div>
           </div>
 
           {posts.length > 0 ? (
@@ -71,7 +72,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white/50 p-12 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">
+            <div className="rounded-3xl border border-dashed border-slate-800 bg-slate-900/40 p-16 text-center text-slate-400">
               Chưa có bài viết nào để hiển thị.
             </div>
           )}
