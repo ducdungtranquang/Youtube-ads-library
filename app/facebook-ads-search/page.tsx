@@ -67,7 +67,7 @@ const heroSlides = [
     title: "Tiếp Cận 70 Triệu Khách Hàng Zalo",
     description: "Tối ưu chi phí, bùng nổ đơn hàng với Zalo Ads. Giải pháp quảng cáo nội địa hiệu quả nhất hiện nay.",
     buttonText: "Nhận Ưu Đãi Zalo Ads",
-    buttonHref: "https://zalo.me/s/ads",
+    buttonHref: "https://shorten.asia/QGjMfDbB",
     image: "/zalo_ad.png",
     alt: "Zalo Ads Platform"
   },
@@ -76,7 +76,7 @@ const heroSlides = [
     title: "Livestream Đa Nền Tảng Chuyên Nghiệp",
     description: "Phát lại video có sẵn, tăng mắt xem tự nhiên và chốt sale tự động với GoStream.",
     buttonText: "Dùng Thử GoStream Miễn Phí",
-    buttonHref: "https://gostream.co",
+    buttonHref: "https://shorten.asia/befQzneV",
     image: "/gostream.png",
     alt: "GoStream Livestream Tool"
   },
@@ -85,7 +85,7 @@ const heroSlides = [
     title: "Trở Thành Chuyên Gia Digital Marketing",
     description: "Khóa học thực chiến từ cơ bản đến nâng cao trên Gotihi. Áp dụng ngay để vít ads ra đơn.",
     buttonText: "Đăng Ký Khóa Học Gotihi",
-    buttonHref: "https://gotihi.com",
+    buttonHref: "https://shorten.asia/TY1pP1AR",
     image: "/gitiho.png",
     alt: "Gotihi Online Courses"
   },
@@ -379,7 +379,7 @@ export default function FacebookAdsPage() {
         <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] items-start">
 
           {/* Vùng chứa bộ lọc - Chuyển sang Light Theme */}
-          <div className="sticky top-24 max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="lg:sticky top-24 max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5">
               <AdsSpyFilterPanel
                 title="Bộ lọc"

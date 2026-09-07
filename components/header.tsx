@@ -54,14 +54,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md supports-[backdrop-filter]:bg-slate-950/80">
       <div className="container px-4 md:px-6 lg:px-8 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 border border-indigo-500/30 shadow-lg shadow-indigo-600/20 overflow-hidden group-hover:border-indigo-500/60 transition-all">
-              <Image 
-                src="/ava_ads-spy_tool.png" 
-                alt="Ads Spy Tool Logo" 
-                fill 
-                className="object-contain p-1"
+            {/* Bo tròn hoàn toàn (rounded-full) để khung chứa logo ôm trọn bức ảnh hình tròn mượt mà */}
+            <div className="relative flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900 border border-indigo-500/30 shadow-lg shadow-indigo-600/20 overflow-hidden group-hover:border-indigo-500/60 transition-all">
+              <Image
+                src="/ava_ads-spy_tool.png"
+                alt="Ads Spy Tool Logo"
+                fill
+                className="object-cover"
                 priority
               />
             </div>
@@ -78,8 +79,8 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive
-                      ? 'text-indigo-400 border-b-2 border-indigo-500 pb-1'
-                      : 'text-slate-400 hover:text-white'
+                    ? 'text-indigo-400 border-b-2 border-indigo-500 pb-1'
+                    : 'text-slate-400 hover:text-white'
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -102,12 +103,12 @@ export function Header() {
             <SheetContent side="left" className="w-80 bg-slate-950 border-r border-slate-800 text-slate-100">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-3 text-white">
-                  <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 border border-indigo-500/30 overflow-hidden">
-                    <Image 
-                      src="/ava_ads-spy_tool.png" 
-                      alt="Ads Spy Tool Logo" 
-                      fill 
-                      className="object-contain p-1"
+                  <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 border border-indigo-500/30 overflow-hidden">
+                    <Image
+                      src="/ava_ads-spy_tool.png"
+                      alt="Ads Spy Tool Logo"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   Menu
@@ -123,8 +124,8 @@ export function Header() {
                       key={item.href}
                       href={item.href}
                       className={`flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-colors ${isActive
-                          ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                        ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-900'
                         }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -187,7 +188,7 @@ export function Header() {
                     </button>
                   </div>
                 ) : (
-                  <div className="border-t border-slate-800 pt-4 space-y-2 space-x-2">
+                  <div className="border-t border-slate-800 pt-4 space-y-2">
                     <Link
                       href="/login"
                       className="flex items-center justify-center rounded-lg p-3 text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors border border-slate-800"

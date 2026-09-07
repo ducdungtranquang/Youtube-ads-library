@@ -14,7 +14,7 @@ import {
 } from '@/sanity/queries';
 import { Header } from '@/components/header';
 
-const POST_LIMIT = 6;
+const POST_LIMIT = 11;
 
 interface BlogPageProps {
   searchParams?: Promise<{ page?: string }>;
