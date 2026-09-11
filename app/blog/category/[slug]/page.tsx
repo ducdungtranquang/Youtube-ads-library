@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
+import { Newspaper } from 'lucide-react';
 import { BlogPagination } from '@/components/blog/blog-pagination';
 import { BlogPostCard } from '@/components/blog/blog-post-card';
 import { BlogShell } from '@/components/blog/blog-shell';
+import { Header } from '@/components/header';
 import { client, sanityFetch } from '@/sanity/client';
 import {
   GET_CATEGORIES_QUERY,
@@ -48,31 +50,44 @@ export default async function BlogCategoryPage({ params, searchParams }: Categor
   }
 
   return (
-    <BlogShell
-      categories={categories}
-      selectedCategorySlug={slug}
-      title={`Category: ${category.title}`}
-      description={category.description || 'Khám phá các bài viết liên quan trong chuyên mục này.'}
-    >
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300">
-          Tìm thấy <span className="font-semibold text-slate-900 dark:text-white">{totalCount}</span> bài viết
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+      {/* Tích hợp Header chung đồng bộ giao diện */}
+      <Header />
+
+      <BlogShell
+        categories={categories}
+        selectedCategorySlug={slug}
+        title={`Chuyên mục: ${category.title}`}
+        description={category.description || 'Khám phá các bài viết liên quan trong chuyên mục này.'}
+      >
+        <div className="space-y-8">
+          {/* Thanh thông số bài viết đồng bộ với trang blog chính */}
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl px-6 py-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <Newspaper className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-slate-300">
+                Tìm thấy <span className="font-bold text-white">{totalCount}</span> bài viết trong chuyên mục này
+              </p>
+            </div>
+          </div>
+
+          {posts.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {posts.map((post) => (
+                <BlogPostCard key={post._id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-slate-800 bg-slate-900/40 p-16 text-center text-slate-400">
+              Chưa có bài viết nào trong chuyên mục này.
+            </div>
+          )}
+
+          <BlogPagination currentPage={safePage} totalPages={totalPages} basePath={`/blog/category/${slug}`} />
         </div>
-
-        {posts.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {posts.map((post) => (
-              <BlogPostCard key={post._id} post={post} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
-            Chưa có bài viết nào trong chuyên mục này.
-          </div>
-        )}
-
-        <BlogPagination currentPage={safePage} totalPages={totalPages} basePath={`/blog/category/${slug}`} />
-      </div>
-    </BlogShell>
+      </BlogShell>
+    </div>
   );
 }

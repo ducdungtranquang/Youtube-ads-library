@@ -88,18 +88,23 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             {/* Tích hợp Header chung đồng bộ giao diện */}
             <Header />
 
-            <main className="mx-auto max-w-4xl px-4 py-10 md:px-8 lg:px-10">
-                <Link
-                    href="/blog"
-                    className="group mb-8 inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 transition-all hover:text-indigo-300"
-                >
-                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                    Quay lại danh sách bài viết
-                </Link>
+            {/* Thanh điều hướng Sticky Back Button */}
+            <div className="sticky top-16 z-40 w-full border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+                <div className="mx-auto max-w-4xl px-4 py-3 md:px-8 lg:px-10">
+                    <Link
+                        href="/blog"
+                        className="group inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 transition-all hover:text-indigo-300"
+                    >
+                        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        Quay lại danh sách bài viết
+                    </Link>
+                </div>
+            </div>
 
+            <main className="mx-auto max-w-4xl px-4 py-8 md:px-8 lg:px-10">
                 <article className="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-2xl">
                     {imageUrl ? (
-                        <div className="relative h-72 w-full overflow-hidden sm:h-96 md:h-[420px] bg-slate-900">
+                        <div className="relative h-72 w-full overflow-hidden sm:h-96 md:h-[450px] lg:h-[520px] bg-slate-900">
                             <Image src={imageUrl} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 896px" className="object-fill" priority />
                         </div>
                     ) : null}
