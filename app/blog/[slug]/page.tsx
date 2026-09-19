@@ -45,8 +45,15 @@ const customComponents: PortableTextComponents = {
         em: ({ children }) => <em className="italic text-slate-200">{children}</em>,
         link: ({ value, children }) => {
             const href = typeof value?.href === 'string' ? value.href : '#';
+            // Tối ưu SEO & Security: Thêm noopener noreferrer cho target="_blank"
+            const isExternal = href.startsWith('http');
             return (
-                <a href={href} target="_blank" rel="noreferrer" className="font-medium text-indigo-400 underline-offset-4 hover:underline">
+                <a
+                    href={href}
+                    target={isExternal ? "_blank" : "_self"}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="font-medium text-indigo-400 underline-offset-4 hover:underline"
+                >
                     {children}
                 </a>
             );
@@ -90,7 +97,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
             {/* Thanh điều hướng Sticky Back Button */}
             <div className="sticky top-16 z-40 w-full border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-                <div className="mx-auto max-w-4xl px-4 py-3 md:px-8 lg:px-10">
+                {/* Tăng max-w-4xl thành max-w-5xl xl:max-w-6xl */}
+                <div className="mx-auto max-w-5xl xl:max-w-6xl px-4 py-3 md:px-8 lg:px-10">
                     <Link
                         href="/blog"
                         className="group inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 transition-all hover:text-indigo-300"
@@ -101,11 +109,13 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 </div>
             </div>
 
-            <main className="mx-auto max-w-4xl px-4 py-8 md:px-8 lg:px-10">
+            {/* Tăng max-w-4xl thành max-w-5xl xl:max-w-6xl */}
+            <main className="mx-auto max-w-5xl xl:max-w-6xl px-4 py-8 md:px-8 lg:px-10">
                 <article className="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-2xl">
                     {imageUrl ? (
                         <div className="relative h-72 w-full overflow-hidden sm:h-96 md:h-[450px] lg:h-[520px] bg-slate-900">
-                            <Image src={imageUrl} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 896px" className="object-fill" priority />
+                            {/* Cập nhật sizes để render nét hơn trên màn hình lớn */}
+                            <Image src={imageUrl} alt={post.title} fill sizes="(max-width: 1280px) 100vw, 1152px" className="object-fill" priority />
                         </div>
                     ) : null}
 

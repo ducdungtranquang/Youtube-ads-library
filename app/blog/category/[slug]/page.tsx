@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Newspaper } from 'lucide-react';
 import { BlogPagination } from '@/components/blog/blog-pagination';
@@ -19,6 +20,33 @@ const POST_LIMIT = 6;
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ page?: string }>;
+}
+
+// Tối ưu SEO 100%: Thêm dynamic metadata để Google index đúng tiêu đề và mô tả của từng Category
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const category = await sanityFetch<BlogCategory | null>({
+    query: GET_CATEGORY_BY_SLUG_QUERY,
+    params: { slug }
+  });
+
+  if (!category) {
+    return { title: 'Không tìm thấy chuyên mục' };
+  }
+
+  return {
+    title: `${category.title} | Blog`,
+    description: category.description || `Khám phá các bài viết mới nhất trong chuyên mục ${category.title}.`,
+    alternates: {
+      canonical: `/blog/category/${slug}`,
+    },
+    openGraph: {
+      title: category.title,
+      description: category.description || `Khám phá các bài viết mới nhất trong chuyên mục ${category.title}.`,
+      type: 'website',
+      url: `/blog/category/${slug}`,
+    },
+  };
 }
 
 export default async function BlogCategoryPage({ params, searchParams }: CategoryPageProps) {
@@ -60,7 +88,8 @@ export default async function BlogCategoryPage({ params, searchParams }: Categor
         title={`Chuyên mục: ${category.title}`}
         description={category.description || 'Khám phá các bài viết liên quan trong chuyên mục này.'}
       >
-        <div className="space-y-8">
+        {/* Tối ưu UI: Thêm w-full max-w-5xl xl:max-w-6xl mx-auto để mở rộng chiều rộng trên desktop */}
+        <div className="space-y-8 mx-auto w-full max-w-5xl xl:max-w-6xl">
           {/* Thanh thông số bài viết đồng bộ với trang blog chính */}
           <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl px-6 py-4 shadow-xl">
             <div className="flex items-center gap-3">
