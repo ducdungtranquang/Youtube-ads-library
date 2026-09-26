@@ -1,34 +1,40 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
 import { notFound } from 'next/navigation';
 import { PortableText, type PortableTextComponents } from '@portabletext/react';
 import { CalendarDays, UserCircle2, ArrowLeft } from 'lucide-react';
 import { client, sanityFetch, urlFor } from '@/sanity/client';
 import { GET_POST_BY_SLUG_QUERY, type BlogPostDetail } from '@/sanity/queries';
 import { Header } from '@/components/header';
+import type { Metadata } from 'next';
 
 interface BlogDetailPageProps {
     params: Promise<{ slug: string }>;
 }
 
+// Tối ưu hàm formatDate để trả về cả định dạng hiển thị và ISO cho thẻ <time>
 const formatDate = (value?: string) => {
-    if (!value) return 'Soon';
+    if (!value) return { display: 'Soon', iso: '' };
 
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return 'Soon';
+    if (Number.isNaN(date.getTime())) return { display: 'Soon', iso: '' };
 
-    return new Intl.DateTimeFormat('vi-VN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    }).format(date);
+    return {
+        display: new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).format(date),
+        iso: date.toISOString(),
+    };
 };
 
 const customComponents: PortableTextComponents = {
     block: {
         h1: ({ children }) => <h1 className="mt-8 text-3xl font-black tracking-tight text-white md:text-5xl">{children}</h1>,
-        h2: ({ children }) => <h2 className="mt-8 text-2xl font-bold text-white">{children}</h2>,
-        h3: ({ children }) => <h3 className="mt-6 text-xl font-bold text-white">{children}</h3>,
+        h2: ({ children }) => <h2 className="mt-8 text-2xl font-bold text-white scroll-mt-20">{children}</h2>,
+        h3: ({ children }) => <h3 className="mt-6 text-xl font-bold text-white scroll-mt-20">{children}</h3>,
         normal: ({ children }) => <p className="mt-4 text-base leading-8 text-slate-300">{children}</p>,
         blockquote: ({ children }) => (
             <blockquote className="mt-6 border-l-4 border-indigo-500 bg-indigo-500/10 px-5 py-4 text-lg italic text-slate-200 dark:border-indigo-400 dark:bg-slate-900/70">
@@ -45,7 +51,6 @@ const customComponents: PortableTextComponents = {
         em: ({ children }) => <em className="italic text-slate-200">{children}</em>,
         link: ({ value, children }) => {
             const href = typeof value?.href === 'string' ? value.href : '#';
-            // Tối ưu SEO & Security: Thêm noopener noreferrer cho target="_blank"
             const isExternal = href.startsWith('http');
             return (
                 <a
@@ -65,16 +70,61 @@ const customComponents: PortableTextComponents = {
             const imageUrl = urlFor(value).width(1200).auto('format').fit('max').url();
             return (
                 <figure className="my-8 overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-xl">
-                    <Image src={imageUrl} alt={value.alt || 'Blog image'} width={1200} height={800} className="h-auto w-full object-fill" />
+                    <Image src={imageUrl} alt={value.alt || 'Ảnh minh họa bài viết'} width={1200} height={800} className="h-auto w-full object-fill" loading="lazy" />
+                    {value.alt && <figcaption className="text-center text-sm text-slate-400 p-3 bg-slate-950/50">{value.alt}</figcaption>}
                 </figure>
             );
         },
     },
 };
 
-// Helper để render list number an toàn
 function olChildren(children: any) {
     return children;
+}
+
+/* =========================
+   DYNAMIC METADATA (Next.js 14)
+========================= */
+export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
+    const { slug } = await params;
+    const post = await sanityFetch<BlogPostDetail | null>({
+        query: GET_POST_BY_SLUG_QUERY,
+        params: { slug },
+    });
+
+    if (!post) return {};
+
+    const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1200).height(630).fit('crop').url() : '/marketing-video-thumbnail.png';
+
+    return {
+        title: post.title,
+        description: post.excerpt || `Khám phá bài viết ${post.title} tại Ads Spy Tool.`,
+        authors: [{ name: post.author?.name || 'Admin' }],
+        openGraph: {
+            title: post.title,
+            description: post.excerpt,
+            url: `https://ads-spy-tool.tech/blog/${slug}`,
+            type: 'article',
+            publishedTime: post.publishedAt,
+            images: [
+                {
+                    url: imageUrl,
+                    width: 1200,
+                    height: 630,
+                    alt: post.title,
+                },
+            ],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: post.title,
+            description: post.excerpt,
+            images: [imageUrl],
+        },
+        alternates: {
+            canonical: `https://ads-spy-tool.tech/blog/${slug}`,
+        }
+    };
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
@@ -89,18 +139,51 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
     }
 
     const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1400).height(900).auto('format').fit('max').url() : null;
+    const dateInfo = formatDate(post.publishedAt);
+
+    // Schema.org cho chuẩn bài viết Blog (BlogPosting) kết hợp GEO/Organization
+    const blogSchema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": `https://ads-spy-tool.tech/blog/${slug}`
+        },
+        "headline": post.title,
+        "description": post.excerpt,
+        "image": imageUrl || "https://ads-spy-tool.tech/marketing-video-thumbnail.png",
+        "author": {
+            "@type": "Person",
+            "name": post.author?.name || "Ads Spy Tool Expert"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "CÔNG TY TNHH CÔNG NGHỆ SỐ QUICKBLACK",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://ads-spy-tool.tech/favicon.svg"
+            }
+        },
+        "datePublished": dateInfo.iso || new Date().toISOString(),
+        "dateModified": dateInfo.iso || new Date().toISOString()
+    };
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
-            {/* Tích hợp Header chung đồng bộ giao diện */}
             <Header />
 
-            {/* Thanh điều hướng Sticky Back Button */}
+            {/* Chèn cấu trúc dữ liệu Schema */}
+            <Script
+                id="blog-schema"
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
+            />
+
             <div className="sticky top-16 z-40 w-full border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-                {/* Tăng max-w-4xl thành max-w-5xl xl:max-w-6xl */}
                 <div className="mx-auto max-w-5xl xl:max-w-6xl px-4 py-3 md:px-8 lg:px-10">
                     <Link
                         href="/blog"
+                        aria-label="Quay lại danh sách bài viết"
                         className="group inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 transition-all hover:text-indigo-300"
                     >
                         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -109,13 +192,18 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 </div>
             </div>
 
-            {/* Tăng max-w-4xl thành max-w-5xl xl:max-w-6xl */}
             <main className="mx-auto max-w-5xl xl:max-w-6xl px-4 py-8 md:px-8 lg:px-10">
                 <article className="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-2xl">
                     {imageUrl ? (
-                        <div className="relative h-72 w-full overflow-hidden sm:h-96 md:h-[450px] lg:h-[520px] bg-slate-900">
-                            {/* Cập nhật sizes để render nét hơn trên màn hình lớn */}
-                            <Image src={imageUrl} alt={post.title} fill sizes="(max-width: 1280px) 100vw, 1152px" className="object-fill" priority />
+                        <div className="relative h-72 w-full overflow-hidden sm:h-96 md:h-[450px] lg:h-[520px] bg-slate-950">
+                            <Image
+                                src={imageUrl}
+                                alt={`Ảnh bìa cho bài viết: ${post.title}`}
+                                fill
+                                sizes="(max-width: 1280px) 100vw, 1152px"
+                                className="object-cover opacity-90"
+                                priority
+                            />
                         </div>
                     ) : null}
 
@@ -125,6 +213,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                                 <Link
                                     key={category._id}
                                     href={`/blog/category/${category.slug}`}
+                                    title={`Xem các bài viết chuyên đề ${category.title}`}
                                     className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-indigo-300 transition-colors hover:bg-indigo-500/20"
                                 >
                                     {category.title}
@@ -142,13 +231,14 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                         <UserCircle2 className="h-4 w-4" />
                                     </div>
-                                    <span>{post.author?.name || 'Admin'}</span>
+                                    <span itemProp="author">{post.author?.name || 'Admin'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                         <CalendarDays className="h-4 w-4" />
                                     </div>
-                                    <span>{formatDate(post.publishedAt)}</span>
+                                    {/* Sử dụng thẻ time chuẩn ngữ nghĩa HTML5 cho ngày tháng */}
+                                    <time dateTime={dateInfo.iso}>{dateInfo.display}</time>
                                 </div>
                             </div>
 
@@ -159,7 +249,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                             ) : null}
                         </header>
 
-                        <div className="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-blockquote:rounded-r-2xl">
+                        <div className="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-blockquote:rounded-r-2xl prose-a:text-indigo-400 prose-img:rounded-2xl">
                             <PortableText value={post.body} components={customComponents} />
                         </div>
                     </div>

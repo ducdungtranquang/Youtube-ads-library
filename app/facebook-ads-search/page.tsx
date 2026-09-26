@@ -349,7 +349,7 @@ export default function FacebookAdsPage() {
                 <LogIn className="h-8 w-8" />
               </div>
               <h3 className="mb-2 text-xl font-bold text-slate-900">
-                Đăng nhập để tìm kiếm Facebook Ads
+                Đăng nhập để tìm kiếm Facebook Ads - ADS Spy Tool
               </h3>
               <p className="mb-6 text-sm text-slate-500">
                 Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo Facebook.
