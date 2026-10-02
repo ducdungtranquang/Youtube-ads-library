@@ -9,6 +9,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  webpack: (config) => {
+    if (config.module) {
+      config.module.strictExportPresence = false;
+    }
+    return config;
+  },
   async rewrites() {
     return [
       {

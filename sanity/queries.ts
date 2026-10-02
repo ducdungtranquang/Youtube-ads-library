@@ -53,6 +53,10 @@ export interface BlogPostSummary {
 
 export interface BlogPostDetail extends BlogPostSummary {
   body: Array<Record<string, unknown>>;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  canonicalUrl?: string;
 }
 
 export const GET_CATEGORIES_QUERY = `*[_type == "category"] | order(title asc) {
@@ -118,6 +122,10 @@ export const GET_POST_BY_SLUG_QUERY = `*[_type == "post" && slug.current == $slu
   publishedAt,
   mainImage,
   body,
+  seoTitle,
+  seoDescription,
+  seoKeywords,
+  canonicalUrl,
   author->{
     _id,
     name,

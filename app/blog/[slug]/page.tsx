@@ -83,7 +83,7 @@ function olChildren(children: any) {
 }
 
 /* =========================
-   DYNAMIC METADATA (Next.js 14)
+   DYNAMIC METADATA (Next.js 14/15)
 ========================= */
 export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
     const { slug } = await params;
@@ -94,16 +94,21 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
 
     if (!post) return {};
 
+    const metaTitle = post.seoTitle?.trim() || post.title;
+    const metaDescription = post.seoDescription?.trim() || post.excerpt?.trim() || `Khám phá bài viết "${post.title}" - Xu hướng và phân tích chiến lược quảng cáo tại Ads Spy Tool.`;
+    const canonical = post.canonicalUrl?.trim() || `https://ads-spy-tool.tech/blog/${slug}`;
     const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1200).height(630).fit('crop').url() : '/marketing-video-thumbnail.png';
 
     return {
-        title: post.title,
-        description: post.excerpt || `Khám phá bài viết ${post.title} tại Ads Spy Tool.`,
-        authors: [{ name: post.author?.name || 'Admin' }],
+        title: metaTitle,
+        description: metaDescription,
+        keywords: post.seoKeywords && post.seoKeywords.length > 0 ? post.seoKeywords : undefined,
+        authors: [{ name: post.author?.name || 'Ads Spy Tool Expert' }],
         openGraph: {
-            title: post.title,
-            description: post.excerpt,
-            url: `https://ads-spy-tool.tech/blog/${slug}`,
+            title: metaTitle,
+            description: metaDescription,
+            url: canonical,
+            siteName: 'Ads Spy Tool Blog',
             type: 'article',
             publishedTime: post.publishedAt,
             images: [
@@ -111,18 +116,18 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
                     url: imageUrl,
                     width: 1200,
                     height: 630,
-                    alt: post.title,
+                    alt: metaTitle,
                 },
             ],
         },
         twitter: {
             card: 'summary_large_image',
-            title: post.title,
-            description: post.excerpt,
+            title: metaTitle,
+            description: metaDescription,
             images: [imageUrl],
         },
         alternates: {
-            canonical: `https://ads-spy-tool.tech/blog/${slug}`,
+            canonical: canonical,
         }
     };
 }
@@ -138,6 +143,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         notFound();
     }
 
+    const metaTitle = post.seoTitle?.trim() || post.title;
+    const metaDescription = post.seoDescription?.trim() || post.excerpt?.trim() || `Khám phá bài viết "${post.title}" tại Ads Spy Tool.`;
     const imageUrl = post.mainImage ? urlFor(post.mainImage).width(1400).height(900).auto('format').fit('max').url() : null;
     const dateInfo = formatDate(post.publishedAt);
 
@@ -149,8 +156,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             "@type": "WebPage",
             "@id": `https://ads-spy-tool.tech/blog/${slug}`
         },
-        "headline": post.title,
-        "description": post.excerpt,
+        "headline": metaTitle,
+        "description": metaDescription,
+        "keywords": post.seoKeywords && post.seoKeywords.length > 0 ? post.seoKeywords.join(', ') : undefined,
         "image": imageUrl || "https://ads-spy-tool.tech/marketing-video-thumbnail.png",
         "author": {
             "@type": "Person",

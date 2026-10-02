@@ -12,7 +12,24 @@ import {
   type BlogCategory,
   type BlogPostSummary,
 } from '@/sanity/queries';
+import type { Metadata } from 'next';
 import { Header } from '@/components/header';
+
+export const metadata: Metadata = {
+  title: 'Blog & Insights Quảng Cáo | Phân Tích Chiến Lược & Winning Ads',
+  description:
+    'Cập nhật xu hướng quảng cáo YouTube, Facebook Ads, case study bóc tách chiến dịch winning, cách ước tính ngân sách chi tiêu và kỹ thuật scale ads cho media buyer & dropshipper.',
+  alternates: {
+    canonical: 'https://ads-spy-tool.tech/blog',
+  },
+  openGraph: {
+    title: 'Blog & Insights Quảng Cáo | Ads Spy Tool',
+    description:
+      'Cập nhật xu hướng quảng cáo YouTube, Facebook Ads, case study bóc tách chiến dịch winning, cách ước tính ngân sách chi tiêu và kỹ thuật scale ads.',
+    url: 'https://ads-spy-tool.tech/blog',
+    type: 'website',
+  },
+};
 
 const POST_LIMIT = 11;
 

@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState, useEffect, memo } from "react";
-import { Video, Sparkles, Users, Zap } from "lucide-react";
+import Link from "next/link";
+import { Video, Sparkles, Users, Zap, ArrowRight, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -53,19 +55,31 @@ function useCountUp(end: number, duration: number = 2000, startOnView: boolean =
 
 const heroSlides = [
   {
-    badge: "#1 Nền tảng Spy Ads Cho Marketers Việt Nam",
-    title: "Khám Phá Bí Mật Quảng Cáo Thành Công",
-    description: "Phân tích hàng triệu quảng cáo YouTube & Facebook. Tìm insight đối thủ và chiến lược winning ads chuẩn xác nhất.",
+    badge: "Ads Intelligence Platform Số #1 Cho Marketer & Media Buyer",
+    title: "Bóc Tách Ngân Sách, Lượt Reach & Chiến Dịch Winning Đối Thủ",
+    description: "Không còn đốt tiền thử nghiệm mò mẫm. Xem chi tiết số tiền chi tiêu ước tính (Spend), số ngày chạy liên tục (Duration), nhóm nhân bản (Duplicates) và bóc tách kịch bản video để tối ưu chiến dịch của bạn.",
+    ctaPrimary: "Khám Phá YouTube Ads",
+    ctaPrimaryHref: "/mkt",
+    ctaSecondary: "Săn Facebook Ads",
+    ctaSecondaryHref: "/facebook-ads-search",
   },
   {
-    badge: "YouTube Ads Intelligence",
-    title: "Nghiên Cứu Video Ads Đối Thủ Từng Giây",
-    description: "Khám phá video ẩn & công khai, theo dõi chiến dịch ngân sách lớn từ các thương hiệu hàng đầu.",
+    badge: "YouTube Ads Intelligence Độc Quyền",
+    title: "Khai Quật Video Quảng Cáo Ẩn (Unlisted) & Bắt Bài Hook 3 Giây",
+    description: "Xem trực tiếp kho video ads unlisted trên YouTube, bóc tách cấu trúc kịch bản chuyển đổi cao, trích xuất landing page đối thủ và theo dõi các thương hiệu đầu ngành đang chi tiền mạnh.",
+    ctaPrimary: "Xem Video YouTube Ads",
+    ctaPrimaryHref: "/mkt",
+    ctaSecondary: "Tìm Kiếm Đa Quốc Gia",
+    ctaSecondaryHref: "/quicksearch",
   },
   {
-    badge: "Facebook Winning Ads Scale",
-    title: "Đón Đầu Xu Hướng Scaling & E-commerce",
-    description: "Lọc các mẫu quảng cáo chiến thắng, bóc tách phễu marketing và đo lường mức độ chi tiêu hiệu quả.",
+    badge: "Facebook Winning Ads & Dropshipping Scale",
+    title: "Bắt Bài Quảng Cáo Đang Vít Mạnh Nhờ Chỉ Số Duplicates",
+    description: "Tự động phát hiện các mẫu quảng cáo được nhân bản từ 10 - 50 nhóm (tín hiệu scaling rõ rệt nhất), lọc sản phẩm hot theo nền tảng Shopify, WooCommerce trên toàn cầu.",
+    ctaPrimary: "Xem Facebook Winning Ads",
+    ctaPrimaryHref: "/facebook-ads-search",
+    ctaSecondary: "Xem Blog & Insights",
+    ctaSecondaryHref: "/blog",
   },
 ];
 
@@ -77,15 +91,15 @@ export const HeroSlider = memo(() => {
     if (!api) return;
     const onSelect = () => setCurrent(api.selectedScrollSnap());
     api.on("select", onSelect);
-    const timer = setInterval(() => api.scrollNext(), 5000);
+    const timer = setInterval(() => api.scrollNext(), 6000);
     return () => {
       api.off("select", onSelect);
       clearInterval(timer);
     };
   }, [api]);
 
-  const stat1 = useCountUp(10, 2000, false);
-  const stat2 = useCountUp(5000, 2500, false);
+  const stat1 = useCountUp(12, 2000, false);
+  const stat2 = useCountUp(8500, 2500, false);
 
   return (
     <section className="relative w-full overflow-hidden py-24 md:py-36 lg:py-44 text-white bg-slate-950">
@@ -119,6 +133,21 @@ export const HeroSlider = memo(() => {
                   <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
                     {slide.description}
                   </p>
+
+                  {/* Action CTA Buttons */}
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                    <Button asChild size="lg" className="h-12 px-6 rounded-full font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-xl shadow-white/10 hover:scale-105 transition-all cursor-pointer">
+                      <Link href={slide.ctaPrimaryHref}>
+                        {slide.ctaPrimary}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="h-12 px-6 rounded-full font-semibold border-white/30 text-white bg-slate-900/60 hover:bg-white/10 hover:text-white cursor-pointer transition-all">
+                      <Link href={slide.ctaSecondaryHref}>
+                        {slide.ctaSecondary}
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </CarouselItem>
             ))}
@@ -127,32 +156,41 @@ export const HeroSlider = memo(() => {
           <CarouselNext className="right-2 md:-right-12 border-white/20 bg-white/10 text-white hover:bg-white/25 hover:text-white cursor-pointer transition-all hidden lg:flex" />
         </Carousel>
 
-        <div className="mt-14 mb-8 flex flex-wrap justify-center gap-6 md:gap-10 text-white">
-          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
+        <div className="mt-14 mb-8 flex flex-wrap justify-center gap-6 md:gap-8 text-white">
+          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500/20 text-yellow-300 border border-indigo-500/30">
               <Video className="h-5 w-5" />
             </div>
             <div className="text-left" ref={stat1.ref}>
-              <p className="text-2xl font-extrabold">{stat1.count}M+</p>
-              <p className="text-xs text-white/70 font-medium">Quảng cáo phân tích</p>
+              <p className="text-2xl font-extrabold">{stat1.count}.5M+</p>
+              <p className="text-xs text-white/70 font-medium">Dữ liệu Ads toàn cầu</p>
             </div>
           </div>
-          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
+          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               <Users className="h-5 w-5" />
             </div>
             <div className="text-left" ref={stat2.ref}>
               <p className="text-2xl font-extrabold">{stat2.count.toLocaleString()}+</p>
-              <p className="text-xs text-white/70 font-medium">Marketers tin dùng</p>
+              <p className="text-xs text-white/70 font-medium">Marketers & Media Buyers</p>
             </div>
           </div>
-          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
+          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div className="text-left">
+              <p className="text-2xl font-extrabold">98.4%</p>
+              <p className="text-xs text-white/70 font-medium">Độ chuẩn xác Spend/CPM</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3.5 bg-slate-900/60 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/10 shadow-xl hover:scale-105 transition-all duration-300">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30">
               <Zap className="h-5 w-5" />
             </div>
             <div className="text-left">
-              <p className="text-2xl font-extrabold">24/7</p>
-              <p className="text-xs text-white/70 font-medium">Cập nhật real-time</p>
+              <p className="text-2xl font-extrabold">Real-time</p>
+              <p className="text-xs text-white/70 font-medium">Cập nhật 24/7 liên tục</p>
             </div>
           </div>
         </div>
