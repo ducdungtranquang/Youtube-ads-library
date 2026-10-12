@@ -60,7 +60,7 @@ const heroSlides = [
     description: "Không còn đốt tiền thử nghiệm mò mẫm. Xem chi tiết số tiền chi tiêu ước tính (Spend), số ngày chạy liên tục (Duration), nhóm nhân bản (Duplicates) và bóc tách kịch bản video để tối ưu chiến dịch của bạn.",
     ctaPrimary: "Khám Phá YouTube Ads",
     ctaPrimaryHref: "/mkt",
-    ctaSecondary: "Săn Facebook Ads",
+    ctaSecondary: "Tìm kiếm Facebook Ads",
     ctaSecondaryHref: "/facebook-ads-search",
   },
   {

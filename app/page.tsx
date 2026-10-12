@@ -119,7 +119,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            <Link href="/facebook-ads-search" className="group" title="Săn Winning Ads Facebook" aria-label="Truy cập công cụ Facebook Ads">
+            <Link href="/facebook-ads-search" className="group" title="Tìm kiếm Winning Ads Facebook" aria-label="Truy cập công cụ Facebook Ads">
               <Card className="h-full border border-blue-500/30 bg-slate-900/80 backdrop-blur-xl shadow-2xl shadow-blue-950/50 hover:border-blue-400 hover:bg-slate-900/95 hover:-translate-y-2 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <CardContent className="flex items-center gap-4 p-6">
@@ -197,7 +197,7 @@ export default function HomePage() {
                 color: "from-amber-500 to-orange-600",
                 borderColor: "hover:border-amber-500/50",
                 shadowColor: "hover:shadow-amber-950/50",
-                title: "Săn Winning Products Dropshipping",
+                title: "Tìm kiếm Winning Products Dropshipping",
                 desc: "Lọc quảng cáo theo nền tảng e-commerce (Shopify, WooCommerce, ClickFunnels). Tìm ra các sản phẩm ngách đang viral để nhân bản cửa hàng ngay lập tức.",
                 bullets: ["Phát hiện sản phẩm win có margin cao", "Nhận diện công nghệ store & pixel", "Lọc định dạng video reel/shorts"]
               },
@@ -291,7 +291,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 <Link href="/facebook-ads-search" className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 pt-2 group">
-                  Săn mẫu thắng trên Facebook Ads <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                  Tìm kiếm mẫu thắng trên Facebook Ads <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
