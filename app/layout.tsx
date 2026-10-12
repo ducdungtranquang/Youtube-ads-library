@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://ads-spy-tool.tech'),
   title: {
-    default: 'Ads Spy Tool - Bóc Tách Ngân Sách, Lượt Reach & Spy Quảng Cáo YouTube, Facebook',
+    default: 'Ads Spy Tool - Thư Viện Quảng Cáo Youtube - Youtube Ads Library',
     template: '%s | Ads Spy Tool',
   },
   description:
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     'Adset Duplicates Tracker',
     'Kiểm tra CPM quảng cáo',
     // Ngách thị trường & Use cases
-    'Săn Winning Ads Dropshipping',
+    'Tìm kiếm Winning Ads Dropshipping',
     'Spy Affiliate Ads',
     'Facebook Ads Library Alternative',
     'Tìm video ads unlisted YouTube',

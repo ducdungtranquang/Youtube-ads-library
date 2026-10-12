@@ -11,11 +11,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'next/dist/compiled/react': path.resolve('./node_modules/react'),
-    };
+  turbopack: {},
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'next/dist/compiled/react': path.resolve('./node_modules/react'),
+      };
+    }
     if (config.module) {
       config.module.strictExportPresence = false;
     }

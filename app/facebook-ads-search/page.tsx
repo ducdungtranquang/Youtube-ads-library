@@ -83,11 +83,11 @@ const heroSlides = [
   {
     badge: "Nâng Cấp Kỹ Năng",
     title: "Trở Thành Chuyên Gia Digital Marketing",
-    description: "Khóa học thực chiến từ cơ bản đến nâng cao trên Gotihi. Áp dụng ngay để vít ads ra đơn.",
-    buttonText: "Đăng Ký Khóa Học Gotihi",
+    description: "Khóa học thực chiến từ cơ bản đến nâng cao trên Gitiho. Áp dụng ngay để vít ads ra đơn.",
+    buttonText: "Đăng Ký Khóa Học Gitiho",
     buttonHref: "https://shorten.asia/TY1pP1AR",
     image: "/gitiho.png",
-    alt: "Gotihi Online Courses"
+    alt: "Gitiho Online Courses"
   },
 ];
 
