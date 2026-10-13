@@ -49,29 +49,26 @@ export function LiveSpyDemo() {
       </div>
 
       {/* Main Mockup Container */}
-      <div className="relative mx-auto max-w-5xl rounded-[2.5rem] border border-indigo-500/30 bg-slate-900/90 p-4 md:p-8 backdrop-blur-2xl shadow-2xl shadow-indigo-950/60 overflow-hidden">
+      <div className="relative mx-auto max-w-5xl rounded-3xl sm:rounded-[2.5rem] border border-indigo-500/30 bg-slate-900/90 p-3.5 sm:p-6 md:p-8 backdrop-blur-2xl shadow-2xl shadow-indigo-950/60 overflow-hidden">
         {/* Glow ambient background */}
         <div className="absolute top-0 right-1/4 h-72 w-72 rounded-full bg-indigo-600/15 blur-[100px] pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-cyan-500/10 blur-[100px] pointer-events-none" />
 
         {/* Top Control Bar simulating software window */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-6 text-xs md:text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-800 pb-4 md:pb-5 mb-6 text-xs md:text-sm">
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
             <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
             <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
-            {/* <span className="ml-3 font-mono text-slate-400 hidden sm:inline">
-              LIVE_AD_INSPECTOR // ID: #YT-ADS-89421
-            </span> */}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold px-3 py-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse mr-2" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse mr-1.5 sm:mr-2" />
               Đang Chạy (Active 48 ngày)
             </Badge>
-            <Badge className="bg-purple-500/10 text-purple-300 border border-purple-500/30 font-semibold px-3 py-1">
-              <Flame className="h-3.5 w-3.5 text-orange-400 mr-1 inline" />
+            <Badge className="bg-purple-500/10 text-purple-300 border border-purple-500/30 font-semibold px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs">
+              <Flame className="h-3.5 w-3.5 text-orange-400 mr-1 inline shrink-0" />
               Đang Vít Mạnh (36 Duplicates)
             </Badge>
           </div>
@@ -80,7 +77,7 @@ export function LiveSpyDemo() {
         {/* Content Layout: Left Video Preview & Right Deep Analytics */}
         <div className="grid gap-8 lg:grid-cols-12 items-start">
           {/* Left Column: Creative Video Preview (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 space-y-4 min-w-0">
             <div className="relative aspect-[9/16] max-h-[460px] mx-auto w-full max-w-sm rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl group">
               {/* Background Mock Video Image */}
               <Image
@@ -141,7 +138,7 @@ export function LiveSpyDemo() {
           </div>
 
           {/* Right Column: Deep Metrics & Reverse Engineering (7 cols) */}
-          <div className="lg:col-span-7 space-y-5">
+          <div className="lg:col-span-7 space-y-5 min-w-0">
             {/* Metric KPI Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
@@ -177,7 +174,7 @@ export function LiveSpyDemo() {
               <button
                 type="button"
                 onClick={() => setActiveTab("metrics")}
-                className={`flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all ${activeTab === "metrics"
+                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all ${activeTab === "metrics"
                   ? "bg-indigo-600 text-white shadow-md"
                   : "text-slate-400 hover:text-white"
                   }`}
@@ -187,7 +184,7 @@ export function LiveSpyDemo() {
               <button
                 type="button"
                 onClick={() => setActiveTab("script")}
-                className={`flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all ${activeTab === "script"
+                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all ${activeTab === "script"
                   ? "bg-indigo-600 text-white shadow-md"
                   : "text-slate-400 hover:text-white"
                   }`}
@@ -197,7 +194,7 @@ export function LiveSpyDemo() {
               <button
                 type="button"
                 onClick={() => setActiveTab("funnel")}
-                className={`flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all ${activeTab === "funnel"
+                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all ${activeTab === "funnel"
                   ? "bg-indigo-600 text-white shadow-md"
                   : "text-slate-400 hover:text-white"
                   }`}
@@ -207,15 +204,15 @@ export function LiveSpyDemo() {
             </div>
 
             {/* Tab Contents */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 min-h-[220px]">
+            <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 min-h-[220px]">
               {activeTab === "metrics" && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between text-xs text-slate-300">
-                    <span className="font-semibold flex items-center gap-1.5">
-                      <Globe2 className="h-4 w-4 text-indigo-400" />
-                      Phân bổ ngân sách theo Quốc gia (Geo Targeting)
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-300">
+                    <span className="font-semibold flex items-center gap-1.5 min-w-0">
+                      <Globe2 className="h-4 w-4 text-indigo-400 shrink-0" />
+                      <span className="truncate">Phân bổ ngân sách theo Quốc gia (Geo)</span>
                     </span>
-                    <span className="text-slate-400">Thuật toán DSA Verified</span>
+                    <span className="text-[11px] sm:text-xs text-slate-400 shrink-0">Thuật toán DSA Verified</span>
                   </div>
 
                   {/* Progress bars representing geo breakdown */}
@@ -251,7 +248,7 @@ export function LiveSpyDemo() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-400">
                     <span>Thời gian bắt đầu: 12/08/2026</span>
                     <span>Tỷ lệ nhân nhóm: 3.2 nhóm mới/ngày</span>
                   </div>
@@ -279,39 +276,39 @@ export function LiveSpyDemo() {
 
               {activeTab === "funnel" && (
                 <div className="space-y-3 text-xs">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                    <div className="flex items-center gap-2.5">
-                      <ShoppingBag className="h-4 w-4 text-emerald-400" />
-                      <div>
-                        <div className="font-bold text-white">Nền tảng E-commerce</div>
-                        <div className="text-slate-400">Shopify (Theme Sense v11.0)</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <ShoppingBag className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-white truncate">Nền tảng E-commerce</div>
+                        <div className="text-slate-400 truncate">Shopify (Theme Sense v11.0)</div>
                       </div>
                     </div>
-                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 shrink-0 self-start sm:self-auto text-[11px] sm:text-xs">
                       Dropshipping Winner
                     </Badge>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5 min-w-0">
                     <div className="text-slate-400 flex items-center justify-between">
-                      <span>Đường dẫn Landing Page:</span>
+                      <span className="truncate">Đường dẫn Landing Page:</span>
                       <button
                         type="button"
                         onClick={handleCopyLink}
-                        className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-semibold"
+                        className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-semibold shrink-0 ml-2"
                       >
                         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                         {copied ? "Đã chép" : "Copy link"}
                       </button>
                     </div>
-                    <div className="font-mono text-indigo-300 bg-slate-950 p-2 rounded-lg truncate">
+                    <div className="font-mono text-indigo-300 bg-slate-950 p-2 rounded-lg truncate text-[11px] sm:text-xs select-all">
                       https://trendstore-demo.myshopify.com/products/wireless-cleaner?utm_source=fb_ads
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-400">
-                    <div>Pixel phát hiện: Facebook Pixel, TikTok Pixel</div>
-                    <div className="text-right">Ước tính giá bán: $29.99 (Margin 68%)</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1 text-[11px] text-slate-400">
+                    <div className="truncate">Pixel phát hiện: <span className="text-slate-300">Facebook Pixel, TikTok Pixel</span></div>
+                    <div className="text-left sm:text-right shrink-0">Ước tính giá bán: <span className="text-slate-300 font-semibold">$29.99 (Margin 68%)</span></div>
                   </div>
                 </div>
               )}
@@ -322,13 +319,13 @@ export function LiveSpyDemo() {
               <span className="text-xs text-slate-300 font-medium text-center sm:text-left">
                 Bạn muốn bóc tách ngay một fanpage hoặc kênh YouTube cụ thể?
               </span>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button asChild size="sm" className="h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md cursor-pointer">
-                  <Link href="/quicksearch">
-                    Mở QuickSearch
+              <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                <Button asChild size="sm" className="w-full sm:w-auto h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md cursor-pointer">
+                  <Link href="/mkt">
+                    Xem YouTube Ads
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline" className="h-9 px-4 rounded-xl border-slate-700 bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">
+                <Button asChild size="sm" variant="outline" className="w-full sm:w-auto h-9 px-4 rounded-xl border-slate-700 bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">
                   <Link href="/pricing">
                     Xem Bảng Giá
                   </Link>

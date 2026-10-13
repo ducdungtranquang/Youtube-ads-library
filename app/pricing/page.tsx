@@ -141,24 +141,80 @@ export default function PricingPage() {
 
         <div className="container relative z-10 mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white">
-              <Sparkles className="h-4 w-4" />
-              Bảng giá minh bạch, đơn giản
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-sm px-4 py-2 text-sm font-semibold text-emerald-200 shadow-lg">
+              <Sparkles className="h-4 w-4 text-emerald-300" />
+              Chương trình trải nghiệm miễn phí 100%
             </div>
             <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl lg:text-5xl">
-              Chọn gói phù hợp với bạn
+              Hiện Tại Đang Mở Miễn Phí Toàn Bộ
             </h1>
-            <p className="text-lg text-white/80 max-w-xl mx-auto">
-              Bắt đầu miễn phí, nâng cấp khi cần. Hủy bất cứ lúc nào.
+            <p className="text-lg text-white/90 max-w-xl mx-auto">
+              Không giới hạn tính năng. Truy cập và sử dụng đầy đủ công cụ phân tích YouTube & Facebook Ads hoàn toàn miễn phí.
             </p>
           </div>
         </div>
       </section>
 
       <main className="container py-12 -mt-8 relative z-20">
-        {/* Pricing Cards */}
+        {/* Thông báo Miễn Phí Hết */}
+        <div className="max-w-3xl mx-auto mb-12">
+          <Card className="relative overflow-hidden border-2 border-emerald-500/40 bg-slate-900/90 backdrop-blur-2xl shadow-2xl shadow-emerald-950/50 rounded-3xl p-6 md:p-8 text-center">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mb-6 shadow-lg shadow-emerald-500/10">
+              <Sparkles className="h-8 w-8 text-emerald-400" />
+            </div>
+
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">
+              Toàn Bộ Tính Năng Đang Được Miễn Phí
+            </h2>
+            <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+              Bạn có thể sử dụng tất cả các công cụ nghiên cứu và bóc tách quảng cáo của Ads Spy Tool mà không cần trả phí hay nhập thông tin thẻ.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2 text-left max-w-xl mx-auto mb-8">
+              {[
+                "Tìm kiếm & lọc YouTube Ads không giới hạn",
+                "Phân tích Facebook Ads (Spend, Reach, Duplicates)",
+                "Bóc tách video Unlisted & tải video MP4",
+                "Xem kịch bản Hook 3s & Landing Page đối thủ",
+                "Dữ liệu phân bổ thị trường Quốc gia (Geo Tier)",
+                "Không cần thẻ thanh toán, không phụ phí ẩn"
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs md:text-sm text-slate-200">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <Button asChild size="lg" className="w-full sm:w-auto h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 cursor-pointer">
+                <Link href="/mkt">
+                  Trải Nghiệm YouTube Ads Ngay
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto h-12 px-8 rounded-xl border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-slate-200 font-bold text-sm cursor-pointer">
+                <Link href="/facebook-ads-search">
+                  Khám Phá Facebook Ads
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </Card>
+        </div>
+
+        {/* 
+          =============================================================================
+          [CODE CŨ - CÁC GÓI THU PHÍ 229K, 999K & THANH TOÁN PAYOS - GIỮ LẠI ĐỂ BACK VỀ SAU NÀY]
+          Khi nào muốn bật lại thu phí, bạn chỉ cần mở lại khối code dưới đây và ẩn khối thông báo bên trên.
+          =============================================================================
+
         <div className="grid gap-6 grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto">
-          {/* Gói Miễn phí */}
           <Card className="border-2 hover:shadow-lg transition-all">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl">Miễn phí</CardTitle>
@@ -197,7 +253,6 @@ export default function PricingPage() {
             </CardContent>
           </Card>
 
-          {/* Gói Cá nhân - Popular */}
           <Card className="border-2 border-primary shadow-xl relative scale-105">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
@@ -260,7 +315,6 @@ export default function PricingPage() {
             </CardContent>
           </Card>
 
-          {/* Gói Doanh nghiệp */}
           <Card className="border-2 hover:shadow-lg transition-all">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl">Doanh nghiệp</CardTitle>
@@ -303,6 +357,7 @@ export default function PricingPage() {
             </CardContent>
           </Card>
         </div>
+        */}
 
         {/* Benefits Section */}
         <div className="mt-16 max-w-4xl mx-auto">
