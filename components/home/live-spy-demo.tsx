@@ -113,8 +113,8 @@ export function LiveSpyDemo() {
                 </p>
                 <div className="flex items-center justify-between text-xs text-slate-300 pt-1 border-t border-white/10">
                   <span>Trang đích: trendstore-demo...</span>
-                  <Link href="/mkt" className="text-indigo-300 hover:text-white font-semibold flex items-center gap-1">
-                    Xem trên YouTube Ads <ArrowUpRight className="h-3 w-3" />
+                  <Link href="/quicksearch" className="text-indigo-300 hover:text-white font-semibold flex items-center gap-1">
+                    Dùng thử QuickSearch <ArrowUpRight className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
@@ -123,12 +123,12 @@ export function LiveSpyDemo() {
             {/* Direct Tool Action Buttons trỏ đến các trang thật */}
             <div className="grid grid-cols-2 gap-2 pt-1 max-w-sm mx-auto">
               <Button asChild size="sm" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs h-10 shadow-lg shadow-indigo-600/30 cursor-pointer">
-                <Link href="/mkt">
-                  Xem YouTube Ads
+                <Link href="/quicksearch">
+                  Dùng thử QuickSearch
                   <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
-              <Button asChild size="sm" variant="outline" className="w-full border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-slate-200 font-bold rounded-xl text-xs h-10 cursor-pointer">
+              <Button asChild size="sm" variant="outline" className="w-full border-slate-700 bg-slate-950/80 hover:bg-slate-400 text-slate-200 font-bold rounded-xl text-xs h-10 cursor-pointer">
                 <Link href="/facebook-ads-search">
                   Xem Facebook Ads
                   <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
@@ -321,8 +321,8 @@ export function LiveSpyDemo() {
               </span>
               <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                 <Button asChild size="sm" className="w-full sm:w-auto h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md cursor-pointer">
-                  <Link href="/mkt">
-                    Xem YouTube Ads
+                  <Link href="/quicksearch">
+                    Trải Nghiệm QuickSearch
                   </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="w-full sm:w-auto h-9 px-4 rounded-xl border-slate-700 bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">

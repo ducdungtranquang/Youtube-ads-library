@@ -45,15 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
 
       if (event === 'SIGNED_IN') {
-        // Chỉ redirect nếu vừa thực hiện login/register (được đánh dấu qua sessionStorage)
+        // Redirect về dashboard nếu user đang ở trang login/register
         if (typeof window !== 'undefined') {
-          const shouldRedirect = sessionStorage.getItem('redirectAfterAuth') === '1';
-          if (shouldRedirect) {
-            sessionStorage.removeItem('redirectAfterAuth');
-            router.push('/dashboard');
+          const authPages = ['/login', '/register']
+          const isOnAuthPage = authPages.some(page => window.location.pathname.startsWith(page))
+          if (isOnAuthPage) {
+            router.push('/dashboard')
           }
         }
-        // Nếu không, giữ nguyên trang hiện tại
       } else if (event === 'SIGNED_OUT') {
         // Redirect to home after sign out
         router.push('/')
@@ -64,9 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('redirectAfterAuth', '1');
-    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -80,9 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('redirectAfterAuth', '1');
-    }
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -91,16 +84,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signInWithOAuth = async (provider: 'google' | 'github') => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('redirectAfterAuth', '1');
-    }
     const redirectTo = typeof window !== 'undefined' 
-      ? `${window.location.origin}/dashboard`
-      : '/dashboard'
+      ? `${window.location.origin}/auth/callback`
+      : '/auth/callback'
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo,
+        // Request profile scopes to get avatar and name
+        scopes: provider === 'google' ? 'openid email profile' : undefined,
       },
     })
     return { error }

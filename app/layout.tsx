@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: '%s | Ads Spy Tool',
   },
   description:
-    'Nền tảng Ads Intelligence số #1: Xem ngân sách chi tiêu (Spend), lượt tiếp cận (Reach), số ngày chạy (Duration) và nhân nhóm (Duplicates) quảng cáo YouTube, Facebook toàn cầu.',
+    'Nền tảng Ads Spy Tool số #1: Xem ngân sách chi tiêu (Spend), lượt tiếp cận (Reach), số ngày chạy (Duration) và nhân nhóm (Duplicates) quảng cáo YouTube, Facebook toàn cầu.',
   applicationName: 'Ads Spy Tool',
   generator: 'Next.js',
   category: 'Marketing Technology',
@@ -123,7 +123,7 @@ export default function RootLayout({
         "@id": "https://ads-spy-tool.tech/#website",
         "url": "https://ads-spy-tool.tech",
         "name": "Ads Spy Tool",
-        "alternateName": "YouTube & Facebook Ads Spy Intelligence",
+        "alternateName": "YouTube & Facebook Ads Spy Tool",
         "description": "Nền tảng phân tích dữ liệu quảng cáo đa kênh, bóc tách ngân sách chi tiêu, lượt reach và chiến lược đối thủ.",
         "inLanguage": ["vi", "en"],
         "potentialAction": {

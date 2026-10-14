@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
-import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText } from "lucide-react"
+import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,7 @@ export function Header() {
 
   const navigationItems = [
     { href: "/", icon: Search, label: "Trang chủ" },
+    { href: "/quicksearch", icon: Sparkles, label: "Quick Search" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/blog", icon: NotebookText, label: "Blog" },
@@ -259,8 +260,20 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
+                  <Link href="/quicksearch">
+                    <Sparkles className="mr-2 h-4 w-4 text-indigo-400" />
+                    Quick Search
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
+                  <Link href="/mkt">
+                    <TrendingUp className="mr-2 h-4 w-4 text-emerald-400" />
+                    YouTube Ads
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
                   <Link href="/facebook-ads-search">
-                    <Video className="mr-2 h-4 w-4" />
+                    <Video className="mr-2 h-4 w-4 text-cyan-400" />
                     Facebook Ads
                   </Link>
                 </DropdownMenuItem>
