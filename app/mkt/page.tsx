@@ -364,6 +364,10 @@ export default function MKTPage() {
   const brandsPagination = useFrontendPagination(brandsSearchResults?.data?.results || [], { itemsPerPage: 20 });
   const companiesPagination = useFrontendPagination(companiesSearchResults?.data?.results || [], { itemsPerPage: 20 });
 
+  // Preview ads — shown before user performs any search
+  const [previewAds, setPreviewAds] = useState<any[]>([])
+  const [previewLoading, setPreviewLoading] = useState(true)
+
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedBrand, setSelectedBrand] = useState<any>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
@@ -373,6 +377,39 @@ export default function MKTPage() {
       setSelectedBrand({ brandId });
     }
   }, []);
+
+  // Fetch preview ads from cache immediately on mount (no auth required)
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchPreview = async () => {
+      setPreviewLoading(true)
+      try {
+        console.log('[MKT] Fetching preview ads from cache...')
+        const res = await fetch('/api/ads/preview', { cache: 'no-store' })
+        const json = await res.json()
+        if (isMounted) {
+          console.log('[MKT] Preview ads loaded:', json.ads?.length || 0)
+          setPreviewAds(json.ads || [])
+        }
+      } catch (err) {
+        console.error('[MKT] Failed to fetch preview ads:', err)
+        if (isMounted) {
+          setPreviewAds([])
+        }
+      } finally {
+        if (isMounted) {
+          setPreviewLoading(false)
+        }
+      }
+    }
+
+    fetchPreview()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (selectedCompany?.categoryId || selectedCompany?.summary_data?.category_id) {
@@ -477,7 +514,11 @@ export default function MKTPage() {
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
       const searchQuery = searchQueryRef.current?.value?.trim();
-      if (page === 1) setAdsSearchResults(null);
+      if (page === 1) {
+        setAdsSearchResults(null)
+        // Hide preview when user starts a real search
+        setPreviewAds([])
+      }
 
       try {
         const result = await searchAdsWithCache({
@@ -793,6 +834,52 @@ export default function MKTPage() {
                       ) : (
                         <NoDataDisplay type="ads" hasSearched={true} />
                       )}
+                    </div>
+                  ) : previewLoading ? (
+                    // Skeleton loading for preview while initial cache is fetched
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-48 bg-slate-200 rounded-lg animate-pulse" />
+                        <div className="h-5 w-16 bg-indigo-100 rounded-full animate-pulse" />
+                      </div>
+                      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div key={i} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                            <div className="aspect-video bg-slate-100 animate-pulse" />
+                            <div className="p-4 space-y-2">
+                              <div className="h-4 bg-slate-100 rounded animate-pulse w-3/4" />
+                              <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : previewAds.length > 0 ? (
+                    // Preview section — shown before any search, sourced from cache
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl font-bold text-slate-900">Khám phá quảng cáo</h2>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                            <TrendingUp className="h-3 w-3" />
+                            Mới nhất
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500">{previewAds.length} quảng cáo</p>
+                      </div>
+                      <p className="text-sm text-slate-400 -mt-3">
+                        💡 Dữ liệu từ thư viện cache — Nhập từ khóa để tìm kiếm theo nhu cầu
+                      </p>
+                      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                        {previewAds.map((video: any, index: number) => (
+                          <VideoCard
+                            key={video.ytVideoId || `preview-${index}`}
+                            {...video}
+                            onClick={() => setSelectedVideo(video)}
+                            onCompanyClick={() => handleOpenBrandModal(video.brandId)}
+                          />
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <NoDataDisplay type="ads" hasSearched={false} />
