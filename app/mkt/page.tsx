@@ -353,6 +353,45 @@ export default function MKTPage() {
     "date" | "totalSpend" | "views" | "relevance"
   >("date");
 
+  const handleClearAllFilters = useCallback(() => {
+    setSelectedCountry("0");
+    setSelectedLanguage("all");
+    setSelectedCategory("0");
+    setShowVideos("unlisted");
+    setDateFrom("");
+    setDateTo("");
+  }, []);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCountry !== "0") count++;
+    if (selectedLanguage !== "all") count++;
+    if (selectedCategory !== "0") count++;
+    if (showVideos !== "unlisted") count++;
+    if (dateFrom || dateTo) count++;
+    return count;
+  }, [selectedCountry, selectedLanguage, selectedCategory, showVideos, dateFrom, dateTo]);
+
+  const activeChips = useMemo(() => {
+    const chips = [];
+    if (selectedCountry !== "0") {
+      chips.push({ id: "country", label: `Quốc gia (${selectedCountry})`, onRemove: () => setSelectedCountry("0") });
+    }
+    if (selectedLanguage !== "all") {
+      chips.push({ id: "language", label: `Ngôn ngữ: ${selectedLanguage}`, onRemove: () => setSelectedLanguage("all") });
+    }
+    if (selectedCategory !== "0") {
+      chips.push({ id: "category", label: "Danh mục ngành", onRemove: () => setSelectedCategory("0") });
+    }
+    if (showVideos !== "unlisted") {
+      chips.push({ id: "showVideos", label: showVideos === "all" ? "Tất cả video" : "Chỉ video công khai", onRemove: () => setShowVideos("unlisted") });
+    }
+    if (dateFrom || dateTo) {
+      chips.push({ id: "date", label: `${dateFrom || "..."} → ${dateTo || "..."}`, onRemove: () => { setDateFrom(""); setDateTo(""); } });
+    }
+    return chips;
+  }, [selectedCountry, selectedLanguage, selectedCategory, showVideos, dateFrom, dateTo]);
+
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">("ads");
 
@@ -706,50 +745,47 @@ export default function MKTPage() {
       <HeroSlider />
 
       <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
-        <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] items-start">
+        <div className="grid gap-8 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)] items-start">
 
-          {/* Cột bộ lọc - Theme sáng */}
-          <div className="lg:sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5">
-              <AdsSpyFilterPanel
-                title="Bộ lọc"
-                onClear={() => { setSelectedCountry("0"); setSelectedLanguage("all"); setSelectedCategory("0"); setShowVideos("unlisted"); setDateFrom(""); setDateTo(""); }}
-              >
-                <div className="mt-4">
-                  <YoutubeAdsFilters
-                    country={selectedCountry}
-                    setCountry={setSelectedCountry}
-                    language={selectedLanguage}
-                    setLanguage={setSelectedLanguage}
-                    category={selectedCategory}
-                    setCategory={setSelectedCategory}
-                    showVideos={showVideos}
-                    setShowVideos={setShowVideos}
-                    dateFrom={dateFrom}
-                    setDateFrom={setDateFrom}
-                    dateTo={dateTo}
-                    setDateTo={setDateTo}
-                  />
-                </div>
-              </AdsSpyFilterPanel>
-            </div>
+          {/* Cột bộ lọc - Theme sáng tối ưu UI/UX */}
+          <div className="lg:sticky lg:top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+            <AdsSpyFilterPanel
+              title="Bộ lọc Ads"
+              activeCount={activeFilterCount}
+              onClear={handleClearAllFilters}
+            >
+              <YoutubeAdsFilters
+                country={selectedCountry}
+                setCountry={setSelectedCountry}
+                language={selectedLanguage}
+                setLanguage={setSelectedLanguage}
+                category={selectedCategory}
+                setCategory={setSelectedCategory}
+                showVideos={showVideos}
+                setShowVideos={setShowVideos}
+                dateFrom={dateFrom}
+                setDateFrom={setDateFrom}
+                dateTo={dateTo}
+                setDateTo={setDateTo}
+              />
+            </AdsSpyFilterPanel>
           </div>
 
           {/* Cột nội dung chính - Theme sáng */}
           <div className="min-w-0">
             <form
               onSubmit={handleSearch}
-              className="mb-8 flex gap-3 mobile:flex-col"
+              className="mb-6 flex gap-3 mobile:flex-col"
             >
               <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
                   placeholder="Tìm kiếm bằng từ khóa, URL hoặc tên thương hiệu..."
-                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-sm transition-all"
+                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 cursor-pointer transition-all">
+              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all">
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -765,12 +801,25 @@ export default function MKTPage() {
             </form>
 
             <div className="w-full">
-              <AdsSpyResultsToolbar title="Thư viện quảng cáo" count={activeTab === "ads" ? adsPagination.totalItems : activeTab === "brands" ? brandsPagination.totalItems : companiesPagination.totalItems} />
+              <AdsSpyResultsToolbar
+                title="Thư viện quảng cáo YouTube"
+                subtitle="Theo dõi và bóc tách các video ads đang chạy trên YouTube toàn cầu"
+                count={activeTab === "ads" ? adsPagination.totalItems : activeTab === "brands" ? brandsPagination.totalItems : companiesPagination.totalItems}
+                activeChips={activeChips}
+                onClearAll={handleClearAllFilters}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 font-medium hidden sm:inline">Sắp xếp:</span>
+                  <div className="w-36 sm:w-40">
+                    <SortSelect value={sortBy} onValueChange={(val: any) => setSortBy(val)} />
+                  </div>
+                </div>
+              </AdsSpyResultsToolbar>
 
               <Tabs
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full mt-6"
+                className="w-full mt-4"
               >
                 <TabsList className="mb-6 w-full justify-start bg-slate-100/80 border border-slate-200 p-1.5 rounded-xl mobile:grid mobile:grid-cols-3">
                   <TabsTrigger value="ads" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">

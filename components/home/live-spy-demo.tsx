@@ -36,39 +36,39 @@ export function LiveSpyDemo() {
   return (
     <section className="container py-20 scroll-fade-section transition-all duration-700">
       <div className="mb-12 text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
           <Sparkles className="h-3.5 w-3.5" />
           Bóc Tách Trực Tiếp Dữ Liệu Thực Tế
         </div>
-        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-          Xem Tường Tận Từng Chỉ Số <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Winning Ads</span>
+        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
+          Xem Tường Tận Từng Chỉ Số <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Winning Ads</span>
         </h2>
-        <p className="text-base text-slate-400 mt-4 leading-relaxed">
+        <p className="text-base text-slate-600 mt-4 leading-relaxed">
           Không còn phỏng đoán qua bề nổi. Xem cách Ads Spy Tool bóc tách chi phí thực tế, số ngày vít ngân sách và cấu trúc phễu bán hàng của một chiến dịch đối thủ đang tạo doanh thu khủng.
         </p>
       </div>
 
       {/* Main Mockup Container */}
-      <div className="relative mx-auto max-w-5xl rounded-3xl sm:rounded-[2.5rem] border border-indigo-500/30 bg-slate-900/90 p-3.5 sm:p-6 md:p-8 backdrop-blur-2xl shadow-2xl shadow-indigo-950/60 overflow-hidden">
+      <div className="relative mx-auto max-w-5xl rounded-3xl sm:rounded-[2.5rem] border border-slate-200 bg-white p-3.5 sm:p-6 md:p-8 shadow-xl shadow-slate-200/50 overflow-hidden">
         {/* Glow ambient background */}
-        <div className="absolute top-0 right-1/4 h-72 w-72 rounded-full bg-indigo-600/15 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-cyan-500/10 blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 right-1/4 h-72 w-72 rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-cyan-500/5 blur-[100px] pointer-events-none" />
 
         {/* Top Control Bar simulating software window */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-800 pb-4 md:pb-5 mb-6 text-xs md:text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-100 pb-4 md:pb-5 mb-6 text-xs md:text-sm">
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
+            <span className="h-3 w-3 rounded-full bg-rose-400 inline-block" />
+            <span className="h-3 w-3 rounded-full bg-amber-400 inline-block" />
+            <span className="h-3 w-3 rounded-full bg-emerald-400 inline-block" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse mr-1.5 sm:mr-2" />
+            <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse mr-1.5 sm:mr-2" />
               Đang Chạy (Active 48 ngày)
             </Badge>
-            <Badge className="bg-purple-500/10 text-purple-300 border border-purple-500/30 font-semibold px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs">
-              <Flame className="h-3.5 w-3.5 text-orange-400 mr-1 inline shrink-0" />
+            <Badge className="bg-purple-50 text-purple-700 border border-purple-200 font-semibold px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs">
+              <Flame className="h-3.5 w-3.5 text-orange-500 mr-1 inline shrink-0" />
               Đang Vít Mạnh (36 Duplicates)
             </Badge>
           </div>
@@ -122,13 +122,13 @@ export function LiveSpyDemo() {
 
             {/* Direct Tool Action Buttons trỏ đến các trang thật */}
             <div className="grid grid-cols-2 gap-2 pt-1 max-w-sm mx-auto">
-              <Button asChild size="sm" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs h-10 shadow-lg shadow-indigo-600/30 cursor-pointer">
+              <Button asChild size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs h-10 shadow-md shadow-indigo-600/20 cursor-pointer">
                 <Link href="/quicksearch">
                   Dùng thử QuickSearch
                   <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
-              <Button asChild size="sm" variant="outline" className="w-full border-slate-700 bg-slate-950/80 hover:bg-slate-400 text-slate-200 font-bold rounded-xl text-xs h-10 cursor-pointer">
+              <Button asChild size="sm" variant="outline" className="w-full border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs h-10 cursor-pointer shadow-2xs">
                 <Link href="/facebook-ads-search">
                   Xem Facebook Ads
                   <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
@@ -141,42 +141,42 @@ export function LiveSpyDemo() {
           <div className="lg:col-span-7 space-y-5 min-w-0">
             {/* Metric KPI Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
-                  <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
+                  <DollarSign className="h-3.5 w-3.5 text-emerald-600" />
                   <span>Ước Tính Chi Tiêu</span>
                 </div>
-                <div className="text-xl md:text-2xl font-black text-white">$14,250</div>
-                <div className="text-[11px] text-emerald-400 font-medium mt-0.5">+18% tuần này</div>
+                <div className="text-xl md:text-2xl font-black text-slate-900">$14,250</div>
+                <div className="text-[11px] text-emerald-600 font-semibold mt-0.5">+18% tuần này</div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
-                  <Eye className="h-3.5 w-3.5 text-cyan-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-2xs">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
+                  <Eye className="h-3.5 w-3.5 text-cyan-600" />
                   <span>Lượt Tiếp Cận (Reach)</span>
                 </div>
-                <div className="text-xl md:text-2xl font-black text-white">1.85M</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">CPM TB: $7.70</div>
+                <div className="text-xl md:text-2xl font-black text-slate-900">1.85M</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">CPM TB: $7.70</div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 col-span-2 sm:col-span-1">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
-                  <Layers className="h-3.5 w-3.5 text-purple-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-2xs col-span-2 sm:col-span-1">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
+                  <Layers className="h-3.5 w-3.5 text-purple-600" />
                   <span>Số Nhóm Nhân Bản</span>
                 </div>
-                <div className="text-xl md:text-2xl font-black text-purple-300">36 Ads</div>
-                <div className="text-[11px] text-purple-400 font-medium mt-0.5">Dấu hiệu Scale mạnh</div>
+                <div className="text-xl md:text-2xl font-black text-purple-700">36 Ads</div>
+                <div className="text-[11px] text-purple-600 font-semibold mt-0.5">Dấu hiệu Scale mạnh</div>
               </div>
             </div>
 
             {/* Switch Tabs */}
-            <div className="flex rounded-xl bg-slate-950/80 p-1 border border-slate-800">
+            <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
               <button
                 type="button"
                 onClick={() => setActiveTab("metrics")}
-                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all ${activeTab === "metrics"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "text-slate-400 hover:text-white"
+                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all cursor-pointer ${activeTab === "metrics"
+                  ? "bg-white text-indigo-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
                   }`}
               >
                 Phân Bổ Geo & CPM
@@ -184,9 +184,9 @@ export function LiveSpyDemo() {
               <button
                 type="button"
                 onClick={() => setActiveTab("script")}
-                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all ${activeTab === "script"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "text-slate-400 hover:text-white"
+                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all cursor-pointer ${activeTab === "script"
+                  ? "bg-white text-indigo-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
                   }`}
               >
                 Kịch Bản Hook 3s
@@ -194,9 +194,9 @@ export function LiveSpyDemo() {
               <button
                 type="button"
                 onClick={() => setActiveTab("funnel")}
-                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all ${activeTab === "funnel"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "text-slate-400 hover:text-white"
+                className={`flex-1 px-1.5 sm:px-3 py-2 text-[11px] sm:text-xs md:text-sm font-bold rounded-lg text-center leading-tight transition-all cursor-pointer ${activeTab === "funnel"
+                  ? "bg-white text-indigo-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
                   }`}
               >
                 Phễu & Store Info
@@ -204,51 +204,51 @@ export function LiveSpyDemo() {
             </div>
 
             {/* Tab Contents */}
-            <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-950/80 border border-slate-800 min-h-[220px]">
+            <div className="p-3.5 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 min-h-[220px]">
               {activeTab === "metrics" && (
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-300">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-700">
                     <span className="font-semibold flex items-center gap-1.5 min-w-0">
-                      <Globe2 className="h-4 w-4 text-indigo-400 shrink-0" />
+                      <Globe2 className="h-4 w-4 text-indigo-600 shrink-0" />
                       <span className="truncate">Phân bổ ngân sách theo Quốc gia (Geo)</span>
                     </span>
-                    <span className="text-[11px] sm:text-xs text-slate-400 shrink-0">Thuật toán DSA Verified</span>
+                    <span className="text-[11px] sm:text-xs text-slate-500 shrink-0">Thuật toán DSA Verified</span>
                   </div>
 
                   {/* Progress bars representing geo breakdown */}
                   <div className="space-y-3 pt-1">
                     <div>
                       <div className="flex justify-between text-xs font-semibold mb-1">
-                        <span className="text-white">🇺🇸 Hoa Kỳ (Tier 1)</span>
-                        <span className="text-indigo-300">62% (~$8,835)</span>
+                        <span className="text-slate-800">🇺🇸 Hoa Kỳ (Tier 1)</span>
+                        <span className="text-indigo-600 font-bold">62% (~$8,835)</span>
                       </div>
-                      <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: "62%" }} />
+                      <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: "62%" }} />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-xs font-semibold mb-1">
-                        <span className="text-white">🇬🇧 Vương quốc Anh (Tier 1)</span>
-                        <span className="text-indigo-300">23% (~$3,277)</span>
+                        <span className="text-slate-800">🇬🇧 Vương quốc Anh (Tier 1)</span>
+                        <span className="text-cyan-700 font-bold">23% (~$3,277)</span>
                       </div>
-                      <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                         <div className="h-full bg-cyan-500 rounded-full" style={{ width: "23%" }} />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-xs font-semibold mb-1">
-                        <span className="text-white">🇻🇳 Việt Nam / Đông Nam Á</span>
-                        <span className="text-indigo-300">15% (~$2,138)</span>
+                        <span className="text-slate-800">🇻🇳 Việt Nam / Đông Nam Á</span>
+                        <span className="text-purple-700 font-bold">15% (~$2,138)</span>
                       </div>
-                      <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                         <div className="h-full bg-purple-500 rounded-full" style={{ width: "15%" }} />
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-400">
+                  <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-slate-500">
                     <span>Thời gian bắt đầu: 12/08/2026</span>
                     <span>Tỷ lệ nhân nhóm: 3.2 nhóm mới/ngày</span>
                   </div>
@@ -257,18 +257,18 @@ export function LiveSpyDemo() {
 
               {activeTab === "script" && (
                 <div className="space-y-3 text-xs">
-                  <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-slate-200">
-                    <span className="font-bold text-indigo-400 block mb-1">🔥 Hook 0:00 - 0:03 (Gây sốc thị giác):</span>
+                  <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 text-slate-800">
+                    <span className="font-bold text-indigo-700 block mb-1">🔥 Hook 0:00 - 0:03 (Gây sốc thị giác):</span>
                     &ldquo;Đừng bao giờ tốn tiền thuê thợ dọn nội thất ô tô nữa nếu bạn chưa biết đến chiếc máy này...&rdquo;
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300">
-                    <span className="font-bold text-amber-400 block mb-1">💡 Body 0:03 - 0:25 (Xử lý vấn đề & Demo):</span>
+                  <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-slate-800">
+                    <span className="font-bold text-amber-700 block mb-1">💡 Body 0:03 - 0:25 (Xử lý vấn đề & Demo):</span>
                     Trực tiếp hút sạch cát bẩn trên thảm xe chỉ sau 1 đường quét. So sánh lực hút 12000Pa với máy thông thường.
                   </div>
 
-                  <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-slate-200">
-                    <span className="font-bold text-emerald-400 block mb-1">🎯 Call To Action 0:25 - 0:38:</span>
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-100 text-slate-800">
+                    <span className="font-bold text-emerald-700 block mb-1">🎯 Call To Action 0:25 - 0:38:</span>
                     &ldquo;Ưu đãi 50% độc quyền hôm nay. Bấm vào link bên dưới nhận mã FREESHIP toàn quốc!&rdquo;
                   </div>
                 </div>
@@ -276,56 +276,56 @@ export function LiveSpyDemo() {
 
               {activeTab === "funnel" && (
                 <div className="space-y-3 text-xs">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <ShoppingBag className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <ShoppingBag className="h-4 w-4 text-emerald-600 shrink-0" />
                       <div className="min-w-0">
-                        <div className="font-bold text-white truncate">Nền tảng E-commerce</div>
-                        <div className="text-slate-400 truncate">Shopify (Theme Sense v11.0)</div>
+                        <div className="font-bold text-slate-900 truncate">Nền tảng E-commerce</div>
+                        <div className="text-slate-500 truncate">Shopify (Theme Sense v11.0)</div>
                       </div>
                     </div>
-                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 shrink-0 self-start sm:self-auto text-[11px] sm:text-xs">
+                    <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 shrink-0 self-start sm:self-auto text-[11px] sm:text-xs font-semibold">
                       Dropshipping Winner
                     </Badge>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5 min-w-0">
-                    <div className="text-slate-400 flex items-center justify-between">
+                  <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1.5 min-w-0">
+                    <div className="text-slate-600 flex items-center justify-between">
                       <span className="truncate">Đường dẫn Landing Page:</span>
                       <button
                         type="button"
                         onClick={handleCopyLink}
-                        className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 font-semibold shrink-0 ml-2"
+                        className="text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1 font-semibold shrink-0 ml-2 cursor-pointer"
                       >
-                        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                        {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
                         {copied ? "Đã chép" : "Copy link"}
                       </button>
                     </div>
-                    <div className="font-mono text-indigo-300 bg-slate-950 p-2 rounded-lg truncate text-[11px] sm:text-xs select-all">
+                    <div className="font-mono text-indigo-700 bg-slate-100 p-2 rounded-lg truncate text-[11px] sm:text-xs select-all">
                       https://trendstore-demo.myshopify.com/products/wireless-cleaner?utm_source=fb_ads
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1 text-[11px] text-slate-400">
-                    <div className="truncate">Pixel phát hiện: <span className="text-slate-300">Facebook Pixel, TikTok Pixel</span></div>
-                    <div className="text-left sm:text-right shrink-0">Ước tính giá bán: <span className="text-slate-300 font-semibold">$29.99 (Margin 68%)</span></div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1 text-[11px] text-slate-500">
+                    <div className="truncate">Pixel phát hiện: <span className="text-slate-800 font-medium">Facebook Pixel, TikTok Pixel</span></div>
+                    <div className="text-left sm:text-right shrink-0">Ước tính giá bán: <span className="text-slate-900 font-bold">$29.99 (Margin 68%)</span></div>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Quick action bar linking to real tools */}
-            <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
-              <span className="text-xs text-slate-300 font-medium text-center sm:text-left">
+            <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+              <span className="text-xs text-slate-700 font-semibold text-center sm:text-left">
                 Bạn muốn bóc tách ngay một fanpage hoặc kênh YouTube cụ thể?
               </span>
               <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
-                <Button asChild size="sm" className="w-full sm:w-auto h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md cursor-pointer">
+                <Button asChild size="sm" className="w-full sm:w-auto h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white shadow-xs cursor-pointer">
                   <Link href="/quicksearch">
                     Trải Nghiệm QuickSearch
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline" className="w-full sm:w-auto h-9 px-4 rounded-xl border-slate-700 bg-slate-900 text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">
+                <Button asChild size="sm" variant="outline" className="w-full sm:w-auto h-9 px-4 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-2xs">
                   <Link href="/pricing">
                     Xem Bảng Giá
                   </Link>

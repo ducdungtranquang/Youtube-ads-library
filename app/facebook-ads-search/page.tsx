@@ -26,6 +26,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
+import { FacebookAdsFilters } from "@/components/ads-spy/facebook-ads-filters";
 import {
   Carousel,
   CarouselContent,
@@ -210,6 +211,83 @@ export default function FacebookAdsPage() {
   const [selectedFunnels, setSelectedFunnels] = useState<string[]>([]);
   const [scalingLevel, setScalingLevel] = useState("");
 
+  const handleClearAllFilters = useCallback(() => {
+    setSelectedCountry("");
+    setPublicDateFrom("");
+    setPublicDateTo("");
+    setMinScore("");
+    setMaxScore("");
+    setSelectedLevel("");
+    setSelectedSpends([]);
+    setMinTrendingScore("");
+    setSelectedFunnels([]);
+    setScalingLevel("");
+  }, []);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCountry) count++;
+    if (selectedLevel) count++;
+    if (minScore || maxScore) count++;
+    if (publicDateFrom || publicDateTo) count++;
+    if (selectedSpends.length > 0) count++;
+    if (minTrendingScore) count++;
+    if (selectedFunnels.length > 0) count++;
+    if (scalingLevel) count++;
+    return count;
+  }, [
+    selectedCountry,
+    selectedLevel,
+    minScore,
+    maxScore,
+    publicDateFrom,
+    publicDateTo,
+    selectedSpends,
+    minTrendingScore,
+    selectedFunnels,
+    scalingLevel,
+  ]);
+
+  const activeChips = useMemo(() => {
+    const chips = [];
+    if (selectedCountry) {
+      chips.push({ id: "country", label: `Quốc gia: ${selectedCountry}`, onRemove: () => setSelectedCountry("") });
+    }
+    if (selectedLevel) {
+      chips.push({ id: "level", label: selectedLevel, onRemove: () => setSelectedLevel("") });
+    }
+    if (scalingLevel) {
+      chips.push({ id: "scaling", label: `Scale: ${scalingLevel}`, onRemove: () => setScalingLevel("") });
+    }
+    if (selectedSpends.length > 0) {
+      chips.push({ id: "spend", label: `Spend: ${selectedSpends.join(", ")}`, onRemove: () => setSelectedSpends([]) });
+    }
+    if (selectedFunnels.length > 0) {
+      chips.push({ id: "funnel", label: `Phễu: ${selectedFunnels.join(", ")}`, onRemove: () => setSelectedFunnels([]) });
+    }
+    if (minScore || maxScore) {
+      chips.push({ id: "score", label: `Điểm: ${minScore || 0} - ${maxScore || "max"}`, onRemove: () => { setMinScore(""); setMaxScore(""); } });
+    }
+    if (publicDateFrom || publicDateTo) {
+      chips.push({ id: "date", label: `Ngày: ${publicDateFrom || "..."} → ${publicDateTo || "..."}`, onRemove: () => { setPublicDateFrom(""); setPublicDateTo(""); } });
+    }
+    if (minTrendingScore) {
+      chips.push({ id: "trending", label: `Trending ≥ ${minTrendingScore}`, onRemove: () => setMinTrendingScore("") });
+    }
+    return chips;
+  }, [
+    selectedCountry,
+    selectedLevel,
+    scalingLevel,
+    selectedSpends,
+    selectedFunnels,
+    minScore,
+    maxScore,
+    publicDateFrom,
+    publicDateTo,
+    minTrendingScore,
+  ]);
+
   const { searchFacebookAds, loading, error, data } = useFacebookAdsSearch();
 
   const [results, setResults] = useState<any[]>([]);
@@ -376,192 +454,38 @@ export default function FacebookAdsPage() {
       <HeroSlider />
 
       <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
-        <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)] items-start">
+        <div className="grid gap-8 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)] items-start">
 
-          {/* Vùng chứa bộ lọc - Chuyển sang Light Theme */}
-          <div className="lg:sticky top-24 max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5">
-              <AdsSpyFilterPanel
-                title="Bộ lọc"
-                onClear={() => {
-                  setSelectedCountry("");
-                  setPublicDateFrom("");
-                  setPublicDateTo("");
-                  setMinScore("");
-                  setMaxScore("");
-                  setSelectedLevel("");
-                  setSelectedSpends([]);
-                  setMinTrendingScore("");
-                  setSelectedFunnels([]);
-                  setScalingLevel("");
-                }}
-              >
-                <div className="flex flex-col gap-3 mt-4">
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Quốc gia / Nền tảng hiển thị</label>
-                    <Input
-                      type="text"
-                      placeholder="Ví dụ: VN, US, IG..."
-                      value={selectedCountry}
-                      onChange={(e) => setSelectedCountry(e.target.value)}
-                      className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Cấp độ Quảng cáo</label>
-                    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                      <SelectTrigger className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
-                        <SelectValue placeholder="Tất cả cấp độ" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
-                        {LEVEL_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="focus:bg-slate-100 cursor-pointer">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <div className="space-y-1.5 w-full">
-                      <label className="text-xs font-semibold text-slate-700">Điểm tối thiểu</label>
-                      <Input
-                        type="number"
-                        placeholder="VD: 7"
-                        value={minScore}
-                        onChange={(e) => setMinScore(e.target.value)}
-                        className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
-                      />
-                    </div>
-                    <div className="space-y-1.5 w-full">
-                      <label className="text-xs font-semibold text-slate-700">Điểm tối đa</label>
-                      <Input
-                        type="number"
-                        placeholder="VD: 25"
-                        value={maxScore}
-                        onChange={(e) => setMaxScore(e.target.value)}
-                        className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Từ ngày</label>
-                    <Input
-                      type="date"
-                      value={publicDateFrom}
-                      onChange={(e) => setPublicDateFrom(e.target.value)}
-                      className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm focus-visible:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Đến ngày</label>
-                    <Input
-                      type="date"
-                      value={publicDateTo}
-                      onChange={(e) => setPublicDateTo(e.target.value)}
-                      className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm focus-visible:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Mức chi tiêu</label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start font-normal whitespace-normal h-auto text-left py-2 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
-                          {selectedSpends.length > 0
-                            ? selectedSpends.map(s => ESTIMATED_SPEND_OPTIONS[s as keyof typeof ESTIMATED_SPEND_OPTIONS]).join(', ')
-                            : "Chọn mức chi tiêu"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full bg-white border-slate-200 text-slate-900 shadow-lg">
-                        {Object.entries(ESTIMATED_SPEND_OPTIONS).map(([value, label]) => (
-                          <div key={value} className="flex items-center p-2 hover:bg-slate-50 rounded-md">
-                            <Checkbox
-                              id={`spend-${value}`}
-                              checked={selectedSpends.includes(value)}
-                              onCheckedChange={(checked) => {
-                                setSelectedSpends(
-                                  checked
-                                    ? [...selectedSpends, value]
-                                    : selectedSpends.filter((v) => v !== value)
-                                );
-                              }}
-                              className="border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                            />
-                            <label htmlFor={`spend-${value}`} className="ml-2 text-sm cursor-pointer w-full">
-                              {label}
-                            </label>
-                          </div>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Điểm xu hướng từ</label>
-                    <Input
-                      type="number"
-                      placeholder="Ví dụ: 80"
-                      value={minTrendingScore}
-                      onChange={(e) => setMinTrendingScore(e.target.value)}
-                      className="h-9 text-sm bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 shadow-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Phễu Marketing (Funnel)</label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start font-normal whitespace-normal h-auto text-left py-2 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
-                          {selectedFunnels.length > 0
-                            ? selectedFunnels.map(f => FUNNEL_OPTIONS[f as keyof typeof FUNNEL_OPTIONS]).join(', ')
-                            : "Chọn phễu"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full bg-white border-slate-200 text-slate-900 shadow-lg">
-                        {Object.entries(FUNNEL_OPTIONS).map(([value, label]) => (
-                          <div key={value} className="flex items-center p-2 hover:bg-slate-50 rounded-md">
-                            <Checkbox
-                              id={`funnel-${value}`}
-                              checked={selectedFunnels.includes(value)}
-                              onCheckedChange={(checked) => {
-                                setSelectedFunnels(
-                                  checked
-                                    ? [...selectedFunnels, value]
-                                    : selectedFunnels.filter((v) => v !== value)
-                                );
-                              }}
-                              className="border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                            />
-                            <label htmlFor={`funnel-${value}`} className="ml-2 text-sm cursor-pointer w-full">{label}</label>
-                          </div>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="space-y-1.5 w-full">
-                    <label className="text-xs font-semibold text-slate-700">Mức độ Scaling</label>
-                    <Select value={scalingLevel} onValueChange={setScalingLevel}>
-                      <SelectTrigger className="w-full h-9 text-sm bg-white border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50">
-                        <SelectValue placeholder="Tất cả" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
-                        {SCALING_LEVEL_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value} className="focus:bg-slate-100 cursor-pointer">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </AdsSpyFilterPanel>
-            </div>
+          {/* Vùng chứa bộ lọc - Chuyển sang Light Theme tối ưu UI/UX */}
+          <div className="lg:sticky lg:top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+            <AdsSpyFilterPanel
+              title="Bộ lọc Facebook Ads"
+              activeCount={activeFilterCount}
+              onClear={handleClearAllFilters}
+            >
+              <FacebookAdsFilters
+                selectedCountry={selectedCountry}
+                setSelectedCountry={setSelectedCountry}
+                publicDateFrom={publicDateFrom}
+                setPublicDateFrom={setPublicDateFrom}
+                publicDateTo={publicDateTo}
+                setPublicDateTo={setPublicDateTo}
+                minScore={minScore}
+                setMinScore={setMinScore}
+                maxScore={maxScore}
+                setMaxScore={setMaxScore}
+                selectedLevel={selectedLevel}
+                setSelectedLevel={setSelectedLevel}
+                selectedSpends={selectedSpends}
+                setSelectedSpends={setSelectedSpends}
+                minTrendingScore={minTrendingScore}
+                setMinTrendingScore={setMinTrendingScore}
+                selectedFunnels={selectedFunnels}
+                setSelectedFunnels={setSelectedFunnels}
+                scalingLevel={scalingLevel}
+                setScalingLevel={setScalingLevel}
+              />
+            </AdsSpyFilterPanel>
           </div>
 
           <div className="min-w-0">
@@ -572,10 +496,10 @@ export default function FacebookAdsPage() {
                 <Input
                   ref={searchQueryRef}
                   placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết ..."
-                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-sm transition-all"
+                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 cursor-pointer transition-all">
+              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all">
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -592,7 +516,13 @@ export default function FacebookAdsPage() {
 
             {/* Results Container Section */}
             <section>
-              <AdsSpyResultsToolbar title="Kết quả Facebook Ads" count={results.length} />
+              <AdsSpyResultsToolbar
+                title="Thư viện quảng cáo Facebook"
+                subtitle="Khám phá và bóc tách các chiến dịch quảng cáo Facebook & Instagram toàn cầu"
+                count={results.length}
+                activeChips={activeChips}
+                onClearAll={handleClearAllFilters}
+              />
               {loading ? (
                 <div className="flex justify-center items-center py-20">
                   <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />

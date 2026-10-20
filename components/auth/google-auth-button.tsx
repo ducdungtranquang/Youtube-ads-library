@@ -10,10 +10,11 @@ interface GoogleAuthButtonProps {
   mode?: 'login' | 'register'
   className?: string
   disabled?: boolean
+  prominent?: boolean
 }
 
 // Reusable Google OAuth button for both Login and Register pages
-export function GoogleAuthButton({ mode = 'login', className, disabled }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ mode = 'login', className, disabled, prominent = true }: GoogleAuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { signInWithOAuth } = useAuth()
 
@@ -32,26 +33,26 @@ export function GoogleAuthButton({ mode = 'login', className, disabled }: Google
     }
   }
 
-  const label = mode === 'login' ? 'Đăng nhập bằng Google' : 'Đăng ký bằng Google'
+  const label = mode === 'login' ? 'Đăng nhập nhanh bằng Google' : 'Đăng ký nhanh bằng Google'
 
   return (
     <Button
       type="button"
       variant="outline"
-      className={`w-full h-11 font-medium relative overflow-hidden group transition-all duration-200 hover:border-[#4285F4]/60 hover:bg-[#4285F4]/5 ${className ?? ''}`}
+      className={`w-full h-12 font-semibold text-sm relative overflow-hidden group transition-all duration-200 bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50/20 text-slate-800 shadow-xs hover:shadow-md rounded-xl cursor-pointer active:scale-[0.99] flex items-center justify-center gap-3 ${className ?? ''}`}
       onClick={handleGoogleAuth}
       disabled={disabled || isLoading}
     >
       {isLoading ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Đang chuyển hướng...
+          <Loader2 className="h-4 w-4 animate-spin text-slate-600" />
+          <span>Đang kết nối tài khoản Google...</span>
         </>
       ) : (
         <>
           {/* Official Google "G" logo SVG */}
           <svg
-            className="mr-2.5 h-4 w-4 flex-shrink-0"
+            className="h-5 w-5 flex-shrink-0"
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
@@ -72,7 +73,12 @@ export function GoogleAuthButton({ mode = 'login', className, disabled }: Google
               fill="#EA4335"
             />
           </svg>
-          <span>{label}</span>
+          <span className="font-bold text-slate-900 tracking-tight">{label}</span>
+          {prominent && (
+            <span className="ml-auto hidden sm:inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Khuyên dùng
+            </span>
+          )}
         </>
       )}
     </Button>

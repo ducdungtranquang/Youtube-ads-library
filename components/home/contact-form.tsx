@@ -51,7 +51,7 @@ export function ContactForm() {
           onChange={handleInputChange}
           placeholder="Họ và tên của bạn"
           required
-          className="w-full px-4 py-3.5 bg-slate-950/60 border border-slate-800 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 text-sm transition-all outline-none"
+          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder-slate-400 text-sm transition-all outline-none"
         />
         <input
           type="email"
@@ -60,7 +60,7 @@ export function ContactForm() {
           onChange={handleInputChange}
           placeholder="Địa chỉ Email"
           required
-          className="w-full px-4 py-3.5 bg-slate-950/60 border border-slate-800 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 text-sm transition-all outline-none"
+          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder-slate-400 text-sm transition-all outline-none"
         />
       </div>
       <input
@@ -70,7 +70,7 @@ export function ContactForm() {
         onChange={handleInputChange}
         placeholder="Chủ đề (VD: Tư vấn gói Pro...)"
         required
-        className="w-full px-4 py-3.5 bg-slate-950/60 border border-slate-800 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 text-sm transition-all outline-none"
+        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder-slate-400 text-sm transition-all outline-none"
       />
       <textarea
         rows={4}
@@ -79,7 +79,7 @@ export function ContactForm() {
         onChange={handleInputChange}
         placeholder="Nội dung yêu cầu chi tiết..."
         required
-        className="w-full px-4 py-3.5 bg-slate-950/60 border border-slate-800 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 text-sm transition-all outline-none resize-none"
+        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder-slate-400 text-sm transition-all outline-none resize-none"
       />
 
       {submitStatus === 'success' && (
