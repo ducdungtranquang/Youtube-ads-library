@@ -27,6 +27,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
 import { FacebookAdsFilters } from "@/components/ads-spy/facebook-ads-filters";
+import { useSearchQuota } from "@/hooks/use-search-quota";
+import { SearchQuotaBadge } from "@/components/search-quota-badge";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import {
   Carousel,
   CarouselContent,
@@ -198,6 +201,15 @@ HeroSlider.displayName = "HeroSlider";
 
 export default function FacebookAdsPage() {
   const { user, loading: authLoading } = useAuth();
+  const {
+    quota,
+    checkCanSearch,
+    consumeSearch,
+    isUpgradeModalOpen,
+    openUpgradeModal,
+    closeUpgradeModal,
+  } = useSearchQuota('fb');
+
   const searchQueryRef = useRef<HTMLInputElement>(null);
 
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -367,20 +379,31 @@ export default function FacebookAdsPage() {
 
   useEffect(() => {
     if (user) {
-      executeSearch();
+      // Pass isInitialLoad = true so initial feed display on mount does not deduct quota
+      executeSearch(true);
     }
   }, [currentPage]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check search quota limit: Free (1/day), Personal (20/day), Business (Unlimited)
+    if (!checkCanSearch()) {
+      return;
+    }
+
     if (currentPage === 1) {
-      executeSearch();
+      executeSearch(false);
     } else {
       setCurrentPage(1);
     }
   };
 
-  const executeSearch = async () => {
+  const executeSearch = async (isInitialLoad: boolean = false) => {
+    if (!isInitialLoad && !checkCanSearch()) {
+      return;
+    }
+
     const params = new URLSearchParams();
     params.append("page", currentPage.toString());
     params.append("limit", itemsPerPage.toString());
@@ -403,6 +426,9 @@ export default function FacebookAdsPage() {
 
       if (result?.success) {
         setResults(result.data || []);
+        if (!isInitialLoad) {
+          consumeSearch();
+        }
         if (result.pagination) {
           setTotalPages(result.pagination.pages || 1);
         }
@@ -489,6 +515,11 @@ export default function FacebookAdsPage() {
           </div>
 
           <div className="min-w-0">
+            {/* Search Quota Badge */}
+            <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
+              <SearchQuotaBadge quota={quota} onUpgradeClick={openUpgradeModal} />
+            </div>
+
             {/* Search Bar - Light Theme */}
             <form onSubmit={handleSearchSubmit} className="mb-6 flex md:flex-row gap-3 flex-col">
               <div className="relative flex-1 group">
@@ -601,6 +632,13 @@ export default function FacebookAdsPage() {
           </div>
         </div>
       </main>
+
+      {/* Upgrade Modal on Quota Exceeded */}
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={closeUpgradeModal}
+        quota={quota}
+      />
 
       <footer className="border-t border-slate-200 py-8 mt-12 bg-white">
         <div className="container text-center text-sm text-slate-500">

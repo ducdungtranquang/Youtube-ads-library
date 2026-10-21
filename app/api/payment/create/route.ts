@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate plan
-    if (!SUBSCRIPTION_PLANS[planId as PlanId]) {
+    if (!SUBSCRIPTION_PLANS[planId as PlanId] || planId === 'free') {
       return NextResponse.json(
-        { success: false, error: 'Invalid plan' },
+        { success: false, error: 'Gói dịch vụ không hợp lệ để thanh toán' },
         { status: 400 }
       )
     }

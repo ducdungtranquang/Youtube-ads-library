@@ -134,230 +134,334 @@ export default function PricingPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 py-16 md:py-20">
+      <section className="relative w-full overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 py-16 md:py-20 text-white border-b border-slate-800">
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
-        <div className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-10 left-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="container relative z-10 mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-sm px-4 py-2 text-sm font-semibold text-emerald-200 shadow-lg">
-              <Sparkles className="h-4 w-4 text-emerald-300" />
-              Chương trình trải nghiệm miễn phí 100%
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-indigo-500/20 border border-indigo-400/30 backdrop-blur-sm px-4 py-1.5 text-xs font-bold text-indigo-300 uppercase tracking-wider shadow-lg">
+              <Sparkles className="h-4 w-4 text-indigo-400" />
+              Chính sách bảng giá & Lượt tìm kiếm 2026
             </div>
-            <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl lg:text-5xl">
-              Hiện Tại Đang Mở Miễn Phí Toàn Bộ
+            <h1 className="mb-4 text-3xl font-black tracking-tight text-white md:text-5xl lg:text-6xl leading-tight">
+              Bảng Giá Dịch Vụ Ads Spy Tool
             </h1>
-            <p className="text-lg text-white/90 max-w-xl mx-auto">
-              Không giới hạn tính năng. Truy cập và sử dụng đầy đủ công cụ phân tích YouTube & Facebook Ads hoàn toàn miễn phí.
+            <p className="text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+              Lựa chọn gói dịch vụ tối ưu để bóc tách ngân sách, kịch bản video triệu view và sản phẩm win trên YouTube Ads & Facebook Ads.
             </p>
           </div>
         </div>
       </section>
 
-      <main className="container py-12 -mt-8 relative z-20">
-        {/* Thông báo Miễn Phí Hết */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <Card className="relative overflow-hidden border-2 border-emerald-500/40 bg-slate-900/90 backdrop-blur-2xl shadow-2xl shadow-emerald-950/50 rounded-3xl p-6 md:p-8 text-center">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mb-6 shadow-lg shadow-emerald-500/10">
-              <Sparkles className="h-8 w-8 text-emerald-400" />
-            </div>
-
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">
-              Toàn Bộ Tính Năng Đang Được Miễn Phí
-            </h2>
-            <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-              Bạn có thể sử dụng tất cả các công cụ nghiên cứu và bóc tách quảng cáo của Ads Spy Tool mà không cần trả phí hay nhập thông tin thẻ.
-            </p>
-
-            <div className="grid gap-3 sm:grid-cols-2 text-left max-w-xl mx-auto mb-8">
-              {[
-                "Tìm kiếm & lọc YouTube Ads không giới hạn",
-                "Phân tích Facebook Ads (Spend, Reach, Duplicates)",
-                "Bóc tách video Unlisted & tải video MP4",
-                "Xem kịch bản Hook 3s & Landing Page đối thủ",
-                "Dữ liệu phân bổ thị trường Quốc gia (Geo Tier)",
-                "Không cần thẻ thanh toán, không phụ phí ẩn"
-              ].map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs md:text-sm text-slate-200">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400 shrink-0">
-                    <Check className="h-3.5 w-3.5" />
-                  </div>
-                  <span>{feature}</span>
+      <main className="container py-12 -mt-10 relative z-20">
+        {/* Pricing Cards Grid */}
+        <div className="grid gap-8 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto items-stretch">
+          {/* 1. Gói Miễn Phí */}
+          <Card className="border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl flex flex-col justify-between hover:border-slate-300 transition-all duration-300">
+            <div>
+              <CardHeader className="pb-6 pt-8 px-6 sm:px-8 border-b border-slate-100">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider w-fit mb-3">
+                  Khởi đầu
                 </div>
-              ))}
+                <CardTitle className="text-2xl font-black text-slate-900">Miễn phí</CardTitle>
+                <CardDescription className="text-sm text-slate-500 mt-1">
+                  Dành cho người mới bắt đầu trải nghiệm công cụ
+                </CardDescription>
+                <div className="mt-5 flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">0₫</span>
+                  <span className="text-slate-500 text-sm font-semibold">/ tháng</span>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
+                <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/70 text-xs text-amber-900 font-medium">
+                  ⚡ <strong>5 lượt search/ngày:</strong> Giới hạn 5 lượt tìm kiếm miễn phí mỗi ngày cho YouTube Ads & Facebook Ads.
+                </div>
+
+                <ul className="space-y-3.5 text-sm text-slate-700">
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span><strong>5 lượt tìm kiếm/ngày</strong> (YouTube & FB Ads)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Tra cứu QuickSearch YouTube Ads</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Xem thông tin quảng cáo cơ bản</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Lưu tối đa 20 mục yêu thích</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-slate-400">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
+                      <X className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Không hỗ trợ bóc tách video Unlisted</span>
+                  </li>
+                </ul>
+              </CardContent>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <Button asChild size="lg" className="w-full sm:w-auto h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 cursor-pointer">
-                <Link href="/mkt">
-                  Trải Nghiệm YouTube Ads Ngay
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto h-12 px-8 rounded-xl border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-slate-200 font-bold text-sm cursor-pointer">
-                <Link href="/facebook-ads-search">
-                  Khám Phá Facebook Ads
+            <div className="p-6 sm:p-8 pt-0">
+              <Button asChild variant="outline" className="w-full h-12 rounded-xl border-slate-300 hover:bg-slate-100 font-bold text-slate-800 cursor-pointer">
+                <Link href={user ? "/quicksearch" : "/register"}>
+                  {user ? "Trải nghiệm ngay" : "Đăng ký miễn phí"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
           </Card>
-        </div>
 
-        {/* 
-          =============================================================================
-          [CODE CŨ - CÁC GÓI THU PHÍ 229K, 999K & THANH TOÁN PAYOS - GIỮ LẠI ĐỂ BACK VỀ SAU NÀY]
-          Khi nào muốn bật lại thu phí, bạn chỉ cần mở lại khối code dưới đây và ẩn khối thông báo bên trên.
-          =============================================================================
-
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-3 max-w-5xl mx-auto">
-          <Card className="border-2 hover:shadow-lg transition-all">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl">Miễn phí</CardTitle>
-              <CardDescription>Phù hợp để bắt đầu trải nghiệm</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-foreground">0₫</span>
-                <span className="text-muted-foreground text-sm">/tháng</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                    <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-sm text-muted-foreground">Chỉ sử dụng QuickSearch</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                    <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-sm text-muted-foreground">Giới hạn 20 lượt yêu thích</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                    <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-sm text-muted-foreground">Xem kết quả cơ bản</span>
-                </li>
-              </ul>
-              <Link href="/register" className="block">
-                <Button variant="outline" className="w-full cursor-pointer">
-                  Bắt đầu ngay
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-primary shadow-xl relative scale-105">
+          {/* 2. Gói Cá Nhân (Popular) */}
+          <Card className="border-2 border-indigo-600 bg-white shadow-2xl shadow-indigo-600/15 rounded-3xl flex flex-col justify-between relative scale-100 md:scale-105 z-10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-1.5 text-xs font-semibold text-white shadow-lg">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30">
                 <Sparkles className="h-3.5 w-3.5" />
-                Phổ biến nhất
+                Được Marketer Tin Dùng Nhất
               </div>
             </div>
-            <CardHeader className="pb-4 pt-8">
-              <CardTitle className="text-xl">Cá nhân</CardTitle>
-              <CardDescription>Dành cho người dùng cá nhân</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-foreground">229.000₫</span>
-                <span className="text-muted-foreground text-sm">/tháng</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
-                    <Check className="h-3 w-3 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Tìm kiếm tối đa 10 lần/ngày</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
-                    <Check className="h-3 w-3 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Xem chi tiết video</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
-                    <Check className="h-3 w-3 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Không giới hạn mục yêu thích</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
-                    <Check className="h-3 w-3 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Hỗ trợ qua email</span>
-                </li>
-              </ul>
+
+            <div>
+              <CardHeader className="pb-6 pt-10 px-6 sm:px-8 border-b border-indigo-50 bg-gradient-to-b from-indigo-50/50 to-transparent rounded-t-3xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider w-fit mb-3">
+                  Cá nhân
+                </div>
+                <CardTitle className="text-2xl font-black text-slate-900">Gói Cá Nhân</CardTitle>
+                <CardDescription className="text-sm text-slate-600 mt-1">
+                  Dành cho cá nhân vít ads, media buyer & content creator
+                </CardDescription>
+                <div className="mt-5 flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-black text-indigo-600 tracking-tight">99.000₫</span>
+                  <span className="text-slate-500 text-sm font-semibold">/ tháng</span>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
+                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200/80 text-xs text-indigo-900 font-medium">
+                  🚀 <strong>25 lượt search/ngày:</strong> Thoải mái tìm kiếm và nghiên cứu kịch bản hàng ngày trên cả YouTube Ads và Facebook Ads.
+                </div>
+
+                <ul className="space-y-3.5 text-sm text-slate-700">
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span><strong className="text-indigo-900">25 lượt tìm kiếm/ngày</strong> (YouTube & FB Ads)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Xem chi tiết video, Hook 3s & Landing Page đối thủ</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Bóc tách video Unlisted & tải video MP4</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span><strong>Không giới hạn</strong> mục yêu thích lưu trữ</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Dữ liệu phân bổ thị trường Quốc gia (Geo Tier)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Hỗ trợ kỹ thuật qua email</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </div>
+
+            <div className="p-6 sm:p-8 pt-0">
               <Button
-                className="w-full cursor-pointer"
+                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 cursor-pointer transition-all"
                 onClick={() => handlePayment('personal')}
                 disabled={isProcessing || authLoading}
               >
                 {isProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang xử lý...
+                    Đang kết nối PayOS...
                   </>
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Thanh toán ngay
+                    Thanh toán ngay (99k/tháng)
                   </>
                 )}
               </Button>
-            </CardContent>
+            </div>
           </Card>
 
-          <Card className="border-2 hover:shadow-lg transition-all">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl">Doanh nghiệp</CardTitle>
-              <CardDescription>Dành cho tổ chức, doanh nghiệp</CardDescription>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-foreground">999.000₫</span>
-                <span className="text-muted-foreground text-sm">/tháng</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-                    <Check className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <span className="text-sm font-medium">Tìm kiếm không giới hạn</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-                    <Check className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <span className="text-sm font-medium">Hỗ trợ 24/7</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-                    <Check className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <span className="text-sm font-medium">API riêng nếu cần</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-                    <Check className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <span className="text-sm font-medium">Tư vấn triển khai</span>
-                </li>
-              </ul>
-              <Button variant="outline" className="w-full cursor-pointer" onClick={() => handlePayment('business')}>
-                Liên hệ tư vấn
+          {/* 3. Gói Doanh Nghiệp / Max */}
+          <Card className="border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl flex flex-col justify-between hover:border-purple-300 transition-all duration-300">
+            <div>
+              <CardHeader className="pb-6 pt-8 px-6 sm:px-8 border-b border-slate-100">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider w-fit mb-3">
+                  Không giới hạn
+                </div>
+                <CardTitle className="text-2xl font-black text-slate-900">Doanh nghiệp / Max</CardTitle>
+                <CardDescription className="text-sm text-slate-500 mt-1">
+                  Dành cho Agency, Doanh nghiệp & Team marketing chuyên sâu
+                </CardDescription>
+                <div className="mt-5 flex items-baseline gap-1">
+                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">199.000₫</span>
+                  <span className="text-slate-500 text-sm font-semibold">/ tháng</span>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
+                <div className="p-3 rounded-xl bg-purple-50 border border-purple-200/80 text-xs text-purple-900 font-medium">
+                  👑 <strong>Unlimited Search:</strong> Không giới hạn lượt tìm kiếm mỗi ngày, mở khóa toàn bộ sức mạnh phân tích.
+                </div>
+
+                <ul className="space-y-3.5 text-sm text-slate-700">
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span><strong className="text-purple-900 font-bold">Tìm kiếm KHÔNG GIỚI HẠN</strong> (Unlimited)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Toàn bộ tính năng cao cấp YouTube & Facebook Ads</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Bóc tách Spend, Reach, Duplicates, Scaling score</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Phân tích phễu chuyển đổi TOF / MOF / BOF</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Hỗ trợ ưu tiên 24/7 & Tư vấn triển khai</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Cung cấp API riêng nếu doanh nghiệp cần</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </div>
+
+            <div className="p-6 sm:p-8 pt-0">
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl border-purple-300 hover:bg-purple-50 text-purple-700 font-bold text-sm cursor-pointer"
+                onClick={() => handlePayment('business')}
+              >
+                Đăng ký Doanh nghiệp (199k)
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            </CardContent>
+            </div>
           </Card>
         </div>
-        */}
+
+        {/* Feature Comparison Table */}
+        <div className="mt-20 max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">So Sánh Chi Tiết Quyền Lợi Các Gói</h2>
+            <p className="text-slate-500 text-sm mt-1">Chi tiết tính năng để bạn lựa chọn gói phù hợp nhất với ngân sách</p>
+          </div>
+
+          <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider">
+                <tr>
+                  <th className="py-4 px-6">Tính năng</th>
+                  <th className="py-4 px-6 text-center">Miễn phí</th>
+                  <th className="py-4 px-6 text-center bg-indigo-50/70 text-indigo-900">Cá nhân (99k)</th>
+                  <th className="py-4 px-6 text-center text-purple-900">Doanh nghiệp (199k)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-600">
+                <tr>
+                  <td className="py-4 px-6 font-semibold text-slate-900">Lượt tìm kiếm mỗi ngày</td>
+                  <td className="py-4 px-6 text-center font-bold text-amber-600">5 lượt / ngày</td>
+                  <td className="py-4 px-6 text-center font-bold text-indigo-600 bg-indigo-50/30">25 lượt / ngày</td>
+                  <td className="py-4 px-6 text-center font-black text-purple-600">Không giới hạn (∞)</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm YouTube Ads</td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm Facebook Ads</td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Bóc tách video Unlisted & tải MP4</td>
+                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Xem Hook 3s & Landing Page đối thủ</td>
+                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Ước tính Spend, Reach & Duplicates</td>
+                  <td className="py-4 px-6 text-center text-xs">Cơ bản</td>
+                  <td className="py-4 px-6 text-center text-xs font-semibold text-indigo-700 bg-indigo-50/30">Chi tiết</td>
+                  <td className="py-4 px-6 text-center text-xs font-bold text-purple-700">Đầy đủ & chuyên sâu</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Mục yêu thích lưu trữ</td>
+                  <td className="py-4 px-6 text-center">20 mục</td>
+                  <td className="py-4 px-6 text-center font-bold text-indigo-600 bg-indigo-50/30">Không giới hạn</td>
+                  <td className="py-4 px-6 text-center font-bold text-purple-600">Không giới hạn</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Hỗ trợ kỹ thuật</td>
+                  <td className="py-4 px-6 text-center text-xs">Cộng đồng</td>
+                  <td className="py-4 px-6 text-center text-xs font-medium text-indigo-700 bg-indigo-50/30">Email hỗ trợ</td>
+                  <td className="py-4 px-6 text-center text-xs font-bold text-purple-700">24/7 & 1-kèm-1</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         {/* Benefits Section */}
         <div className="mt-16 max-w-4xl mx-auto">

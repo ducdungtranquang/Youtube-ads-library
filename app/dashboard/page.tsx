@@ -12,10 +12,11 @@ import { useFavorites } from '@/hooks/use-favorites'
 import { supabase } from "@/lib/supabase"
 
 function DashboardPage() {
-  const SUBSCRIPTION_MAP: Record<string, { label: string; color: string }> = {
-    free: { label: "Miễn phí", color: "text-slate-600" },
-    personal: { label: "Cá nhân", color: "text-blue-600 font-bold" },
-    company: { label: "Doanh nghiệp", color: "text-purple-600 font-bold" },
+  const SUBSCRIPTION_MAP: Record<string, { label: string; color: string; limitText: string }> = {
+    free: { label: "Miễn phí", color: "text-slate-700 font-bold", limitText: "5 lượt/ngày" },
+    personal: { label: "Cá nhân", color: "text-indigo-600 font-bold", limitText: "25 lượt/ngày" },
+    business: { label: "Doanh nghiệp", color: "text-purple-600 font-bold", limitText: "Không giới hạn" },
+    company: { label: "Doanh nghiệp", color: "text-purple-600 font-bold", limitText: "Không giới hạn" },
   };
   const { user } = useAuth()
   const { getFavoritesCounts, loading: countsLoading } = useFavorites()
@@ -31,9 +32,9 @@ function DashboardPage() {
       if (data) setCounts(data);
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('subscription_plan')
+        .select('subscription_plan, subscription_status, daily_search_count, last_search_date')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profile) {
         setDbProfile(profile)
@@ -45,6 +46,12 @@ function DashboardPage() {
 
   const rawPlan = dbProfile?.subscription_plan || user?.user_metadata?.subscription_plan || "free"
   const planInfo = SUBSCRIPTION_MAP[rawPlan] || SUBSCRIPTION_MAP.free;
+  const isUnlimited = rawPlan === 'business' || rawPlan === 'company';
+  const planLimit = isUnlimited ? -1 : (rawPlan === 'personal' ? 25 : 5);
+  const today = new Date().toISOString().split('T')[0];
+  const lastSearchDate = dbProfile?.last_search_date ? new Date(dbProfile.last_search_date).toISOString().split('T')[0] : null;
+  const searchesToday = lastSearchDate === today ? (dbProfile?.daily_search_count || 0) : 0;
+  const searchesRemaining = isUnlimited ? -1 : Math.max(0, planLimit - searchesToday);
   const totalFavorites = counts.video + counts.offer + counts.affiliate + counts.brand + counts.company
 
   return (
@@ -67,7 +74,7 @@ function DashboardPage() {
               Chào mừng trở lại!
             </h1>
             <p className="text-base md:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
-              Quản lý tài khoản và theo dõi các chiến dịch quảng cáo đã lưu một cách trực quan, chính xác.
+              Quản lý tài khoản, theo dõi quota tìm kiếm và các chiến dịch quảng cáo đã lưu một cách trực quan, chính xác.
             </p>
           </div>
         </div>
@@ -76,57 +83,80 @@ function DashboardPage() {
       <main className="container py-10 relative z-20">
         <div className="max-w-5xl mx-auto">
           {/* Quick Stats Grid */}
-          <div className="grid gap-5 md:grid-cols-3 mb-8">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             {/* Account Info Card */}
             <Card className="border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-sm shadow-slate-200/50 rounded-2xl">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100 flex-shrink-0">
-                  <Mail className="h-6 w-6 text-blue-600" />
+              <CardContent className="flex items-center gap-3.5 p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100 flex-shrink-0">
+                  <Mail className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Email tài khoản</p>
-                  <p className="font-bold text-slate-900 truncate text-base mt-0.5">{user?.email || 'Chưa đăng nhập'}</p>
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Email</p>
+                  <p className="font-bold text-slate-900 truncate text-sm mt-0.5">{user?.email || 'Chưa đăng nhập'}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Subscription Card */}
             <Card className="border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-sm shadow-slate-200/50 rounded-2xl">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-50 border border-purple-100 flex-shrink-0">
-                  <BadgeCheck className="h-6 w-6 text-purple-600" />
+              <CardContent className="flex items-center gap-3.5 p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 border border-purple-100 flex-shrink-0">
+                  <BadgeCheck className="h-5 w-5 text-purple-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Gói dịch vụ</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <p className={`font-bold text-base ${planInfo.color}`}>
-                      {planInfo.label}
-                    </p>
-                    {rawPlan !== "free" && (
-                      <BadgeCheck className={`h-4 w-4 ${planInfo.color}`} />
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Gói dịch vụ</p>
+                  <div className="flex items-center justify-between gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className={`font-bold text-sm truncate ${planInfo.color}`}>
+                        {planInfo.label}
+                      </span>
+                      {rawPlan !== "free" && (
+                        <BadgeCheck className={`h-3.5 w-3.5 ${planInfo.color} flex-shrink-0`} />
+                      )}
+                    </div>
+                    {rawPlan !== "business" && rawPlan !== "company" && (
+                      <Link href="/pricing" className="flex-shrink-0">
+                        <span className="inline-flex items-center text-[11px] font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200/80 px-2 py-0.5 rounded-full transition-all duration-200 shadow-2xs whitespace-nowrap">
+                          Nâng cấp ↑
+                        </span>
+                      </Link>
                     )}
                   </div>
                 </div>
-                {rawPlan === "free" && (
-                  <Link href="/pricing">
-                    <Button size="sm" className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-semibold">
-                      Nâng cấp
-                    </Button>
-                  </Link>
-                )}
+              </CardContent>
+            </Card>
+
+            {/* Search Quota Card */}
+            <Card className="border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-sm shadow-slate-200/50 rounded-2xl">
+              <CardContent className="flex items-center gap-3.5 p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100 flex-shrink-0">
+                  <Search className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Tìm kiếm hôm nay</p>
+                  <p className="font-black text-slate-900 text-sm mt-0.5 truncate">
+                    {isUnlimited ? (
+                      <span className="text-purple-600 font-bold">Không giới hạn ∞</span>
+                    ) : (
+                      <span>
+                        <span className="text-indigo-600">{searchesRemaining}</span> / {planLimit} còn lại
+                      </span>
+                    )}
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
             {/* Favorites Card */}
             <Card className="border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-sm shadow-slate-200/50 rounded-2xl">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 border border-rose-100 flex-shrink-0">
-                  <Heart className="h-6 w-6 text-rose-600" />
+              <CardContent className="flex items-center gap-3.5 p-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 border border-rose-100 flex-shrink-0">
+                  <Heart className="h-5 w-5 text-rose-600" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tổng mục yêu thích</p>
-                  <p className="font-black text-slate-900 text-2xl mt-0.5">
-                    {loading ? <Loader2 className="inline h-5 w-5 animate-spin text-slate-400" /> : totalFavorites}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Tổng yêu thích</p>
+                  <p className="font-black text-slate-900 text-base mt-0.5">
+                    {loading ? <Loader2 className="inline h-4 w-4 animate-spin text-slate-400" /> : totalFavorites}
                   </p>
                 </div>
               </CardContent>

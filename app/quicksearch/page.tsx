@@ -29,9 +29,21 @@ import {
   BarChart3
 } from "lucide-react"
 import { toast } from "sonner"
+import { useSearchQuota } from "@/hooks/use-search-quota"
+import { SearchQuotaBadge } from "@/components/search-quota-badge"
+import { UpgradeModal } from "@/components/upgrade-modal"
 
 function QuickSearchPage() {
   const { user } = useAuth()
+  const {
+    quota,
+    checkCanSearch,
+    consumeSearch,
+    isUpgradeModalOpen,
+    openUpgradeModal,
+    closeUpgradeModal,
+  } = useSearchQuota('yt')
+
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [hasInputValue, setHasInputValue] = useState(false)
@@ -62,6 +74,11 @@ function QuickSearchPage() {
 
     if (!currentQuery) {
       toast.error("Vui lòng nhập từ khóa tìm kiếm")
+      return
+    }
+
+    // Check search quota limit: Free (1/day), Personal (20/day), Business (Unlimited)
+    if (!checkCanSearch()) {
       return
     }
 
@@ -117,6 +134,7 @@ function QuickSearchPage() {
       const videos = Array.isArray(rawVideos) ? rawVideos : []
       setSearchResults(videos)
       setIsSearching(false)
+      consumeSearch()
 
       if (videos.length === 0) {
         toast.info('Không tìm thấy kết quả nào phù hợp')
@@ -162,12 +180,13 @@ function QuickSearchPage() {
         <section className="relative mb-10 overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 md:p-12 lg:p-14 shadow-xl shadow-slate-200/60">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f080_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f080_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none" />
           <div className="relative z-10 mx-auto max-w-4xl text-center">
-            {/* Top Pill Badge */}
-            <div className="mb-6 flex justify-center">
+            {/* Top Pill Badge & Quota Indicator */}
+            <div className="mb-6 flex flex-col items-center gap-3">
               <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-200 px-4 py-1.5 text-xs font-bold text-indigo-700 uppercase tracking-wider shadow-2xs">
                 <Sparkles className="h-3.5 w-3.5 text-indigo-600 animate-pulse" />
                 <span>YouTube Quick Search • Bản Dùng Thử Nhanh</span>
               </div>
+              <SearchQuotaBadge quota={quota} onUpgradeClick={openUpgradeModal} />
             </div>
 
             {/* Title & Slogan */}
@@ -180,7 +199,7 @@ function QuickSearchPage() {
 
             <p className="mx-auto mb-8 max-w-2xl text-sm md:text-base text-slate-600 leading-relaxed">
               Tìm kiếm trực tiếp kho video quảng cáo YouTube triệu view từ các thương hiệu hàng đầu.
-              Trải nghiệm nhanh <span className="text-emerald-700 font-bold">100% miễn phí</span> mà không cần đăng nhập.
+              Miễn phí <span className="text-emerald-700 font-bold">5 lượt/ngày</span>. Nâng cấp gói <Link href="/pricing" className="text-indigo-600 font-bold hover:underline">Cá nhân (25 lượt/ngày)</Link> hoặc <Link href="/pricing" className="text-purple-600 font-bold hover:underline">Doanh nghiệp (Không giới hạn)</Link> để bóc tách toàn diện.
             </p>
 
             {/* Search Input Bar */}
@@ -509,6 +528,13 @@ function QuickSearchPage() {
           }}
         />
       )}
+
+      {/* Upgrade Modal on Quota Exceeded */}
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={closeUpgradeModal}
+        quota={quota}
+      />
 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-8 mt-16 bg-white">

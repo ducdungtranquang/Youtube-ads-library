@@ -60,6 +60,9 @@ import {
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
 import { YoutubeAdsFilters } from "@/components/ads-spy/youtube-ads-filters";
+import { useSearchQuota } from "@/hooks/use-search-quota";
+import { SearchQuotaBadge } from "@/components/search-quota-badge";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 // Pre-process static data once at module level for better performance
 const sortOptions = [
@@ -393,6 +396,15 @@ export default function MKTPage() {
   }, [selectedCountry, selectedLanguage, selectedCategory, showVideos, dateFrom, dateTo]);
 
   const { user, loading: authLoading } = useAuth();
+  const {
+    quota,
+    checkCanSearch,
+    consumeSearch,
+    isUpgradeModalOpen,
+    openUpgradeModal,
+    closeUpgradeModal,
+  } = useSearchQuota('yt');
+
   const [activeTab, setActiveTab] = useState<"ads" | "brands" | "companies">("ads");
 
   const [adsSearchResults, setAdsSearchResults] = useState<any>(null);
@@ -552,6 +564,12 @@ export default function MKTPage() {
   const handleAdsSearch = useCallback(
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
+
+      // Check search quota limit: Free (1/day), Personal (20/day), Business (Unlimited)
+      if (!checkCanSearch()) {
+        return;
+      }
+
       const searchQuery = searchQueryRef.current?.value?.trim();
       if (page === 1) {
         setAdsSearchResults(null)
@@ -579,8 +597,10 @@ export default function MKTPage() {
 
         if (result?.pending) {
           setAdsSearchResults(null);
+          consumeSearch();
         } else if (result?.success && result?.data) {
           setAdsSearchResults(result.data);
+          consumeSearch();
           const resultCount = result.data?.data?.results?.length || 0;
           if (resultCount > 0) {
             toast.success(`Tìm thấy ${resultCount} quảng cáo từ ${result.data.total_available} có sẵn`);
@@ -596,12 +616,18 @@ export default function MKTPage() {
         setAdsSearchResults(null);
       }
     },
-    [searchAdsWithCache, selectedCountry, selectedLanguage, selectedCategory, dateFrom, dateTo, showVideos, sortBy]
+    [searchAdsWithCache, selectedCountry, selectedLanguage, selectedCategory, dateFrom, dateTo, showVideos, sortBy, checkCanSearch, consumeSearch]
   );
 
   const handleBrandsSearch = useCallback(
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
+
+      // Check search quota limit
+      if (!checkCanSearch()) {
+        return;
+      }
+
       const searchQuery = searchQueryRef.current?.value?.trim();
       if (page === 1) setBrandsSearchResults(null);
 
@@ -623,6 +649,7 @@ export default function MKTPage() {
         });
 
         if (result?.success) {
+          consumeSearch();
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm thương hiệu, vui lòng đợi...");
           } else {
@@ -643,12 +670,18 @@ export default function MKTPage() {
         setBrandsSearchResults(null);
       }
     },
-    [searchBrandsWithCache, selectedCountry, selectedCategory, sortBy]
+    [searchBrandsWithCache, selectedCountry, selectedCategory, sortBy, checkCanSearch, consumeSearch]
   );
 
   const handleCompaniesSearch = useCallback(
     async (e: React.FormEvent | null, page: number = 1) => {
       if (e) e.preventDefault();
+
+      // Check search quota limit
+      if (!checkCanSearch()) {
+        return;
+      }
+
       const searchQuery = searchQueryRef.current?.value?.trim();
       if (page === 1) setCompaniesSearchResults(null);
 
@@ -670,6 +703,7 @@ export default function MKTPage() {
         });
 
         if (result?.success) {
+          consumeSearch();
           if (result.pending) {
             toast.info("Bắt đầu tìm kiếm doanh nghiệp, vui lòng đợi...");
           } else {
@@ -690,7 +724,7 @@ export default function MKTPage() {
         setCompaniesSearchResults(null);
       }
     },
-    [searchCompaniesWithCache, selectedCountry, selectedCategory, sortBy]
+    [searchCompaniesWithCache, selectedCountry, selectedCategory, sortBy, checkCanSearch, consumeSearch]
   );
 
   const handleSearch = useCallback(
@@ -773,6 +807,11 @@ export default function MKTPage() {
 
           {/* Cột nội dung chính - Theme sáng */}
           <div className="min-w-0">
+            {/* Search Quota Indicator */}
+            <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
+              <SearchQuotaBadge quota={quota} onUpgradeClick={openUpgradeModal} />
+            </div>
+
             <form
               onSubmit={handleSearch}
               className="mb-6 flex gap-3 mobile:flex-col"
@@ -1040,6 +1079,13 @@ export default function MKTPage() {
         companyId={selectedCompany?.companyId?.toString() || null}
         company={selectedCompany}
         onClose={() => { }}
+      />
+
+      {/* Upgrade Modal on Limit Reached */}
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={closeUpgradeModal}
+        quota={quota}
       />
 
       <footer className="border-t border-slate-200 py-8 mt-12 bg-white">
