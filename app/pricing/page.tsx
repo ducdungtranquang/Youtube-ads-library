@@ -209,7 +209,7 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
                       <X className="h-3.5 w-3.5" />
                     </div>
-                    <span>Không hỗ trợ bóc tách video Unlisted</span>
+                    <span>Không hỗ trợ cập nhật các tính năng mới nhất</span>
                   </li>
                 </ul>
               </CardContent>

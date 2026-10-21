@@ -24,6 +24,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { HeroSlider } from "@/components/home/hero-slider";
+import { HomepageIntroLoader } from "@/components/home/homepage-intro-loader";
 import { LiveSpyDemo } from "@/components/home/live-spy-demo";
 import { AboutUsSection } from "@/components/home/about-us-section";
 import { FaqSection } from "@/components/home/faq-section";
@@ -73,6 +74,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white relative">
+      <HomepageIntroLoader />
       <Header />
       <HeroSlider />
 

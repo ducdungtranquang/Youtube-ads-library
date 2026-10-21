@@ -121,6 +121,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
@@ -128,6 +129,7 @@
 }
 
 @layer utilities {
+
   /* Override container to remove max-width */
   .container {
     width: 100% !important;
@@ -201,4 +203,115 @@
       padding-right: 4rem;
     }
   }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes float-reverse {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.08);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 7s ease-in-out infinite;
+}
+
+@keyframes char-smooth-in {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.9);
+    filter: blur(12px);
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+    filter: blur(0px);
+  }
+}
+
+.animate-char-smooth {
+  animation: char-smooth-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes text-glow-pulse {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.25));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 28px rgba(168, 85, 247, 0.45));
+  }
+}
+
+.animate-text-glow {
+  animation: text-glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes char-luxury-in {
+  0% {
+    opacity: 0;
+    transform: translateY(32px) scale(0.92) skewX(-4deg);
+    filter: blur(16px);
+  }
+
+  60% {
+    opacity: 0.9;
+    filter: blur(2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1) skewX(0deg);
+    filter: blur(0px);
+  }
+}
+
+.animate-char-luxury {
+  animation: char-luxury-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
