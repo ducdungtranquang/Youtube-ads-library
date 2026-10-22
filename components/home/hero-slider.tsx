@@ -80,7 +80,7 @@ export const HeroSlider = memo(() => {
 
           {/* Solid Non-Jumping Headline with Rich Gradient */}
           <h1 className="mb-6 text-3xl font-black tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl leading-[1.12] max-w-4xl mx-auto">
-            Bóc Tách Ngân Sách, Lượt Reach &{" "}
+            Nghiên cứu Ngân Sách, Lượt Reach &{" "}
             <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-rose-400 bg-clip-text text-transparent">
               Chiến Dịch Winning
             </span>{" "}
@@ -145,7 +145,7 @@ export const HeroSlider = memo(() => {
               </span>
             </div>
             <div className="space-y-1.5">
-              <p className="font-bold text-xs text-white line-clamp-1">Kịch bản bóc tách Hook 3s Dropshipping</p>
+              <p className="font-bold text-xs text-white line-clamp-1">Kịch bản Nghiên cứu Hook 3s Dropshipping</p>
               <p className="text-[11px] text-slate-400">Kênh: Alpha Scale Brands</p>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">

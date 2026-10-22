@@ -12,7 +12,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Tôi có thể xem và phân tích các video quảng cáo ẩn (Unlisted) trên YouTube không?",
     answer:
-      "Chắc chắn có. Phần lớn các nhà quảng cáo YouTube đều đặt video quảng cáo dưới dạng Không công khai (Unlisted) để tránh hiển thị trên trang chủ kênh. Ads Spy Tool tự động trích xuất các luồng quảng cáo thực tế, cho phép bạn xem trực tiếp video, phân tích cấu trúc kịch bản Hook 3 giây đầu, bóc tách trang đích (Landing Page) và tải về file MP4 để phục vụ nghiên cứu thị trường.",
+      "Chắc chắn có. Phần lớn các nhà quảng cáo YouTube đều đặt video quảng cáo dưới dạng Không công khai (Unlisted) để tránh hiển thị trên trang chủ kênh. Ads Spy Tool tự động trích xuất các luồng quảng cáo thực tế, cho phép bạn xem trực tiếp video, phân tích cấu trúc kịch bản Hook 3 giây đầu, Nghiên cứu trang đích (Landing Page) và tải về file MP4 để phục vụ nghiên cứu thị trường.",
   },
   {
     question: "Chỉ số Duplicates (Nhân nhóm quảng cáo) có ý nghĩa gì đối với việc tìm Winning Ads?",

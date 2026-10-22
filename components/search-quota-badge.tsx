@@ -21,43 +21,10 @@ export function SearchQuotaBadge({
   if (isUnlimited) {
     return (
       <div
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 border border-purple-200 text-purple-700 shadow-2xs ${className}`}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 border border-indigo-200 text-indigo-700 shadow-2xs ${className}`}
       >
-        <Zap className="h-3.5 w-3.5 text-purple-600" />
-        <span>Gói Doanh Nghiệp: Tìm kiếm Không Giới Hạn ∞</span>
-      </div>
-    )
-  }
-
-  if (plan === 'personal') {
-    return (
-      <div
-        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-900 shadow-2xs ${className}`}
-      >
-        <span className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-          <span>
-            Gói Cá Nhân: Còn <strong className="text-indigo-700">{remaining}/{limit}</strong> lượt hôm nay
-          </span>
-        </span>
-        {onUpgradeClick ? (
-          <button
-            type="button"
-            onClick={onUpgradeClick}
-            className="inline-flex items-center gap-0.5 text-[11px] font-bold text-purple-600 hover:text-purple-800 underline cursor-pointer ml-1"
-          >
-            Lên Max
-            <ArrowUpRight className="h-3 w-3" />
-          </button>
-        ) : (
-          <Link
-            href="/pricing"
-            className="inline-flex items-center gap-0.5 text-[11px] font-bold text-purple-600 hover:text-purple-800 underline ml-1"
-          >
-            Lên Max
-            <ArrowUpRight className="h-3 w-3" />
-          </Link>
-        )}
+        <Zap className="h-3.5 w-3.5 text-indigo-600" />
+        <span>Gói Không Giới Hạn: Tìm kiếm Unlimited ∞</span>
       </div>
     )
   }
@@ -97,7 +64,7 @@ export function SearchQuotaBadge({
           onClick={onUpgradeClick}
           className="inline-flex items-center gap-0.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline cursor-pointer ml-1"
         >
-          Nâng cấp (25 lượt)
+          Nâng cấp Unlimited
           <ArrowUpRight className="h-3 w-3" />
         </button>
       ) : (
@@ -105,7 +72,7 @@ export function SearchQuotaBadge({
           href="/pricing"
           className="inline-flex items-center gap-0.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline ml-1"
         >
-          Nâng cấp (25 lượt)
+          Nâng cấp Unlimited
           <ArrowUpRight className="h-3 w-3" />
         </Link>
       )}

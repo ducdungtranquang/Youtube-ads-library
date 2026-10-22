@@ -38,13 +38,13 @@ export function LiveSpyDemo() {
       <div className="mb-12 text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
           <Sparkles className="h-3.5 w-3.5" />
-          Bóc Tách Trực Tiếp Dữ Liệu Thực Tế
+          Nghiên cứu Trực Tiếp Dữ Liệu Thực Tế
         </div>
         <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
           Xem Tường Tận Từng Chỉ Số <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Winning Ads</span>
         </h2>
         <p className="text-base text-slate-600 mt-4 leading-relaxed">
-          Không còn phỏng đoán qua bề nổi. Xem cách Ads Spy Tool bóc tách chi phí thực tế, số ngày vít ngân sách và cấu trúc phễu bán hàng của một chiến dịch đối thủ đang tạo doanh thu khủng.
+          Không còn phỏng đoán qua bề nổi. Xem cách Ads Spy Tool Nghiên cứu chi phí thực tế, số ngày vít ngân sách và cấu trúc phễu bán hàng của một chiến dịch đối thủ đang tạo doanh thu khủng.
         </p>
       </div>
 
@@ -317,7 +317,7 @@ export function LiveSpyDemo() {
             {/* Quick action bar linking to real tools */}
             <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
               <span className="text-xs text-slate-700 font-semibold text-center sm:text-left">
-                Bạn muốn bóc tách ngay một fanpage hoặc kênh YouTube cụ thể?
+                Bạn muốn Nghiên cứu ngay một fanpage hoặc kênh YouTube cụ thể?
               </span>
               <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                 <Button asChild size="sm" className="w-full sm:w-auto h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white shadow-xs cursor-pointer">

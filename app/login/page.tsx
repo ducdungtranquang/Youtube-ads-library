@@ -257,7 +257,7 @@ export default function LoginPage() {
       {/* Clean White Tactical Footer */}
       <footer className="border-t border-slate-200 py-6 relative z-10 bg-white/80 backdrop-blur-sm">
         <div className="container px-4 text-center text-xs text-slate-500">
-          <p>© 2025 Ads Spy Tool. Nền tảng phân tích và bóc tách quảng cáo hàng đầu cho Performance Marketers.</p>
+          <p>© 2025 Ads Spy Tool. Nền tảng phân tích và Nghiên cứu quảng cáo hàng đầu cho Performance Marketers.</p>
         </div>
       </footer>
     </div>

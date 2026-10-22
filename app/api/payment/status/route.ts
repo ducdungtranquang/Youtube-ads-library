@@ -34,14 +34,20 @@ export async function GET(request: NextRequest) {
     if (paymentInfo.status === 'PAID' && payment?.status !== 'completed') {
       const subscriptionStart = new Date()
       const subscriptionEnd = new Date()
-      subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1)
+      let durationMonths = 1
+      if (payment.amount >= 900000) {
+        durationMonths = 12
+      } else if (payment.amount >= 250000) {
+        durationMonths = 3
+      }
+      subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths)
 
       // Update user profile
       await supabaseAdmin
         .from('user_profiles')
         .update({
-          subscription_status: payment.plan_id,
-          subscription_plan: payment.plan_id,
+          subscription_status: 'unlimited',
+          subscription_plan: 'unlimited',
           subscription_start: subscriptionStart.toISOString(),
           subscription_end: subscriptionEnd.toISOString(),
           updated_at: new Date().toISOString()

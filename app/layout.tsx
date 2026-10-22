@@ -34,6 +34,14 @@ export const metadata: Metadata = {
     default: 'Ads Spy Tool - Thư Viện Quảng Cáo Youtube - Youtube Ads Library',
     template: '%s | Ads Spy Tool',
   },
+  icons: {
+    icon: [
+      { url: '/ava_ads-spy_tool.png', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/ava_ads-spy_tool.png',
+    apple: '/ava_ads-spy_tool.png',
+  },
   description:
     'Nền tảng Ads Spy Tool số #1: Xem ngân sách chi tiêu (Spend), lượt tiếp cận (Reach), số ngày chạy (Duration) và nhân nhóm (Duplicates) quảng cáo YouTube, Facebook toàn cầu.',
   applicationName: 'Ads Spy Tool',
@@ -51,7 +59,7 @@ export const metadata: Metadata = {
     'Thư viện quảng cáo YouTube',
     'YouTube Ad Library',
     // Tính năng thuật toán & chuyên sâu
-    'Bóc tách ngân sách quảng cáo',
+    'Nghiên cứu ngân sách quảng cáo',
     'Ước tính Spend và Reach',
     'Ads Spend Estimator',
     'Ads Reach Tracker',
@@ -78,7 +86,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Ads Spy Tool - Bóc Tách Ngân Sách, Lượt Reach & Spy Quảng Cáo YouTube, Facebook',
+    title: 'Ads Spy Tool - Nghiên cứu Ngân Sách, Lượt Reach & Spy Quảng Cáo YouTube, Facebook',
     description:
       'Nền tảng Ads Intelligence chuyên sâu: Khám phá ngân sách chi tiêu (Spend), lượt tiếp cận (Reach), thời gian chạy và số nhóm nhân bản của đối thủ trên toàn cầu.',
     url: 'https://ads-spy-tool.tech/',
@@ -96,7 +104,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ads Spy Tool - Bóc Tách Ngân Sách & Spy Quảng Cáo Đối Thủ',
+    title: 'Ads Spy Tool - Nghiên cứu Ngân Sách & Spy Quảng Cáo Đối Thủ',
     description:
       'Công cụ Ads Intelligence giúp theo dõi chi tiêu (Spend), lượt reach và mẫu video winning đang vít mạnh.',
     images: ['/marketing-video-thumbnail.png'],
@@ -124,7 +132,7 @@ export default function RootLayout({
         "url": "https://ads-spy-tool.tech",
         "name": "Ads Spy Tool",
         "alternateName": "YouTube & Facebook Ads Spy Tool",
-        "description": "Nền tảng phân tích dữ liệu quảng cáo đa kênh, bóc tách ngân sách chi tiêu, lượt reach và chiến lược đối thủ.",
+        "description": "Nền tảng phân tích dữ liệu quảng cáo đa kênh, Nghiên cứu ngân sách chi tiêu, lượt reach và chiến lược đối thủ.",
         "inLanguage": ["vi", "en"],
         "potentialAction": {
           "@type": "SearchAction",
@@ -188,7 +196,9 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/ava_ads-spy_tool.png" type="image/png" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/ava_ads-spy_tool.png" />
 
         <Script
           id="structured-data"

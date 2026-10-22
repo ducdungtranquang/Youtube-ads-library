@@ -35,11 +35,9 @@ BEGIN
 
   user_plan := LOWER(COALESCE(current_profile.subscription_plan, current_profile.subscription_status, 'free'));
   
-  -- Determine limit: Free = 5, Personal = 25, Business/Company = -1 (Unlimited)
-  IF user_plan IN ('business', 'company') THEN
+  -- Determine limit: Free = 5, Unlimited (and legacy paid) = -1 (Unlimited)
+  IF user_plan IN ('unlimited', 'business', 'company', 'personal') THEN
     max_limit := -1; -- unlimited
-  ELSIF user_plan = 'personal' THEN
-    max_limit := 25;
   ELSE
     max_limit := 5;
   END IF;

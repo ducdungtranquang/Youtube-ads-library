@@ -14,9 +14,10 @@ import { supabase } from "@/lib/supabase"
 function DashboardPage() {
   const SUBSCRIPTION_MAP: Record<string, { label: string; color: string; limitText: string }> = {
     free: { label: "Miễn phí", color: "text-slate-700 font-bold", limitText: "5 lượt/ngày" },
-    personal: { label: "Cá nhân", color: "text-indigo-600 font-bold", limitText: "25 lượt/ngày" },
-    business: { label: "Doanh nghiệp", color: "text-purple-600 font-bold", limitText: "Không giới hạn" },
-    company: { label: "Doanh nghiệp", color: "text-purple-600 font-bold", limitText: "Không giới hạn" },
+    unlimited: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
+    personal: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
+    business: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
+    company: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
   };
   const { user } = useAuth()
   const { getFavoritesCounts, loading: countsLoading } = useFavorites()
@@ -46,8 +47,8 @@ function DashboardPage() {
 
   const rawPlan = dbProfile?.subscription_plan || user?.user_metadata?.subscription_plan || "free"
   const planInfo = SUBSCRIPTION_MAP[rawPlan] || SUBSCRIPTION_MAP.free;
-  const isUnlimited = rawPlan === 'business' || rawPlan === 'company';
-  const planLimit = isUnlimited ? -1 : (rawPlan === 'personal' ? 25 : 5);
+  const isUnlimited = rawPlan === 'unlimited' || rawPlan === 'business' || rawPlan === 'company' || rawPlan === 'personal';
+  const planLimit = isUnlimited ? -1 : 5;
   const today = new Date().toISOString().split('T')[0];
   const lastSearchDate = dbProfile?.last_search_date ? new Date(dbProfile.last_search_date).toISOString().split('T')[0] : null;
   const searchesToday = lastSearchDate === today ? (dbProfile?.daily_search_count || 0) : 0;
@@ -114,10 +115,10 @@ function DashboardPage() {
                         <BadgeCheck className={`h-3.5 w-3.5 ${planInfo.color} flex-shrink-0`} />
                       )}
                     </div>
-                    {rawPlan !== "business" && rawPlan !== "company" && (
+                    {rawPlan === "free" && (
                       <Link href="/pricing" className="flex-shrink-0">
                         <span className="inline-flex items-center text-[11px] font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200/80 px-2 py-0.5 rounded-full transition-all duration-200 shadow-2xs whitespace-nowrap">
-                          Nâng cấp ↑
+                          Nâng cấp Unlimited ↑
                         </span>
                       </Link>
                     )}
@@ -231,7 +232,7 @@ function DashboardPage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl font-bold text-slate-900">Truy cập nhanh</CardTitle>
-                    <CardDescription className="text-slate-500 text-xs">Các công cụ bóc tách chính</CardDescription>
+                    <CardDescription className="text-slate-500 text-xs">Các công cụ Nghiên cứu chính</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -256,7 +257,7 @@ function DashboardPage() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-slate-900 group-hover:text-purple-600 transition-colors text-sm">YouTube Ads Chuyên Sâu</p>
-                      <p className="text-xs text-slate-500">Bóc tách Spend, kịch bản video, hook 3s</p>
+                      <p className="text-xs text-slate-500">Nghiên cứu Spend, kịch bản video, hook 3s</p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
                   </div>
@@ -308,7 +309,7 @@ function DashboardPage() {
                     2
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-base">Lọc & Bóc tách kết quả</p>
+                    <p className="font-bold text-slate-900 text-base">Lọc & Nghiên cứu kết quả</p>
                     <p className="text-sm text-slate-600 mt-1 leading-relaxed">Áp dụng các bộ lọc chuyên sâu theo danh mục, quốc gia, và mốc thời gian để tìm ra mẫu ads đang vít tiền mạnh.</p>
                   </div>
                 </div>
@@ -340,7 +341,7 @@ function DashboardPage() {
 
       <footer className="border-t border-slate-200 py-8 mt-12 bg-white">
         <div className="container text-center text-sm text-slate-500">
-          <p>© 2026 Ads Spy Tool. Nền tảng phân tích và bóc tách quảng cáo hàng đầu cho Performance Marketers.</p>
+          <p>© 2026 Ads Spy Tool. Nền tảng phân tích và Nghiên cứu quảng cáo hàng đầu cho Performance Marketers.</p>
         </div>
       </footer>
     </div>

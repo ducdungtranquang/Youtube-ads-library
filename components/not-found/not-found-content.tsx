@@ -50,7 +50,7 @@ const QUICK_LINKS = [
   {
     href: "/mkt",
     title: "YouTube Ads Spy",
-    desc: "Bóc tách ngân sách & reach video ads",
+    desc: "Nghiên cứu ngân sách & reach video ads",
     icon: TrendingUp,
     badge: "Trending",
     color: "from-rose-500/20 to-pink-500/20 border-rose-500/30 text-rose-400",
@@ -127,13 +127,13 @@ export function NotFoundContent() {
         <div className="relative z-10 w-full max-w-4xl mx-auto">
           <div className="rounded-3xl border border-pink-500/20 bg-slate-900/60 p-6 md:p-10 backdrop-blur-xl shadow-2xl shadow-pink-500/5 ring-1 ring-white/10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-              
+
               {/* Cột trái: Ảnh Anime Cute Buồn Lạc Đường */}
               <div className="lg:col-span-5 flex flex-col items-center justify-center text-center">
                 <div className="relative group">
                   {/* Aura sáng lung linh quanh ảnh anime */}
                   <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-40 blur-xl group-hover:opacity-60 transition duration-700 animate-pulse" />
-                  
+
                   {/* Khung chứa ảnh */}
                   <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-3xl overflow-hidden border-2 border-pink-300/30 bg-slate-900/80 shadow-2xl transform transition-transform duration-500 hover:scale-[1.02]">
                     <Image
@@ -162,7 +162,7 @@ export function NotFoundContent() {
 
               {/* Cột phải: Thông điệp 404 & Nút Chuyển Hướng */}
               <div className="lg:col-span-7 flex flex-col justify-center text-center lg:text-left space-y-6">
-                
+
                 {/* 404 Tag & Heading */}
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide bg-pink-500/10 text-pink-300 border border-pink-500/30">

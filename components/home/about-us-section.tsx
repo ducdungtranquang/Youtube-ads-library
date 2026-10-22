@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { 
-  Building2, 
-  Target, 
-  Lightbulb, 
-  ShieldCheck, 
-  Users, 
-  Cpu, 
-  BarChart, 
+import {
+  Building2,
+  Target,
+  Lightbulb,
+  ShieldCheck,
+  Users,
+  Cpu,
+  BarChart,
   ArrowRight,
   Sparkles
 } from "lucide-react";
@@ -49,7 +49,7 @@ export function AboutUsSection() {
                 Chúng tôi từng là những Media Buyer đốt hàng trăm triệu mỗi tháng để test creative và sản phẩm mới. Mỗi lần vào Facebook Ad Library, chúng tôi chỉ thấy được bề nổi: vài chục mẫu quảng cáo nhưng <strong className="text-indigo-600 font-semibold">không hề biết đối thủ đã chi bao nhiêu tiền</strong>, mẫu nào đang sinh lời và mẫu nào đã dừng chạy từ lâu. Còn trên YouTube, hoàn toàn không có một công cụ chính thức nào để tìm kiếm các video quảng cáo ẩn (Unlisted).
               </p>
               <p className="text-slate-600 text-sm md:text-base leading-relaxed">
-                Chính nỗi đau đó đã thúc đẩy đội ngũ QuickBlack xây dựng nên <strong className="text-slate-900 font-semibold">Ads Spy Tool</strong>: một nền tảng bóc tách số liệu ngầm, đưa các chỉ số minh bạch như Ngân sách (Spend), Lượt hiển thị (Reach), Số nhóm nhân bản (Duplicates) ra ánh sáng.
+                Chính nỗi đau đó đã thúc đẩy đội ngũ QuickBlack xây dựng nên <strong className="text-slate-900 font-semibold">Ads Spy Tool</strong>: một nền tảng Nghiên cứu số liệu ngầm, đưa các chỉ số minh bạch như Ngân sách (Spend), Lượt hiển thị (Reach), Số nhóm nhân bản (Duplicates) ra ánh sáng.
               </p>
             </div>
 
@@ -78,7 +78,7 @@ export function AboutUsSection() {
                     1
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-base">Thuật Toán Bóc Tách Spend Dựa Trên Big Data</h4>
+                    <h4 className="font-bold text-slate-900 text-base">Thuật Toán Nghiên cứu Spend Dựa Trên Big Data</h4>
                     <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                       Kết hợp dữ liệu minh bạch của Đạo luật Dịch vụ Kỹ thuật số EU (DSA), hệ số CPM theo 45+ ngành hàng và mô hình hồi quy phân tích phân bổ ngân sách chuẩn xác đến 98%.
                     </p>

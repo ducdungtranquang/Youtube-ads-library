@@ -199,7 +199,7 @@ function QuickSearchPage() {
 
             <p className="mx-auto mb-8 max-w-2xl text-sm md:text-base text-slate-600 leading-relaxed">
               Tìm kiếm trực tiếp kho video quảng cáo YouTube triệu view từ các thương hiệu hàng đầu.
-              Miễn phí <span className="text-emerald-700 font-bold">5 lượt/ngày</span>. Nâng cấp gói <Link href="/pricing" className="text-indigo-600 font-bold hover:underline">Cá nhân (25 lượt/ngày)</Link> hoặc <Link href="/pricing" className="text-purple-600 font-bold hover:underline">Doanh nghiệp (Không giới hạn)</Link> để bóc tách toàn diện.
+              Miễn phí <span className="text-emerald-700 font-bold">5 lượt/ngày</span>. Nâng cấp gói <Link href="/pricing" className="text-indigo-600 font-bold hover:underline">Không giới hạn (chỉ từ 79k/tháng)</Link> để Nghiên cứu toàn diện không giới hạn.
             </p>
 
             {/* Search Input Bar */}
@@ -288,7 +288,7 @@ function QuickSearchPage() {
               <div className="space-y-3 max-w-3xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-wider shadow-2xs">
                   <Flame className="h-3.5 w-3.5 text-amber-600" />
-                  Bạn Cần Bóc Tách Sâu Hơn Về Ngân Sách & Chiến Lược Đối Thủ?
+                  Bạn Cần Nghiên cứu Sâu Hơn Về Ngân Sách & Chiến Lược Đối Thủ?
                 </div>
 
                 <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
@@ -300,16 +300,16 @@ function QuickSearchPage() {
                   <strong className="text-emerald-700 font-bold">Ước tính Ngân sách (Spend)</strong>,{" "}
                   <strong className="text-indigo-700 font-bold">Lượt tiếp cận (Reach)</strong>,{" "}
                   <strong className="text-purple-700 font-bold">Số ngày vít ads</strong>,{" "}
-                  <strong className="text-pink-700 font-bold">Bóc tách kịch bản Hook 3s</strong> và{" "}
+                  <strong className="text-pink-700 font-bold">Nghiên cứu kịch bản Hook 3s</strong> và{" "}
                   <strong className="text-rose-700 font-bold">Phễu bán hàng đối thủ</strong>, hãy truy cập công cụ <strong>YouTube Ads Chuyên Sâu</strong>.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-1 text-xs text-slate-600">
                   <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Bóc tách chi phí thật
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Nghiên cứu chi phí thật
                   </span>
                   <span className="flex items-center gap-1.5 text-indigo-700 font-semibold">
-                    <CheckCircle2 className="h-4 w-4 text-indigo-600" /> Bóc tách kịch bản video
+                    <CheckCircle2 className="h-4 w-4 text-indigo-600" /> Nghiên cứu kịch bản video
                   </span>
                   <span className="flex items-center gap-1.5 text-purple-700 font-semibold">
                     <CheckCircle2 className="h-4 w-4 text-purple-600" /> Phát hiện sản phẩm Win
@@ -384,7 +384,7 @@ function QuickSearchPage() {
               >
                 <Link href={`/mkt${searchQuery ? `?query=${encodeURIComponent(searchQuery)}` : ''}`}>
                   <TrendingUp className="mr-1.5 h-3.5 w-3.5" />
-                  Bóc tách chuyên sâu trong YouTube Ads
+                  Nghiên cứu chuyên sâu trong YouTube Ads
                   <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
@@ -500,7 +500,7 @@ function QuickSearchPage() {
             <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
               <Layers className="h-5 w-5" />
             </div>
-            <h4 className="font-bold text-base text-slate-900">Bóc Tách Kịch Bản & Phễu</h4>
+            <h4 className="font-bold text-base text-slate-900">Nghiên cứu Kịch Bản & Phễu</h4>
             <p className="text-xs text-slate-600 leading-relaxed">
               Phân tích cấu trúc Hook 3s, nội dung giải quyết vấn đề, landing page và công nghệ tracking pixel của đối thủ.
             </p>

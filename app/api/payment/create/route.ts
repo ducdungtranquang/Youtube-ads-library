@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { payos, SUBSCRIPTION_PLANS, generateOrderCode, PlanId } from '@/lib/payos'
+import { payos, SUBSCRIPTION_PLANS, BILLING_CYCLES, BillingCycle, generateOrderCode, PlanId } from '@/lib/payos'
 
 // Use service role for server-side operations
 const supabaseAdmin = createClient(
@@ -11,7 +11,7 @@ const supabaseAdmin = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, userEmail, planId } = body
+    const { userId, userEmail, planId = 'unlimited', billingCycle = 'monthly' } = body
 
     // Validate input
     if (!userId || !userEmail || !planId) {
@@ -22,30 +22,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate plan
-    if (!SUBSCRIPTION_PLANS[planId as PlanId] || planId === 'free') {
+    if (planId === 'free') {
       return NextResponse.json(
-        { success: false, error: 'Gói dịch vụ không hợp lệ để thanh toán' },
+        { success: false, error: 'Gói miễn phí không cần thanh toán' },
         { status: 400 }
       )
     }
 
-    const plan = SUBSCRIPTION_PLANS[planId as PlanId]
+    const cycleKey: BillingCycle = (billingCycle in BILLING_CYCLES) ? (billingCycle as BillingCycle) : 'monthly'
+    const cycle = BILLING_CYCLES[cycleKey]
     const orderCode = generateOrderCode()
+    const amount = cycle.totalPrice
 
     // Get base URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
       (request.headers.get('origin') || 'http://localhost:3000')
 
+    const descMap: Record<BillingCycle, string> = {
+      monthly: 'Goi Unlimited 1T',
+      quarterly: 'Goi Unlimited 3T',
+      yearly: 'Goi Unlimited 12T',
+    }
+
     // Create PayOS payment link using SDK v2
     const paymentLink = await payos.paymentRequests.create({
       orderCode,
-      amount: plan.price,
-      description: `Gói ${plan.name}`.slice(0, 25), // Max 25 chars
+      amount,
+      description: descMap[cycleKey], // Max 25 chars
       items: [
         {
-          name: `Gói ${plan.name} - 1 tháng`,
+          name: `Gói Unlimited (${cycle.name})`,
           quantity: 1,
-          price: plan.price,
+          price: amount,
         }
       ],
       returnUrl: `${baseUrl}/payment/success?orderCode=${orderCode}`,
@@ -60,8 +68,8 @@ export async function POST(request: NextRequest) {
         order_code: orderCode,
         user_id: userId,
         user_email: userEmail,
-        plan_id: planId,
-        amount: plan.price,
+        plan_id: 'unlimited',
+        amount: amount,
         status: 'pending',
         checkout_url: paymentLink.checkoutUrl,
         created_at: new Date().toISOString()

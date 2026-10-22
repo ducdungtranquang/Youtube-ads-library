@@ -14,9 +14,9 @@ const playfair = Playfair_Display({
 
 const WELCOME_CHARS = "Welcome".split("");
 const BRAND_WORDS = [
-  { text: "ADS", gradient: "from-indigo-600 via-indigo-500 to-purple-600" },
-  { text: "SPY", gradient: "from-purple-600 via-pink-600 to-rose-500" },
-  { text: "TOOL", gradient: "from-rose-500 via-orange-500 to-amber-500" }
+  { text: "ADS", gradient: "from-indigo-600 via-indigo-500 to-purple-600", delay: 0 },
+  { text: "SPY", gradient: "from-purple-600 via-pink-600 to-rose-500", delay: 120 },
+  { text: "TOOL", gradient: "from-rose-500 via-orange-500 to-amber-500", delay: 240 }
 ];
 
 export function HomepageIntroLoader() {
@@ -161,39 +161,28 @@ export function HomepageIntroLoader() {
             <span>Intelligence Platform #1</span>
           </div>
 
-          {/* Letter by Letter: ADS SPY TOOL với hiệu ứng sóng lượn và gradient sang trọng */}
+          {/* ADS SPY TOOL: Tối ưu 100% cho iOS Safari WebKit, gradient rực rỡ và lướt lên mượt mà */}
           <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight uppercase flex items-center justify-center gap-3 sm:gap-5 flex-wrap">
-            {stage === "brand" || stage === "exit" ? (
-              BRAND_WORDS.map((word, wIdx) => {
-                const baseOffset = wIdx === 0 ? 0 : wIdx === 1 ? 3 : 6;
-                return (
+            {stage === "brand" || stage === "exit"
+              ? BRAND_WORDS.map((word, wIdx) => (
                   <span
                     key={wIdx}
-                    className={`inline-flex items-center bg-gradient-to-r ${word.gradient} bg-clip-text text-transparent`}
+                    className={`inline-block animate-brand-word bg-gradient-to-r ${word.gradient} bg-clip-text text-transparent`}
+                    style={{
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      animationDelay: `${word.delay}ms`,
+                      animationFillMode: "both",
+                    }}
                   >
-                    {word.text.split("").map((char, cIdx) => {
-                      const totalIdx = baseOffset + cIdx;
-                      return (
-                        <span
-                          key={cIdx}
-                          className="inline-block animate-char-smooth"
-                          style={{
-                            animationDelay: `${totalIdx * 50}ms`,
-                            animationFillMode: "both",
-                          }}
-                        >
-                          {char}
-                        </span>
-                      );
-                    })}
+                    {word.text}
                   </span>
-                );
-              })
-            ) : null}
+                ))
+              : null}
           </h1>
 
           <p className="mt-4 text-sm sm:text-base text-slate-600 font-medium max-w-lg mx-auto">
-            Bóc tách ngân sách, lượt reach & kịch bản winning đối thủ
+            Nghiên cứu ngân sách, lượt reach & kịch bản winning đối thủ
           </p>
 
           {/* Progress Bar & Realtime Badges */}

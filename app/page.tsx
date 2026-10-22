@@ -41,7 +41,7 @@ export default function HomePage() {
         "@type": "WebPage",
         "@id": "https://ads-spy-tool.tech/#webpage",
         "url": "https://ads-spy-tool.tech",
-        "name": "Ads Spy Tool - Bóc Tách Ngân Sách, Lượt Reach & Spy Quảng Cáo YouTube, Facebook",
+        "name": "Ads Spy Tool - Nghiên cứu Ngân Sách, Lượt Reach & Spy Quảng Cáo YouTube, Facebook",
         "description": "Công cụ phân tích quảng cáo chuyên sâu: ước tính Ngân sách (Spend), Lượt tiếp cận (Reach), thời gian chạy và số nhóm nhân bản (Duplicates) cho YouTube Ads & Facebook Ads.",
         "inLanguage": "vi-VN",
         "publisher": {
@@ -55,7 +55,7 @@ export default function HomePage() {
         "@id": "https://ads-spy-tool.tech/#about",
         "url": "https://ads-spy-tool.tech/#about-us-section",
         "name": "Về Ads Spy Tool & Đội ngũ QUICKBLACK DIGITAL",
-        "description": "Sứ mệnh minh bạch hóa dữ liệu quảng cáo số, hỗ trợ Marketer Việt Nam và Quốc tế bóc tách dữ liệu đối thủ chính xác và tiết kiệm ngân sách thử nghiệm."
+        "description": "Sứ mệnh minh bạch hóa dữ liệu quảng cáo số, hỗ trợ Marketer Việt Nam và Quốc tế Nghiên cứu dữ liệu đối thủ chính xác và tiết kiệm ngân sách thử nghiệm."
       },
       {
         "@type": "FAQPage",
@@ -114,7 +114,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <h2 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-purple-600 transition-colors">YouTube Ads Intelligence</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Bóc tách video unlisted & kịch bản</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Nghiên cứu video unlisted & kịch bản</p>
                   </div>
                   <ArrowRight className="ml-auto h-5 w-5 text-slate-400 group-hover:translate-x-1.5 group-hover:text-purple-600 transition-all" />
                 </CardContent>
@@ -149,7 +149,7 @@ export default function HomePage() {
               Vũ Khí Chiến Lược Cho Performance Marketer
             </span>
             <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mt-2">
-              Bộ Công Cụ Bóc Tách Chỉ Số Ngầm Độc Quyền
+              Bộ Công Cụ Nghiên cứu Chỉ Số Ngầm Độc Quyền
             </h2>
             <p className="text-base text-slate-600 max-w-2xl mx-auto mt-4 leading-relaxed">
               Vượt qua sự che đậy của các thư viện quảng cáo truyền thống. Nhận dữ liệu phân tích chi phí, thời gian và sức mạnh ngân sách thực sự của mọi chiến dịch.
@@ -164,7 +164,7 @@ export default function HomePage() {
                 borderColor: "hover:border-purple-300",
                 shadowColor: "hover:shadow-purple-100",
                 title: "Ước Tính Ngân Sách (Spend) & Reach",
-                desc: "Thuật toán đối soát minh bạch dựa trên tiêu chuẩn EU DSA và mô hình hồi quy CPM theo 45+ ngành hàng, bóc tách chính xác số tiền đối thủ đã chi trả.",
+                desc: "Thuật toán đối soát minh bạch dựa trên tiêu chuẩn EU DSA và mô hình hồi quy CPM theo 45+ ngành hàng, Nghiên cứu chính xác số tiền đối thủ đã chi trả.",
                 bullets: ["Ước tính chi tiêu USD/VND thực tế", "Quy đổi CPM theo Tier quốc gia", "Theo dõi biến động ngân sách theo ngày"]
               },
               {
@@ -209,7 +209,7 @@ export default function HomePage() {
                 borderColor: "hover:border-pink-300",
                 shadowColor: "hover:shadow-pink-100",
                 title: "Trích Xuất Funnel & Link Đích",
-                desc: "Bóc tách trọn vẹn đường dẫn trang đích (Landing Page), cấu trúc UTM tracking và chiến lược ưu đãi của đối thủ để tối ưu tỷ lệ chuyển đổi cho bạn.",
+                desc: "Nghiên cứu trọn vẹn đường dẫn trang đích (Landing Page), cấu trúc UTM tracking và chiến lược ưu đãi của đối thủ để tối ưu tỷ lệ chuyển đổi cho bạn.",
                 bullets: ["Trích xuất URL landing page", "Xem mã giảm giá & ưu đãi đối thủ", "Lưu bộ sưu tập nghiên cứu cá nhân"]
               },
             ].map((feat, idx) => (
@@ -274,7 +274,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-xl font-bold text-slate-900">Xem Dữ Liệu Ngầm & Scaling</h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Bóc tách chi phí thực tế (Spend), số ngày chạy liên tục và số nhóm nhân bản (Duplicates). Xác định chính xác đâu là creative & offer đối thủ đang tập trung vít mạnh.
+                    Nghiên cứu chi phí thực tế (Spend), số ngày chạy liên tục và số nhóm nhân bản (Duplicates). Xác định chính xác đâu là creative & offer đối thủ đang tập trung vít mạnh.
                   </p>
                 </div>
                 <Link href="/mkt" className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 hover:text-purple-800 pt-2 group">
@@ -317,12 +317,12 @@ export default function HomePage() {
                 Sẵn Sàng Khám Phá Winning Ads Tiếp Theo?
               </h2>
               <p className="text-base md:text-lg text-slate-300 mb-8 max-w-xl mx-auto leading-relaxed">
-                Trải nghiệm ngay hôm nay để bóc tách toàn diện ngân sách chi tiêu, số ngày chạy và các mẫu ads đang được vít mạnh trên YouTube và Facebook.
+                Trải nghiệm ngay hôm nay để Nghiên cứu toàn diện ngân sách chi tiêu, số ngày chạy và các mẫu ads đang được vít mạnh trên YouTube và Facebook.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4">
                 <Button asChild size="lg" className="h-13 px-8 text-base font-bold bg-white text-slate-950 hover:bg-slate-100 shadow-xl shadow-white/10 hover:scale-105 transition-all cursor-pointer rounded-full">
-                  <Link href="/mkt" title="Bóc tách YouTube Ads">
-                    Bóc Tách YouTube Ads
+                  <Link href="/mkt" title="Nghiên cứu YouTube Ads">
+                    Nghiên cứu YouTube Ads
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
@@ -351,13 +351,13 @@ export default function HomePage() {
                 </span>
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight mt-2 mb-4">Kết Nối Trực Tiếp Với Đội Ngũ Kỹ Thuật</h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Chúng tôi luôn sẵn sàng hỗ trợ giải đáp thắc mắc, hướng dẫn bóc tách chỉ số Spend/Reach theo đặc thù ngành hàng của bạn và xây dựng lộ trình spy đối thủ quốc tế.
+                  Chúng tôi luôn sẵn sàng hỗ trợ giải đáp thắc mắc, hướng dẫn Nghiên cứu chỉ số Spend/Reach theo đặc thù ngành hàng của bạn và xây dựng lộ trình spy đối thủ quốc tế.
                 </p>
               </div>
               <div className="space-y-4 pt-2">
                 {[
                   { title: "Phản hồi trong 24 giờ", desc: "Đội ngũ kỹ thuật hỗ trợ liên hệ và tư vấn chi tiết qua email hoặc Zalo." },
-                  { title: "Demo 1 kèm 1 chuyên sâu", desc: "Trực tiếp thao tác bóc tách dữ liệu ngành hàng bạn đang chạy." },
+                  { title: "Demo 1 kèm 1 chuyên sâu", desc: "Trực tiếp thao tác Nghiên cứu dữ liệu ngành hàng bạn đang chạy." },
                   { title: "Đồng hành lâu dài", desc: "Cập nhật các bản phân tích thuật toán CPM và báo cáo thị trường liên tục." },
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-indigo-200 transition-colors">
@@ -395,7 +395,7 @@ export default function HomePage() {
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Intelligence</span>
               </div>
               <p className="text-xs text-slate-500 max-w-md">
-                Nền tảng phân tích dữ liệu quảng cáo số, bóc tách ngân sách Spend, lượt Reach và phát hiện quảng cáo scaling cho Marketer & Doanh nghiệp.
+                Nền tảng phân tích dữ liệu quảng cáo số, Nghiên cứu ngân sách Spend, lượt Reach và phát hiện quảng cáo scaling cho Marketer & Doanh nghiệp.
               </p>
             </div>
 

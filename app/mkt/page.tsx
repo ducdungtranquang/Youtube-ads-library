@@ -782,7 +782,7 @@ export default function MKTPage() {
         <div className="grid gap-8 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)] items-start">
 
           {/* Cột bộ lọc - Theme sáng tối ưu UI/UX */}
-          <div className="lg:sticky lg:top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             <AdsSpyFilterPanel
               title="Bộ lọc Ads"
               activeCount={activeFilterCount}
@@ -814,17 +814,17 @@ export default function MKTPage() {
 
             <form
               onSubmit={handleSearch}
-              className="mb-6 flex gap-3 mobile:flex-col"
+              className="mb-6 flex flex-col sm:flex-row gap-3"
             >
               <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
                   placeholder="Tìm kiếm bằng từ khóa, URL hoặc tên thương hiệu..."
-                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all"
+                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all">
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto shrink-0 h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all font-semibold">
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -842,7 +842,7 @@ export default function MKTPage() {
             <div className="w-full">
               <AdsSpyResultsToolbar
                 title="Thư viện quảng cáo YouTube"
-                subtitle="Theo dõi và bóc tách các video ads đang chạy trên YouTube toàn cầu"
+                subtitle="Theo dõi và Nghiên cứu các video ads đang chạy trên YouTube toàn cầu"
                 count={activeTab === "ads" ? adsPagination.totalItems : activeTab === "brands" ? brandsPagination.totalItems : companiesPagination.totalItems}
                 activeChips={activeChips}
                 onClearAll={handleClearAllFilters}
@@ -860,14 +860,14 @@ export default function MKTPage() {
                 onValueChange={handleTabChange}
                 className="w-full mt-4"
               >
-                <TabsList className="mb-6 w-full justify-start bg-slate-100/80 border border-slate-200 p-1.5 rounded-xl mobile:grid mobile:grid-cols-3">
-                  <TabsTrigger value="ads" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">
-                    Tìm kiếm quảng cáo
+                <TabsList className="mb-6 grid w-full grid-cols-3 sm:inline-flex sm:w-auto bg-slate-100/90 border border-slate-200 p-1.5 rounded-xl gap-1">
+                  <TabsTrigger value="ads" className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-semibold transition-all px-2 sm:px-4 py-2 text-center truncate">
+                    Quảng cáo
                   </TabsTrigger>
-                  <TabsTrigger value="brands" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">
+                  <TabsTrigger value="brands" className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-semibold transition-all px-2 sm:px-4 py-2 text-center truncate">
                     Thương hiệu
                   </TabsTrigger>
-                  <TabsTrigger value="companies" className="mobile:text-xs rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-medium transition-all px-4 py-2">
+                  <TabsTrigger value="companies" className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm text-slate-600 font-semibold transition-all px-2 sm:px-4 py-2 text-center truncate">
                     Doanh nghiệp
                   </TabsTrigger>
                 </TabsList>
@@ -882,11 +882,11 @@ export default function MKTPage() {
 
                   {adsSearchResults ? (
                     <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-slate-900">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-slate-100">
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-900 whitespace-nowrap">
                           Kết quả tìm kiếm
                         </h2>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-xs sm:text-sm text-slate-500 shrink-0 font-medium">
                           {adsPagination.totalItems} kết quả
                         </p>
                       </div>
@@ -945,17 +945,17 @@ export default function MKTPage() {
                   ) : previewAds.length > 0 ? (
                     // Preview section — shown before any search, sourced from cache
                     <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-xl font-bold text-slate-900">Khám phá quảng cáo</h2>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-slate-100">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h2 className="text-lg sm:text-xl font-bold text-slate-900 whitespace-nowrap">Khám phá quảng cáo</h2>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 shrink-0">
                             <TrendingUp className="h-3 w-3" />
                             Mới nhất
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500">{previewAds.length} quảng cáo</p>
+                        <p className="text-xs sm:text-sm text-slate-500 shrink-0 font-medium">{previewAds.length} quảng cáo</p>
                       </div>
-                      <p className="text-sm text-slate-400 -mt-3">
+                      <p className="text-xs sm:text-sm text-slate-400 -mt-3">
                         💡 Dữ liệu từ thư viện cache — Nhập từ khóa để tìm kiếm theo nhu cầu
                       </p>
                       <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

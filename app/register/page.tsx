@@ -123,7 +123,7 @@ export default function RegisterPage() {
                   <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Tạo tài khoản miễn phí</h2>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Bắt đầu bóc tách winning ads trong 30 giây. Không cần thẻ tín dụng.
+                  Bắt đầu Nghiên cứu winning ads trong 30 giây. Không cần thẻ tín dụng.
                 </p>
               </div>
 
@@ -275,7 +275,7 @@ export default function RegisterPage() {
       {/* Clean White Tactical Footer */}
       <footer className="border-t border-slate-200 py-6 relative z-10 bg-white/80 backdrop-blur-sm">
         <div className="container px-4 text-center text-xs text-slate-500">
-          <p>© 2025 Ads Spy Tool. Nền tảng phân tích và bóc tách quảng cáo hàng đầu cho Performance Marketers.</p>
+          <p>© 2025 Ads Spy Tool. Nền tảng phân tích và Nghiên cứu quảng cáo hàng đầu cho Performance Marketers.</p>
         </div>
       </footer>
     </div>

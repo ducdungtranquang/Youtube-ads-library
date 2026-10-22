@@ -23,7 +23,7 @@ export function AuthSpyShowcase({ mode }: AuthSpyShowcaseProps) {
         <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-slate-900 leading-[1.2]">
           {mode === "login" ? (
             <>
-              Bóc tách chiến dịch đối thủ <br />
+              Nghiên cứu chiến dịch đối thủ <br />
               <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent">
                 đang scale ngân sách khủng
               </span>
@@ -41,7 +41,7 @@ export function AuthSpyShowcase({ mode }: AuthSpyShowcaseProps) {
         <p className="text-sm xl:text-base text-slate-600 leading-relaxed max-w-lg">
           {mode === "login"
             ? "Đăng nhập để theo dõi vòng đời creative, xem ước tính chi tiêu và lưu lại các mẫu quảng cáo YouTube & Facebook hiệu quả nhất."
-            : "Chỉ mất 30 giây để bắt đầu. Truy cập thư viện bóc tách quảng cáo hàng đầu cho Media Buyers, E-commerce và Affiliate Marketers."}
+            : "Chỉ mất 30 giây để bắt đầu. Truy cập thư viện Nghiên cứu quảng cáo hàng đầu cho Media Buyers, E-commerce và Affiliate Marketers."}
         </p>
       </div>
 

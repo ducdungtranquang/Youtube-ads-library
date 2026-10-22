@@ -255,26 +255,50 @@
   animation: pulse-slow 7s ease-in-out infinite;
 }
 
-@keyframes char-smooth-in {
+@keyframes brand-word-in {
   0% {
     opacity: 0;
-    transform: translateY(26px) scale(0.9);
-    filter: blur(12px);
+    transform: translateY(22px) scale(0.94);
   }
 
-  50% {
-    opacity: 0.8;
+  60% {
+    opacity: 1;
   }
 
   100% {
     opacity: 1;
     transform: translateY(0px) scale(1);
-    filter: blur(0px);
+  }
+}
+
+.animate-brand-word {
+  animation: brand-word-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+@keyframes char-smooth-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.92);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
   }
 }
 
 .animate-char-smooth {
   animation: char-smooth-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 
 @keyframes text-glow-pulse {
@@ -296,13 +320,13 @@
 @keyframes char-luxury-in {
   0% {
     opacity: 0;
-    transform: translateY(32px) scale(0.92) skewX(-4deg);
-    filter: blur(16px);
+    transform: translateY(24px) scale(0.94) skewX(-3deg);
+    filter: blur(4px);
   }
 
   60% {
-    opacity: 0.9;
-    filter: blur(2px);
+    opacity: 1;
+    filter: blur(1px);
   }
 
   100% {
@@ -314,4 +338,7 @@
 
 .animate-char-luxury {
   animation: char-luxury-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
 }

@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef, useMemo, memo, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { toast } from "sonner";
 import { Header } from "@/components/header";
 import { useFacebookAdsSearch } from "@/hooks/use-facebook-search";
 import { useAuth } from "@/contexts/auth-context";
@@ -386,17 +388,7 @@ export default function FacebookAdsPage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Check search quota limit: Free (1/day), Personal (20/day), Business (Unlimited)
-    if (!checkCanSearch()) {
-      return;
-    }
-
-    if (currentPage === 1) {
-      executeSearch(false);
-    } else {
-      setCurrentPage(1);
-    }
+    toast.info("Chức năng Facebook Ads sẽ chính thức ra mắt vào ngày 01/11/2026. Mời bạn trải nghiệm YouTube Ads trong thời gian này nhé!");
   };
 
   const executeSearch = async (isInitialLoad: boolean = false) => {
@@ -483,7 +475,7 @@ export default function FacebookAdsPage() {
         <div className="grid gap-8 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)] items-start">
 
           {/* Vùng chứa bộ lọc - Chuyển sang Light Theme tối ưu UI/UX */}
-          <div className="lg:sticky lg:top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             <AdsSpyFilterPanel
               title="Bộ lọc Facebook Ads"
               activeCount={activeFilterCount}
@@ -520,17 +512,47 @@ export default function FacebookAdsPage() {
               <SearchQuotaBadge quota={quota} onUpgradeClick={openUpgradeModal} />
             </div>
 
+            {/* Launch Announcement Banner */}
+            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200/90 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-extrabold text-slate-900 text-sm sm:text-base">
+                        Chức năng Facebook Ads sẽ chính thức ra mắt vào ngày 01/11/2026
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-600 text-white shadow-2xs">
+                        🚀 Sắp Ra Mắt
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Hệ thống đang được đội ngũ kỹ sư kết nối kho dữ liệu quảng cáo Facebook & Instagram toàn cầu. Mời bạn trải nghiệm trước tính năng Thư Viện YouTube Ads.
+                    </p>
+                  </div>
+                </div>
+                <Button asChild size="sm" className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs font-semibold h-10 px-4 cursor-pointer">
+                  <Link href="/mkt">
+                    <span>Xem YouTube Ads</span>
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
             {/* Search Bar - Light Theme */}
-            <form onSubmit={handleSearchSubmit} className="mb-6 flex md:flex-row gap-3 flex-col">
+            <form onSubmit={handleSearchSubmit} className="mb-6 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
                   placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết ..."
-                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all"
+                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="mobile:w-full h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all">
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto shrink-0 h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all font-semibold">
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -549,7 +571,7 @@ export default function FacebookAdsPage() {
             <section>
               <AdsSpyResultsToolbar
                 title="Thư viện quảng cáo Facebook"
-                subtitle="Khám phá và bóc tách các chiến dịch quảng cáo Facebook & Instagram toàn cầu"
+                subtitle="Khám phá và Nghiên cứu các chiến dịch quảng cáo Facebook & Instagram toàn cầu"
                 count={results.length}
                 activeChips={activeChips}
                 onClearAll={handleClearAllFilters}
@@ -561,16 +583,57 @@ export default function FacebookAdsPage() {
               ) : (
                 <div className="mt-6">
                   {results.length === 0 ? (
-                    <Card className="p-12 text-center border-dashed border-2 border-slate-200 bg-slate-50/80 shadow-sm mt-4">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
-                          <Search className="w-8 h-8 text-indigo-500" />
+                    <Card className="overflow-hidden border border-indigo-200/80 bg-gradient-to-b from-white via-slate-50/50 to-indigo-50/20 shadow-xl shadow-indigo-500/5 rounded-3xl mt-4">
+                      <div className="p-8 sm:p-12 text-center max-w-2xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-5">
+                          <Sparkles className="h-4 w-4" />
+                          Hẹn Ngày Ra Mắt Chính Thức: 01/11/2026
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="text-xl font-bold text-slate-900">Không tìm thấy dữ liệu</h3>
-                          <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-                            Không tìm thấy dữ liệu nào phù hợp với điều kiện tìm kiếm của bạn. Hãy thử thay đổi bộ lọc hoặc từ khóa.
-                          </p>
+
+                        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                          Tính Năng Facebook Ads Spy Sắp Xuất Hiện
+                        </h3>
+
+                        <p className="text-sm sm:text-base text-slate-600 mt-3 leading-relaxed">
+                          Chức năng này sẽ được <strong>ra mắt chính thức vào ngày 01/11/2026</strong>. Đội ngũ kỹ sư đang hoàn thiện hạ tầng dữ liệu để mang tới cho bạn khả năng soi ngân sách, kịch bản video và sản phẩm win trên Facebook & Instagram Ads.
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8 text-left">
+                          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm mb-2">
+                              50k+
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Mẫu Ads mới/ngày</h4>
+                            <p className="text-[11px] text-slate-500 mt-1">Cập nhật liên tục từ thị trường US, VN, SEA</p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm mb-2">
+                              🎯
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Bộ lọc WINNER Ads</h4>
+                            <p className="text-[11px] text-slate-500 mt-1">Phát hiện camp vít ngân sách lớn, scaling mạnh</p>
+                          </div>
+                          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                            <div className="h-8 w-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm mb-2">
+                              📊
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Ước tính Spend & Reach</h4>
+                            <p className="text-[11px] text-slate-500 mt-1">Đo lường ngân sách chi tiêu và ngày chạy</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                          <Button asChild size="lg" className="w-full sm:w-auto h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold shadow-lg shadow-indigo-600/25 cursor-pointer">
+                            <Link href="/mkt">
+                              <span>Trải nghiệm Thư viện YouTube Ads</span>
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-12 rounded-xl border-slate-300 font-semibold hover:bg-slate-100 cursor-pointer">
+                            <Link href="/quicksearch">
+                              Dùng thử QuickSearch
+                            </Link>
+                          </Button>
                         </div>
                       </div>
                     </Card>

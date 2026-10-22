@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Button } from "@/components/ui/button";
 import { FacebookMediaFallback } from "@/components/facebook-media-fallback";
-import { 
-  Loader2, X, ExternalLink, Copy, Check, Eye, Flame, Zap, 
+import {
+  Loader2, X, ExternalLink, Copy, Check, Eye, Flame, Zap,
   TrendingUp, Calendar, Globe, Sparkles, Layers, Clock, Share2, Shield
 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,11 +25,11 @@ export function FacebookAdDetailModal({ open, onOpenChange, ad, loading = false 
   const [copiedText, setCopiedText] = useState(false);
 
   const snapshot = ad?.snapshot ?? {};
-  
+
   const attachments = Array.isArray(ad?.attachments) ? ad.attachments : [];
   const snapshotCards = Array.isArray(snapshot?.cards) ? snapshot.cards : [];
   const attachment = attachments.length > 0 ? attachments[0] : snapshotCards.length > 0 ? snapshotCards[0] : undefined;
-  
+
   // Đảm bảo videos là mảng hợp lệ
   const snapshotVideos = Array.isArray(snapshot?.videos) ? snapshot.videos : [];
   const snapshotVideo = snapshotVideos.length > 0 ? snapshotVideos[0] : undefined;
@@ -125,7 +125,7 @@ export function FacebookAdDetailModal({ open, onOpenChange, ad, loading = false 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         showCloseButton={false}
         className="w-[95vw] max-w-5xl h-[90vh] p-0 overflow-hidden flex flex-col rounded-3xl bg-white border border-slate-200 shadow-2xl"
       >
@@ -148,11 +148,10 @@ export function FacebookAdDetailModal({ open, onOpenChange, ad, loading = false 
                 <DialogTitle className="text-base sm:text-lg font-black text-slate-900 truncate">
                   {pageName}
                 </DialogTitle>
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  ad?.is_active 
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${ad?.is_active
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     : 'bg-slate-100 text-slate-600 border border-slate-200'
-                }`}>
+                  }`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${ad?.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                   {ad?.is_active ? "Đang chạy" : "Tạm dừng"}
                 </span>
@@ -217,7 +216,7 @@ export function FacebookAdDetailModal({ open, onOpenChange, ad, loading = false 
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                 <div>
                   <p className="font-bold text-slate-900">Đang tải chi tiết quảng cáo...</p>
-                  <p className="text-xs text-slate-400 mt-1">Đang bóc tách dữ liệu creative & chỉ số vít nhóm</p>
+                  <p className="text-xs text-slate-400 mt-1">Đang Nghiên cứu dữ liệu creative & chỉ số vít nhóm</p>
                 </div>
               </div>
             </div>

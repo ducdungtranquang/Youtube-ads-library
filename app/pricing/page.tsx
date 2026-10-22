@@ -2,19 +2,21 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/header"
 import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users, Loader2, CreditCard } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
+import { BILLING_CYCLES, BillingCycle } from "@/lib/subscription-plans"
 
 export default function PricingPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const [hasMounted, setHasMounted] = useState(false)
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('quarterly')
   const [showModal, setShowModal] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<null | 'personal' | 'business'>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -26,22 +28,22 @@ export default function PricingPage() {
   const [submitStatus, setSubmitStatus] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
 
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
+  const activeCycle = BILLING_CYCLES[billingCycle]
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Handle PayOS payment for Personal plan
-  const handlePayment = async (planId: 'personal' | 'business') => {
+  // Handle PayOS payment for Unlimited plan
+  const handlePayment = async (cycle: BillingCycle = billingCycle) => {
     if (!user) {
-      toast.error('Vui lòng đăng nhập để đăng ký gói')
+      toast.error('Vui lòng đăng nhập để đăng ký gói dịch vụ')
       router.push('/login')
-      return
-    }
-
-    if (planId === 'business') {
-      // Business plan uses contact form
-      openModal('business')
       return
     }
 
@@ -55,7 +57,8 @@ export default function PricingPage() {
         body: JSON.stringify({
           userId: user.id,
           userEmail: user.email,
-          planId: planId,
+          planId: 'unlimited',
+          billingCycle: cycle,
         }),
       })
 
@@ -104,28 +107,17 @@ export default function PricingPage() {
     }
   }
 
-  const openModal = (plan: 'personal' | 'business') => {
-    setSelectedPlan(plan)
+  const openModal = () => {
     setShowModal(true)
-    // Set subject and message based on plan
-    if (plan === 'personal') {
-      setFormData(f => ({
-        ...f,
-        subject: 'Đăng ký gói Cá nhân',
-        message: 'Tôi muốn đăng ký gói Cá nhân. Vui lòng liên hệ tư vấn.'
-      }))
-    } else {
-      setFormData(f => ({
-        ...f,
-        subject: 'Đăng ký gói Doanh nghiệp',
-        message: 'Tôi muốn đăng ký gói Doanh nghiệp. Vui lòng liên hệ tư vấn.'
-      }))
-    }
+    setFormData(f => ({
+      ...f,
+      subject: 'Tư vấn gói Không Giới Hạn',
+      message: 'Tôi muốn tìm hiểu thêm về gói Không Giới Hạn và các tính năng Nghiên cứu.'
+    }))
   }
 
   const closeModal = () => {
     setShowModal(false)
-    setSelectedPlan(null)
     setSubmitStatus('')
   }
 
@@ -149,35 +141,105 @@ export default function PricingPage() {
               Bảng Giá Dịch Vụ Ads Spy Tool
             </h1>
             <p className="text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Lựa chọn gói dịch vụ tối ưu để bóc tách ngân sách, kịch bản video triệu view và sản phẩm win trên YouTube Ads & Facebook Ads.
+              Lựa chọn gói dịch vụ tối ưu để Nghiên cứu ngân sách, kịch bản video triệu view và sản phẩm win trên YouTube Ads & Facebook Ads.
             </p>
           </div>
         </div>
       </section>
 
       <main className="container py-12 -mt-10 relative z-20">
-        {/* Pricing Cards Grid */}
-        <div className="grid gap-8 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto items-stretch">
+        {/* Billing Cycle Switcher */}
+        <div className="flex flex-col items-center justify-center mb-12 max-w-2xl mx-auto px-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">
+            <Zap className="h-3.5 w-3.5 text-indigo-600 fill-indigo-600" />
+            Chọn chu kỳ thanh toán linh hoạt
+          </div>
+
+          <div className="grid grid-cols-3 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-inner w-full max-w-xl gap-1.5">
+            {/* Monthly */}
+            <button
+              type="button"
+              onClick={() => setBillingCycle('monthly')}
+              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${
+                billingCycle === 'monthly'
+                  ? 'bg-white text-indigo-600 shadow-md shadow-indigo-100/80 border border-slate-200/60 font-black'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
+              }`}
+            >
+              <div className="text-xs sm:text-sm">Hàng tháng</div>
+              <div className={`text-xs mt-0.5 ${billingCycle === 'monthly' ? 'text-indigo-600 font-extrabold' : 'text-slate-500 font-medium'}`}>
+                99k<span className="text-[10px]">/th</span>
+              </div>
+            </button>
+
+            {/* Quarterly */}
+            <button
+              type="button"
+              onClick={() => setBillingCycle('quarterly')}
+              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${
+                billingCycle === 'quarterly'
+                  ? 'bg-white text-indigo-600 shadow-md shadow-indigo-100/80 border border-slate-200/60 font-black'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
+              }`}
+            >
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-extrabold shadow-sm whitespace-nowrap">
+                TIẾT KIỆM 10%
+              </span>
+              <div className="text-xs sm:text-sm">Theo Quý (3T)</div>
+              <div className={`text-xs mt-0.5 ${billingCycle === 'quarterly' ? 'text-emerald-600 font-extrabold' : 'text-emerald-700 font-medium'}`}>
+                89k<span className="text-[10px]">/th</span>
+              </div>
+            </button>
+
+            {/* Yearly */}
+            <button
+              type="button"
+              onClick={() => setBillingCycle('yearly')}
+              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${
+                billingCycle === 'yearly'
+                  ? 'bg-white text-indigo-600 shadow-md shadow-indigo-100/80 border border-slate-200/60 font-black ring-2 ring-indigo-500/20'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
+              }`}
+            >
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[9px] font-extrabold shadow-md shadow-indigo-500/25 whitespace-nowrap">
+                TIẾT KIỆM 20% • BEST
+              </span>
+              <div className="text-xs sm:text-sm">Theo Năm (12T)</div>
+              <div className={`text-xs mt-0.5 ${billingCycle === 'yearly' ? 'text-purple-600 font-extrabold' : 'text-purple-700 font-medium'}`}>
+                79k<span className="text-[10px]">/th</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Pricing Cards Grid (2 Plans: Free vs Unlimited) */}
+        <div className="grid gap-8 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto items-stretch">
           {/* 1. Gói Miễn Phí */}
-          <Card className="border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl flex flex-col justify-between hover:border-slate-300 transition-all duration-300">
+          <Card className="border border-slate-200/80 bg-white/95 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl flex flex-col justify-between hover:border-slate-300 transition-all duration-300">
             <div>
               <CardHeader className="pb-6 pt-8 px-6 sm:px-8 border-b border-slate-100">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider w-fit mb-3">
                   Khởi đầu
                 </div>
-                <CardTitle className="text-2xl font-black text-slate-900">Miễn phí</CardTitle>
+                <CardTitle className="text-2xl font-black text-slate-900">Gói Miễn Phí</CardTitle>
                 <CardDescription className="text-sm text-slate-500 mt-1">
-                  Dành cho người mới bắt đầu trải nghiệm công cụ
+                  Dành cho người mới bắt đầu trải nghiệm công cụ tìm kiếm
                 </CardDescription>
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">0₫</span>
-                  <span className="text-slate-500 text-sm font-semibold">/ tháng</span>
+
+                <div className="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">0₫</span>
+                    <span className="text-slate-500 text-sm font-bold">/ tháng</span>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-slate-200/60 text-xs text-slate-500 font-medium">
+                    Miễn phí trọn đời • Không cần thẻ tín dụng
+                  </div>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
-                <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/70 text-xs text-amber-900 font-medium">
-                  ⚡ <strong>5 lượt search/ngày:</strong> Giới hạn 5 lượt tìm kiếm miễn phí mỗi ngày cho YouTube Ads & Facebook Ads.
+                <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-xs text-amber-900 font-medium leading-relaxed">
+                  ⚡ <strong>5 lượt tìm kiếm/ngày:</strong> Giới hạn 5 lượt tra cứu mỗi ngày cho toàn bộ YouTube Ads & Facebook Ads.
                 </div>
 
                 <ul className="space-y-3.5 text-sm text-slate-700">
@@ -209,49 +271,86 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
                       <X className="h-3.5 w-3.5" />
                     </div>
-                    <span>Không hỗ trợ cập nhật các tính năng mới nhất</span>
+                    <span>Không hỗ trợ video Unlisted & tải MP4</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-slate-400">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
+                      <X className="h-3.5 w-3.5" />
+                    </div>
+                    <span>Không có dữ liệu Spend, Reach & Scaling score</span>
                   </li>
                 </ul>
               </CardContent>
             </div>
 
-            <div className="p-6 sm:p-8 pt-0">
-              <Button asChild variant="outline" className="w-full h-12 rounded-xl border-slate-300 hover:bg-slate-100 font-bold text-slate-800 cursor-pointer">
-                <Link href={user ? "/quicksearch" : "/register"}>
-                  {user ? "Trải nghiệm ngay" : "Đăng ký miễn phí"}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+            <div className="p-6 sm:p-8 pt-0 space-y-3">
+              <Button asChild variant="outline" className="w-full h-14 rounded-2xl border-slate-300 hover:bg-slate-100 font-bold text-slate-800 cursor-pointer shadow-xs transition-all group px-4">
+                <Link href={hasMounted && user ? "/quicksearch" : "/register"} className="flex items-center justify-center gap-2">
+                  <span>{hasMounted && user ? "Trải nghiệm ngay" : "Bắt đầu miễn phí"}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 text-slate-500 group-hover:text-slate-900" />
                 </Link>
               </Button>
+              <p className="text-center text-[11px] text-slate-400">
+                Không yêu cầu thẻ tín dụng • Miễn phí trọn đời
+              </p>
             </div>
           </Card>
 
-          {/* 2. Gói Cá Nhân (Popular) */}
-          <Card className="border-2 border-indigo-600 bg-white shadow-2xl shadow-indigo-600/15 rounded-3xl flex flex-col justify-between relative scale-100 md:scale-105 z-10">
+          {/* 2. Gói Không Giới Hạn (Unlimited) */}
+          <Card className="border-2 border-indigo-600 bg-white shadow-2xl shadow-indigo-600/15 rounded-3xl flex flex-col justify-between relative z-10 ring-4 ring-indigo-500/10">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30">
-                <Sparkles className="h-3.5 w-3.5" />
-                Được Marketer Tin Dùng Nhất
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 px-4 py-1.5 text-xs font-black text-white shadow-lg shadow-indigo-600/30 whitespace-nowrap uppercase tracking-wider">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300 fill-amber-300" />
+                Marketer & Media Buyer Tin Dùng
               </div>
             </div>
 
             <div>
-              <CardHeader className="pb-6 pt-10 px-6 sm:px-8 border-b border-indigo-50 bg-gradient-to-b from-indigo-50/50 to-transparent rounded-t-3xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider w-fit mb-3">
-                  Cá nhân
+              <CardHeader className="pb-6 pt-10 px-6 sm:px-8 border-b border-indigo-50 bg-gradient-to-b from-indigo-50/70 via-indigo-50/30 to-transparent rounded-t-3xl">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider w-fit">
+                    Gói Không Giới Hạn
+                  </div>
+                  {activeCycle.savings && (
+                    <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+                      {activeCycle.savings}
+                    </span>
+                  )}
                 </div>
-                <CardTitle className="text-2xl font-black text-slate-900">Gói Cá Nhân</CardTitle>
+
+                <CardTitle className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Unlimited Plan</CardTitle>
                 <CardDescription className="text-sm text-slate-600 mt-1">
-                  Dành cho cá nhân vít ads, media buyer & content creator
+                  Mở khóa toàn bộ kho dữ liệu quảng cáo YouTube & Facebook Ads
                 </CardDescription>
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-indigo-600 tracking-tight">99.000₫</span>
-                  <span className="text-slate-500 text-sm font-semibold">/ tháng</span>
+
+                {/* Price Display Box */}
+                <div className="mt-5 p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 border border-indigo-100">
+                  <div className="flex items-baseline gap-2">
+                    {billingCycle !== 'monthly' && (
+                      <span className="text-base font-bold text-slate-400 line-through">99.000₫</span>
+                    )}
+                    <span className="text-4xl sm:text-5xl font-black text-indigo-600 tracking-tight">
+                      {activeCycle.monthlyPriceFormatted}
+                    </span>
+                    <span className="text-slate-500 text-sm font-bold">/ tháng</span>
+                  </div>
+
+                  <div className="mt-2 pt-2 border-t border-indigo-100/60 flex items-center justify-between text-xs text-slate-600">
+                    <span className="font-medium">
+                      {billingCycle === 'monthly' && 'Thanh toán hàng tháng:'}
+                      {billingCycle === 'quarterly' && 'Thanh toán 1 lần cho 3 tháng:'}
+                      {billingCycle === 'yearly' && 'Thanh toán 1 lần cho 12 tháng:'}
+                    </span>
+                    <span className="font-black text-indigo-700 text-sm">
+                      {activeCycle.totalPriceFormatted}
+                    </span>
+                  </div>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
-                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200/80 text-xs text-indigo-900 font-medium">
-                  🚀 <strong>25 lượt search/ngày:</strong> Thoải mái tìm kiếm và nghiên cứu kịch bản hàng ngày trên cả YouTube Ads và Facebook Ads.
+                <div className="p-3.5 rounded-xl bg-gradient-to-r from-indigo-50 via-purple-50/50 to-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-medium leading-relaxed">
+                  👑 <strong>Tìm kiếm KHÔNG GIỚI HẠN:</strong> Thỏa sức phân tích đối thủ, Nghiên cứu hàng ngàn video ads mỗi ngày không lo giới hạn.
                 </div>
 
                 <ul className="space-y-3.5 text-sm text-slate-700">
@@ -259,7 +358,7 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
                       <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span><strong className="text-indigo-900">25 lượt tìm kiếm/ngày</strong> (YouTube & FB Ads)</span>
+                    <span><strong className="text-indigo-950 font-black">Tìm kiếm KHÔNG GIỚI HẠN (∞)</strong> (YouTube & FB Ads)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
@@ -271,7 +370,25 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
                       <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span>Bóc tách video Unlisted & tải video MP4</span>
+                    <span>Nghiên cứu video Unlisted & tải video MP4</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Ước tính Spend, Reach, Duplicates & Scaling score</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Phân tích phễu chuyển đổi TOF / MOF / BOF</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Dữ liệu phân bổ thị trường Quốc tế (Geo Tier 1, 2, 3)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
@@ -283,120 +400,64 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
                       <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span>Dữ liệu phân bổ thị trường Quốc gia (Geo Tier)</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5 font-bold" />
-                    </div>
-                    <span>Hỗ trợ kỹ thuật qua email</span>
+                    <span>Hỗ trợ kỹ thuật ưu tiên 24/7</span>
                   </li>
                 </ul>
               </CardContent>
             </div>
 
-            <div className="p-6 sm:p-8 pt-0">
+            <div className="p-6 sm:p-8 pt-0 space-y-3">
               <Button
-                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 cursor-pointer transition-all"
-                onClick={() => handlePayment('personal')}
-                disabled={isProcessing || authLoading}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/40 cursor-pointer transition-all active:scale-[0.99] group px-4"
+                onClick={() => handlePayment(billingCycle)}
+                disabled={isProcessing || !hasMounted || authLoading}
               >
                 {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang kết nối PayOS...
-                  </>
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="font-bold text-base">Đang kết nối PayOS...</span>
+                  </div>
                 ) : (
-                  <>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Thanh toán ngay (99k/tháng)
-                  </>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-col items-start text-left">
+                      <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5">
+                        <Sparkles className="h-4 w-4 text-amber-300 fill-amber-300" />
+                        Nâng Cấp Gói Không Giới Hạn
+                      </span>
+                      <span className="text-[11px] sm:text-xs text-indigo-100 font-medium">
+                        {billingCycle === 'monthly' && 'Thanh toán 99.000₫ / tháng'}
+                        {billingCycle === 'quarterly' && 'Thanh toán 267.000₫ / quý (89k/tháng)'}
+                        {billingCycle === 'yearly' && 'Thanh toán 948.000₫ / năm (79k/tháng)'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 pl-3 border-l border-white/20 shrink-0">
+                      <span className="text-xs font-bold text-white/95 hidden sm:inline">Thanh toán</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
                 )}
               </Button>
-            </div>
-          </Card>
 
-          {/* 3. Gói Doanh Nghiệp / Max */}
-          <Card className="border border-slate-200 bg-white/95 backdrop-blur-xl shadow-xl shadow-slate-200/50 rounded-3xl flex flex-col justify-between hover:border-purple-300 transition-all duration-300">
-            <div>
-              <CardHeader className="pb-6 pt-8 px-6 sm:px-8 border-b border-slate-100">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider w-fit mb-3">
-                  Không giới hạn
-                </div>
-                <CardTitle className="text-2xl font-black text-slate-900">Doanh nghiệp / Max</CardTitle>
-                <CardDescription className="text-sm text-slate-500 mt-1">
-                  Dành cho Agency, Doanh nghiệp & Team marketing chuyên sâu
-                </CardDescription>
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight">199.000₫</span>
-                  <span className="text-slate-500 text-sm font-semibold">/ tháng</span>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
-                <div className="p-3 rounded-xl bg-purple-50 border border-purple-200/80 text-xs text-purple-900 font-medium">
-                  👑 <strong>Unlimited Search:</strong> Không giới hạn lượt tìm kiếm mỗi ngày, mở khóa toàn bộ sức mạnh phân tích.
-                </div>
-
-                <ul className="space-y-3.5 text-sm text-slate-700">
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5 font-bold" />
-                    </div>
-                    <span><strong className="text-purple-900 font-bold">Tìm kiếm KHÔNG GIỚI HẠN</strong> (Unlimited)</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <span>Toàn bộ tính năng cao cấp YouTube & Facebook Ads</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <span>Bóc tách Spend, Reach, Duplicates, Scaling score</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <span>Phân tích phễu chuyển đổi TOF / MOF / BOF</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <span>Hỗ trợ ưu tiên 24/7 & Tư vấn triển khai</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-100 text-purple-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <span>Cung cấp API riêng nếu doanh nghiệp cần</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </div>
-
-            <div className="p-6 sm:p-8 pt-0">
-              <Button
-                variant="outline"
-                className="w-full h-12 rounded-xl border-purple-300 hover:bg-purple-50 text-purple-700 font-bold text-sm cursor-pointer"
-                onClick={() => handlePayment('business')}
-              >
-                Đăng ký Doanh nghiệp (199k)
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
+                <span className="inline-flex items-center gap-1">
+                  <Shield className="h-3 w-3 text-emerald-600" />
+                  Bảo mật VietQR PayOS
+                </span>
+                <span>•</span>
+                <span className="inline-flex items-center gap-1">
+                  <Zap className="h-3 w-3 text-amber-500" />
+                  Kích hoạt tự động 24/7
+                </span>
+              </div>
             </div>
           </Card>
         </div>
 
         {/* Feature Comparison Table */}
-        <div className="mt-20 max-w-5xl mx-auto">
+        <div className="mt-20 max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">So Sánh Chi Tiết Quyền Lợi Các Gói</h2>
-            <p className="text-slate-500 text-sm mt-1">Chi tiết tính năng để bạn lựa chọn gói phù hợp nhất với ngân sách</p>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">So Sánh Chi Tiết Quyền Lợi</h2>
+            <p className="text-slate-500 text-sm mt-1">So sánh chi tiết tính năng giữa 2 gói dịch vụ</p>
           </div>
 
           <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
@@ -404,59 +465,60 @@ export default function PricingPage() {
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider">
                 <tr>
                   <th className="py-4 px-6">Tính năng</th>
-                  <th className="py-4 px-6 text-center">Miễn phí</th>
-                  <th className="py-4 px-6 text-center bg-indigo-50/70 text-indigo-900">Cá nhân (99k)</th>
-                  <th className="py-4 px-6 text-center text-purple-900">Doanh nghiệp (199k)</th>
+                  <th className="py-4 px-6 text-center">Gói Miễn phí (0₫)</th>
+                  <th className="py-4 px-6 text-center bg-indigo-50/70 text-indigo-900">Gói Không Giới Hạn (Từ 79k/th)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-600">
                 <tr>
                   <td className="py-4 px-6 font-semibold text-slate-900">Lượt tìm kiếm mỗi ngày</td>
                   <td className="py-4 px-6 text-center font-bold text-amber-600">5 lượt / ngày</td>
-                  <td className="py-4 px-6 text-center font-bold text-indigo-600 bg-indigo-50/30">25 lượt / ngày</td>
-                  <td className="py-4 px-6 text-center font-black text-purple-600">Không giới hạn (∞)</td>
+                  <td className="py-4 px-6 text-center font-black text-indigo-600 bg-indigo-50/30">Không giới hạn (∞)</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm YouTube Ads</td>
                   <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
-                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
-                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30 font-bold text-indigo-700">Không giới hạn</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm Facebook Ads</td>
                   <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
-                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
-                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30 font-bold text-indigo-700">Không giới hạn</td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 font-medium text-slate-900">Bóc tách video Unlisted & tải MP4</td>
+                  <td className="py-4 px-6 font-medium text-slate-900">Nghiên cứu video Unlisted & tải MP4</td>
                   <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
                   <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
-                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Xem Hook 3s & Landing Page đối thủ</td>
                   <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
                   <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
-                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Ước tính Spend, Reach & Duplicates</td>
                   <td className="py-4 px-6 text-center text-xs">Cơ bản</td>
-                  <td className="py-4 px-6 text-center text-xs font-semibold text-indigo-700 bg-indigo-50/30">Chi tiết</td>
-                  <td className="py-4 px-6 text-center text-xs font-bold text-purple-700">Đầy đủ & chuyên sâu</td>
+                  <td className="py-4 px-6 text-center text-xs font-bold text-indigo-700 bg-indigo-50/30">Đầy đủ & chuyên sâu</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Phân tích phễu TOF / MOF / BOF</td>
+                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium text-slate-900">Dữ liệu phân bổ thị trường Quốc tế</td>
+                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Mục yêu thích lưu trữ</td>
                   <td className="py-4 px-6 text-center">20 mục</td>
                   <td className="py-4 px-6 text-center font-bold text-indigo-600 bg-indigo-50/30">Không giới hạn</td>
-                  <td className="py-4 px-6 text-center font-bold text-purple-600">Không giới hạn</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Hỗ trợ kỹ thuật</td>
                   <td className="py-4 px-6 text-center text-xs">Cộng đồng</td>
-                  <td className="py-4 px-6 text-center text-xs font-medium text-indigo-700 bg-indigo-50/30">Email hỗ trợ</td>
-                  <td className="py-4 px-6 text-center text-xs font-bold text-purple-700">24/7 & 1-kèm-1</td>
+                  <td className="py-4 px-6 text-center text-xs font-bold text-indigo-700 bg-indigo-50/30">Ưu tiên 24/7</td>
                 </tr>
               </tbody>
             </table>
@@ -521,12 +583,10 @@ export default function PricingPage() {
                   <Sparkles className="h-6 w-6 text-primary" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground">
-                  {selectedPlan === 'personal' ? 'Đăng ký gói Cá nhân' : 'Đăng ký gói Doanh nghiệp'}
+                  Tư vấn & Hỗ trợ giải pháp Ads Spy
                 </h2>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {selectedPlan === 'personal'
-                    ? 'Điền thông tin để đăng ký. Chúng tôi sẽ liên hệ tư vấn và kích hoạt tài khoản cho bạn.'
-                    : 'Điền thông tin để đăng ký. Chúng tôi sẽ liên hệ tư vấn và hỗ trợ triển khai.'}
+                  Điền thông tin để được đội ngũ kỹ thuật liên hệ tư vấn, giải đáp thắc mắc và hỗ trợ triển khai nhanh nhất.
                 </p>
               </div>
 

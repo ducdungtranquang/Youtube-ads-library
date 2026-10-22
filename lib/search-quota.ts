@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase"
 
 export type SearchFeature = 'yt' | 'fb'
-export type PlanType = 'free' | 'personal' | 'business' | 'company'
+export type PlanType = 'free' | 'unlimited' | 'personal' | 'business' | 'company'
 
 export interface QuotaStatus {
   plan: PlanType
@@ -40,6 +40,7 @@ export class SearchQuotaManager {
 
   /**
    * Determine the normalized plan from user or profile data
+   * Only 2 tiers: 'free' or 'unlimited' (with legacy personal/business mapped to unlimited)
    */
   static getPlan(user?: any, profile?: any): PlanType {
     const rawPlan = (
@@ -49,11 +50,8 @@ export class SearchQuotaManager {
       'free'
     ).toLowerCase()
 
-    if (rawPlan === 'business' || rawPlan === 'company') {
-      return 'business'
-    }
-    if (rawPlan === 'personal') {
-      return 'personal'
+    if (rawPlan === 'unlimited' || rawPlan === 'business' || rawPlan === 'company' || rawPlan === 'personal') {
+      return 'unlimited'
     }
     return 'free'
   }
@@ -63,11 +61,11 @@ export class SearchQuotaManager {
    */
   static getPlanName(plan: PlanType): string {
     switch (plan) {
+      case 'unlimited':
       case 'business':
       case 'company':
-        return 'Doanh nghiệp / Max'
       case 'personal':
-        return 'Cá nhân'
+        return 'Không Giới Hạn (Unlimited)'
       default:
         return 'Miễn phí'
     }
@@ -76,16 +74,15 @@ export class SearchQuotaManager {
   /**
    * Get search limit for a plan
    * Free: 5 searches/day (for YT and FB)
-   * Personal: 25 searches/day
-   * Business: Unlimited (-1)
+   * Unlimited: Unlimited (-1)
    */
   static getLimit(plan: PlanType): number {
     switch (plan) {
+      case 'unlimited':
       case 'business':
       case 'company':
-        return -1
       case 'personal':
-        return 25
+        return -1
       default:
         return 5
     }
@@ -128,19 +125,14 @@ export class SearchQuotaManager {
     const today = getTodayKey()
     const { featureUsed, totalUsed } = this.getLocalUsage(feature, user?.id)
 
-    // For personal plan (25/day limit), limit applies to total platform searches
-    // For free plan, 5 searches/day applies per feature
-    const used = plan === 'personal' ? totalUsed : featureUsed
+    // For free plan, 5 searches/day applies per feature. Unlimited plan has limit -1.
+    const used = featureUsed
     const remaining = isUnlimited ? -1 : Math.max(0, limit - used)
     const canSearch = isUnlimited || remaining > 0
 
     let message: string | undefined
     if (!canSearch) {
-      if (plan === 'free') {
-        message = `Bạn đã sử dụng hết 5 lượt tìm kiếm miễn phí ${feature === 'yt' ? 'YouTube Ads' : 'Facebook Ads'} hôm nay. Nâng cấp gói Cá nhân (25 lượt/ngày) để tiếp tục!`
-      } else if (plan === 'personal') {
-        message = 'Bạn đã sử dụng hết 25 lượt tìm kiếm hôm nay. Nâng cấp gói Doanh nghiệp để tìm kiếm không giới hạn!'
-      }
+      message = `Bạn đã sử dụng hết 5 lượt tìm kiếm miễn phí ${feature === 'yt' ? 'YouTube Ads' : 'Facebook Ads'} hôm nay. Nâng cấp gói Không giới hạn (chỉ từ 79k/tháng) để tìm kiếm không giới hạn!`
     }
 
     return {

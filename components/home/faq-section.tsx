@@ -24,7 +24,7 @@ export function FaqSection() {
             Những Câu Hỏi Thường Gặp Về Ads Spy Tool
           </h2>
           <p className="text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Hiểu rõ cơ chế bóc tách dữ liệu, thuật toán ước tính ngân sách và cách khai thác tối đa công cụ để nhân đôi hiệu quả chiến dịch quảng cáo của bạn.
+            Hiểu rõ cơ chế Nghiên cứu dữ liệu, thuật toán ước tính ngân sách và cách khai thác tối đa công cụ để nhân đôi hiệu quả chiến dịch quảng cáo của bạn.
           </p>
         </div>
 

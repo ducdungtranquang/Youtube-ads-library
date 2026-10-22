@@ -43,10 +43,8 @@ export async function GET(request: NextRequest) {
 
     const plan = (profile.subscription_plan || profile.subscription_status || 'free').toLowerCase()
     let limit = 5
-    if (plan === 'business' || plan === 'company') {
+    if (plan === 'unlimited' || plan === 'business' || plan === 'company' || plan === 'personal') {
       limit = -1
-    } else if (plan === 'personal') {
-      limit = 25
     }
 
     const today = new Date().toISOString().split('T')[0]

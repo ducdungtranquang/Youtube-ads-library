@@ -91,12 +91,14 @@ export function AdsSpyFilterPanel({
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent side="left" className="w-[88vw] max-w-md p-0 flex flex-col bg-white text-slate-900 border-r border-slate-200">
             {/* Sheet Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-indigo-600" />
-                <SheetTitle className="text-base font-bold text-slate-900">{title}</SheetTitle>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 pr-14 min-h-[56px]">
+              <div className="flex items-center gap-2 min-w-0 pr-2">
+                <div className="h-7 w-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100/80 shrink-0">
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                </div>
+                <SheetTitle className="text-sm font-bold text-slate-900 truncate">{title}</SheetTitle>
                 {activeCount > 0 && (
-                  <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-xs px-2 py-0.5">
+                  <Badge className="bg-indigo-50 text-indigo-700 border-indigo-200 text-[11px] font-semibold px-1.5 py-0 shrink-0">
                     {activeCount}
                   </Badge>
                 )}
@@ -107,7 +109,7 @@ export function AdsSpyFilterPanel({
                   variant="ghost"
                   size="sm"
                   onClick={onClear}
-                  className="h-7 px-2 text-xs text-slate-500 hover:text-rose-600 hover:bg-rose-50"
+                  className="h-7 px-2 text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg shrink-0 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="h-3 w-3 mr-1" />
                   Đặt lại
@@ -121,11 +123,23 @@ export function AdsSpyFilterPanel({
             </div>
 
             {/* Sheet Sticky Bottom Actions */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex gap-2">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center gap-2">
+              {onClear && activeCount > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClear}
+                  className="h-10 px-3.5 bg-white border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl cursor-pointer shrink-0 text-xs font-semibold"
+                  title="Đặt lại tất cả bộ lọc"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                  Đặt lại
+                </Button>
+              )}
               <Button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl h-10 shadow-sm cursor-pointer"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl h-10 shadow-sm cursor-pointer"
               >
                 <Check className="h-4 w-4 mr-1.5" />
                 Xem kết quả {activeCount > 0 ? `(${activeCount} bộ lọc)` : ""}

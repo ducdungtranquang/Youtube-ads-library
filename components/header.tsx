@@ -47,7 +47,7 @@ export function Header() {
     { href: "/", icon: Search, label: "Trang chủ" },
     { href: "/quicksearch", icon: Sparkles, label: "Quick Search" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
-    { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
+    { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads", badge: "01/11" },
     { href: "/blog", icon: NotebookText, label: "Blog" },
     { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
@@ -85,7 +85,12 @@ export function Header() {
                     }`}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               )
             })}
@@ -124,14 +129,21 @@ export function Header() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 rounded-lg p-3 text-sm font-medium transition-colors ${isActive
+                      className={`flex items-center justify-between rounded-lg p-3 text-sm font-medium transition-colors ${isActive
                         ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
                         : 'text-slate-400 hover:text-white hover:bg-slate-900'
                         }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   )
                 })}

@@ -8,8 +8,8 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FavoriteButton } from "@/components/favorite-button"
 import { YouTubeImage } from "@/components/youtube-image"
-import { 
-  Eye, Calendar, TrendingUp, ExternalLink, Building2, Play, DollarSign, 
+import {
+  Eye, Calendar, TrendingUp, ExternalLink, Building2, Play, DollarSign,
   Clock, AlertTriangle, X, Copy, Check, Video, BarChart3, Sparkles
 } from "lucide-react"
 import { useVideoDetails } from "@/hooks/use-video-details"
@@ -88,7 +88,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     try {
       return new Date(dateString).toLocaleDateString('vi-VN', {
         year: 'numeric',
-        month: 'long', 
+        month: 'long',
         day: 'numeric'
       })
     } catch {
@@ -137,8 +137,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     ytVideoId: video?.ytVideoId || "",
   }
 
-  const videoUrl = displayData.ytVideoId 
-    ? `https://youtube.com/watch?v=${displayData.ytVideoId}` 
+  const videoUrl = displayData.ytVideoId
+    ? `https://youtube.com/watch?v=${displayData.ytVideoId}`
     : video?.url
 
   const handleCopyLink = () => {
@@ -159,8 +159,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent 
-        showCloseButton={false} 
+      <DialogContent
+        showCloseButton={false}
         className="w-[95vw] max-w-5xl h-[90vh] p-0 overflow-hidden flex flex-col rounded-3xl bg-white border border-slate-200 shadow-2xl"
       >
         {/* Pinned Modal Header (Fixed, never scrolls) */}
@@ -176,11 +176,10 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
               <DialogDescription className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
                 <span className="font-semibold text-slate-700 truncate">{displayData.channel}</span>
                 {videoDetails && (
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    displayData.isActive 
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${displayData.isActive
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}>
+                    }`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${displayData.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                     {displayData.isActive ? "Đang chạy" : "Tạm dừng"}
                   </span>
@@ -257,16 +256,16 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                       allowFullScreen
                     />
                   ) : (
-                    <div 
+                    <div
                       className="group relative h-full w-full cursor-pointer"
                       onClick={() => setIsPlaying(true)}
                     >
-                      <YouTubeImage 
-                        src={displayData.thumbnail || "/placeholder.svg"} 
-                        alt={displayData.title} 
+                      <YouTubeImage
+                        src={displayData.thumbnail || "/placeholder.svg"}
+                        alt={displayData.title}
                         width={640}
                         height={360}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-102" 
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-102"
                       />
                       <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600/90 text-white shadow-xl shadow-red-900/40 backdrop-blur-sm group-hover:scale-110 group-hover:bg-red-600 transition-all duration-300">
@@ -285,8 +284,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                 {/* Quick Action Toolbar */}
                 <div className="flex flex-wrap items-center gap-2.5">
                   {videoUrl && (
-                    <Button 
-                      asChild 
+                    <Button
+                      asChild
                       variant="default"
                       className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs h-9 rounded-xl shadow-sm cursor-pointer"
                     >
@@ -470,7 +469,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                   <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-2xs">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                       <TrendingUp className="h-4 w-4 text-emerald-600" />
-                      Lịch sử bóc tách chi tiêu gần nhất
+                      Lịch sử Nghiên cứu chi tiêu gần nhất
                     </h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                       {displayData.spendHistory.slice(0, 6).map((entry, index) => (
