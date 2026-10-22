@@ -1058,9 +1058,11 @@ export default function MKTPage() {
           description: selectedVideo?.description || "",
           duration: selectedVideo?.duration || "",
           engagement: selectedVideo?.engagement || "",
-          avgViewDuration: selectedVideo?.avgViewDuration || "",
           ytVideoId: selectedVideo?.ytVideoId || selectedVideo?.videoId || "",
-          brandId: selectedVideo?.brandId
+          brandId: selectedVideo?.brandId,
+          landingPage: (selectedVideo as any)?.landingPage || ((selectedVideo as any)?.clickUrls && (selectedVideo as any).clickUrls[0]),
+          clickUrls: (selectedVideo as any)?.clickUrls,
+          transcript: (selectedVideo as any)?.transcript
         }}
         onCompanyClick={() => handleOpenBrandModal(selectedVideo?.brandId)}
         onClose={() => { }}

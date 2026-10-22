@@ -32,15 +32,50 @@ export async function GET(
       )
     }
 
+    const rawPayload = result.data
+    const innerData = (rawPayload && typeof rawPayload === 'object' && 'data' in rawPayload && rawPayload.data)
+      ? rawPayload.data
+      : (rawPayload || {})
+
+    // Extract clickUrls & landingPage
+    const clickUrls: string[] = Array.isArray(innerData.clickUrls)
+      ? innerData.clickUrls.filter((url: unknown): url is string => typeof url === 'string' && url.trim().length > 0)
+      : (typeof innerData.clickUrl === 'string' && innerData.clickUrl.trim() ? [innerData.clickUrl.trim()] : [])
+
+    const landingPage: string | null = clickUrls.length > 0
+      ? clickUrls[0]
+      : (typeof innerData.landingPage === 'string' && innerData.landingPage.trim() ? innerData.landingPage.trim() : null)
+
+    const transcript: string | null = typeof innerData.transcript === 'string' && innerData.transcript.trim()
+      ? innerData.transcript.trim()
+      : null
+
+    const enrichedVideo = {
+      ...innerData,
+      clickUrls,
+      landingPage,
+      landingPages: clickUrls,
+      transcript,
+    }
+
     console.log('Video details fetched successfully:', {
       videoId,
       account: result.account,
-      hasData: !!result.data
+      hasData: !!result.data,
+      hasLandingPage: !!landingPage,
+      hasTranscript: !!transcript,
     })
 
     return NextResponse.json({
       success: true,
-      data: result.data,
+      data: {
+        ...enrichedVideo,
+        // Preserve nested data structure for backward compatibility
+        data: enrichedVideo,
+      },
+      landingPage,
+      clickUrls,
+      transcript,
       account: result.account,
       cached: false
     })

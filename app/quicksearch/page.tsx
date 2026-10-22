@@ -525,6 +525,9 @@ function QuickSearchPage() {
             description: selectedVideo?.description || "",
             duration: selectedVideo?.duration || "",
             ytVideoId: selectedVideo?.ytVideoId,
+            landingPage: (selectedVideo as any)?.landingPage || ((selectedVideo as any)?.clickUrls && (selectedVideo as any).clickUrls[0]),
+            clickUrls: (selectedVideo as any)?.clickUrls,
+            transcript: (selectedVideo as any)?.transcript,
           }}
         />
       )}

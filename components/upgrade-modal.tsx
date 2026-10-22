@@ -12,6 +12,7 @@ import {
   ArrowRight,
   ShieldAlert,
   Loader2,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
@@ -36,38 +37,8 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
   const activeCycle = BILLING_CYCLES[selectedCycle]
 
   const handleCheckout = async () => {
-    if (!user) {
-      toast.info('Vui lòng đăng nhập để nâng cấp gói dịch vụ')
-      onClose()
-      router.push('/login')
-      return
-    }
-
-    setIsProcessing(true)
-    try {
-      const response = await fetch('/api/payment/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email,
-          planId: 'unlimited',
-          billingCycle: selectedCycle,
-        }),
-      })
-
-      const data = await response.json()
-      if (data.success && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      } else {
-        toast.error(data.error || 'Không thể tạo thanh toán. Vui lòng thử lại.')
-      }
-    } catch (error) {
-      console.error('Payment create error:', error)
-      toast.error('Đã xảy ra lỗi kết nối thanh toán. Vui lòng thử lại.')
-    } finally {
-      setIsProcessing(false)
-    }
+    toast.info('Cổng thanh toán tự động gói Không Giới Hạn sẽ chính thức mở vào ngày 01/11. Cảm ơn bạn đã quan tâm!')
+    return
   }
 
   const formatCurrency = (val: number) => {
@@ -208,41 +179,31 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
           </div>
 
           {/* Action Button */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <Button
-              onClick={handleCheckout}
-              disabled={isProcessing || authLoading}
-              className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-xl shadow-indigo-600/25 hover:shadow-indigo-600/40 cursor-pointer transition-all active:scale-[0.99] px-4 group"
+              disabled={true}
+              className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200 shadow-none px-4 select-none opacity-95 transition-none"
             >
-              {isProcessing ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="font-bold text-base">Đang kết nối PayOS...</span>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col items-start text-left">
+                  <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5 text-slate-800">
+                    <Clock className="h-4 w-4 text-amber-500" />
+                    Mở Thanh Toán Ngày 01/11
+                  </span>
+                  <span className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                    Tính năng thanh toán tự động chính thức mở từ 01/11
+                  </span>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex flex-col items-start text-left">
-                    <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 text-amber-300 fill-amber-300" />
-                      Nâng Cấp Gói Không Giới Hạn
-                    </span>
-                    <span className="text-[11px] sm:text-xs text-indigo-100 font-medium">
-                      {selectedCycle === 'monthly' && 'Thanh toán 99.000₫ / tháng'}
-                      {selectedCycle === 'quarterly' && 'Thanh toán 267.000₫ / quý (89k/tháng)'}
-                      {selectedCycle === 'yearly' && 'Thanh toán 948.000₫ / năm (79k/tháng)'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 pl-3 border-l border-white/20 shrink-0">
-                    <span className="text-xs font-bold text-white/95 hidden sm:inline">Thanh toán</span>
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </div>
+                <div className="flex items-center gap-1.5 pl-3 border-l border-slate-300 shrink-0">
+                  <span className="text-xs font-bold text-amber-700 bg-amber-100/90 border border-amber-300/80 px-2.5 py-1 rounded-full">
+                    1/11 Release
+                  </span>
                 </div>
-              )}
+              </div>
             </Button>
-            <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500 pt-0.5">
-              <span>🛡️ Bảo mật VietQR PayOS</span>
-              <span>•</span>
-              <span>⚡ Kích hoạt tự động ngay sau khi quét mã</span>
+
+            <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-center text-[11px] text-amber-800 font-medium leading-relaxed">
+              🚀 Cổng thanh toán gói Không Giới Hạn sẽ chính thức mở vào ngày <strong>01/11</strong>. Lượt tìm kiếm miễn phí của bạn sẽ được làm mới lúc 00:00 mỗi ngày!
             </div>
           </div>
 

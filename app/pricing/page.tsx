@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/header"
-import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users, Loader2, CreditCard } from "lucide-react"
+import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users, Loader2, CreditCard, Clock } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
 import { BILLING_CYCLES, BillingCycle } from "@/lib/subscription-plans"
@@ -39,43 +39,10 @@ export default function PricingPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Handle PayOS payment for Unlimited plan
-  const handlePayment = async (cycle: BillingCycle = billingCycle) => {
-    if (!user) {
-      toast.error('Vui lòng đăng nhập để đăng ký gói dịch vụ')
-      router.push('/login')
-      return
-    }
-
-    setIsProcessing(true)
-    try {
-      const response = await fetch('/api/payment/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email,
-          planId: 'unlimited',
-          billingCycle: cycle,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success && data.checkoutUrl) {
-        // Redirect to PayOS checkout page
-        window.location.href = data.checkoutUrl
-      } else {
-        toast.error(data.error || 'Không thể tạo thanh toán. Vui lòng thử lại.')
-      }
-    } catch (error) {
-      console.error('Payment error:', error)
-      toast.error('Đã có lỗi xảy ra. Vui lòng thử lại.')
-    } finally {
-      setIsProcessing(false)
-    }
+  // Handle PayOS payment for Unlimited plan (Temporarily disabled until release 01/11)
+  const handlePayment = async (_cycle: BillingCycle = billingCycle) => {
+    toast.info('Cổng thanh toán tự động gói Không Giới Hạn sẽ chính thức mở vào ngày 01/11. Cảm ơn bạn đã quan tâm!')
+    return
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -408,35 +375,30 @@ export default function PricingPage() {
 
             <div className="p-6 sm:p-8 pt-0 space-y-3">
               <Button
-                className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/40 cursor-pointer transition-all active:scale-[0.99] group px-4"
-                onClick={() => handlePayment(billingCycle)}
-                disabled={isProcessing || !hasMounted || authLoading}
+                disabled={true}
+                className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200 shadow-none px-4 select-none opacity-95 transition-none"
               >
-                {isProcessing ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="font-bold text-base">Đang kết nối PayOS...</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col items-start text-left">
+                    <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5 text-slate-800">
+                      <Clock className="h-4 w-4 text-amber-500" />
+                      Mở Thanh Toán Ngày 01/11
+                    </span>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                      Tính năng thanh toán tự động chính thức mở từ 01/11
+                    </span>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex flex-col items-start text-left">
-                      <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5">
-                        <Sparkles className="h-4 w-4 text-amber-300 fill-amber-300" />
-                        Nâng Cấp Gói Không Giới Hạn
-                      </span>
-                      <span className="text-[11px] sm:text-xs text-indigo-100 font-medium">
-                        {billingCycle === 'monthly' && 'Thanh toán 99.000₫ / tháng'}
-                        {billingCycle === 'quarterly' && 'Thanh toán 267.000₫ / quý (89k/tháng)'}
-                        {billingCycle === 'yearly' && 'Thanh toán 948.000₫ / năm (79k/tháng)'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 pl-3 border-l border-white/20 shrink-0">
-                      <span className="text-xs font-bold text-white/95 hidden sm:inline">Thanh toán</span>
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </div>
+                  <div className="flex items-center gap-1.5 pl-3 border-l border-slate-300 shrink-0">
+                    <span className="text-xs font-bold text-amber-700 bg-amber-100/90 border border-amber-300/80 px-2.5 py-1 rounded-full">
+                      1/11 Release
+                    </span>
                   </div>
-                )}
+                </div>
               </Button>
+
+              <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-center text-xs text-amber-800 font-medium leading-relaxed">
+                🚀 Cổng thanh toán gói Không Giới Hạn đang trong giai đoạn hoàn thiện và sẽ chính thức mở vào ngày <strong>01/11</strong>. Hiện tại bạn vẫn có thể sử dụng miễn phí mỗi ngày!
+              </div>
 
               <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
                 <span className="inline-flex items-center gap-1">
@@ -446,7 +408,7 @@ export default function PricingPage() {
                 <span>•</span>
                 <span className="inline-flex items-center gap-1">
                   <Zap className="h-3 w-3 text-amber-500" />
-                  Kích hoạt tự động 24/7
+                  Kích hoạt tự động (Từ 01/11)
                 </span>
               </div>
             </div>

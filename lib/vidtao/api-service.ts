@@ -491,31 +491,36 @@ export class VidTaoAPIService {
     try {
       console.log(`Making MKT search request with account: ${account.id}`)
       
-      // Map parameters to VidTao Enhanced Search API format (same as quickSearch)
-      const requestBody = {
-        affiliateCountryId: 0,
-        affiliateNetworkIds: [],
-        categoryIds: params.categoryIds || [],
-        countryId: params.countryId || 0,
-        dateFrom: params.dateFrom || "",
-        dateTo: params.dateTo || "",
-        isAffiliate: false,
-        language: params.language || "",
-        limit: params.limit || 20,
-        offerIds: [],
-        orderAsc: params.orderAsc || false,
-        page: params.page || 1,
-        searchTerm: params.searchTerm,
-        showVideos: params.showVideos || "unlisted",
-        softwareIds: [],
-        sortProp: params.sortProp || "date"
+      // Map parameters to VidTao Enriched Search API format
+      let normalizedSortProp = params.sortProp || "total"
+      if (normalizedSortProp === "totalSpend" || normalizedSortProp === "views") {
+        normalizedSortProp = "total"
       }
 
-      const response = await fetch('https://apiv2.vidtao.com/search/videos/enhanced', {
+      const requestBody: Record<string, any> = {
+        searchTerm: params.searchTerm || "",
+        limit: params.limit || 210,
+        sortProp: normalizedSortProp,
+        orderAsc: params.orderAsc ?? false,
+        orientation: (params as any).orientation ?? 0,
+        durationRanges: (params as any).durationRanges || [],
+        dateFrom: params.dateFrom || "",
+        dateTo: params.dateTo || ""
+      }
+
+      if (params.countryId) requestBody.countryId = params.countryId
+      if (params.language) requestBody.language = params.language
+      if (params.categoryIds && params.categoryIds.length > 0) requestBody.categoryIds = params.categoryIds
+      if (params.showVideos) requestBody.showVideos = params.showVideos
+      if (params.page && params.page > 1) requestBody.page = params.page
+
+      const response = await fetch('https://apiv2.vidtao.com/search/videos/enriched', {
         method: 'POST',
         ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${account.token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Referer': 'https://www.vidtao.com/',
+          'X-VidTao-Client': '3'
         }),
         body: JSON.stringify(requestBody)
       })
@@ -606,12 +611,14 @@ export class VidTaoAPIService {
         throw new Error('No valid token found for account')
       }
 
-      const response = await fetch(`https://apiv1.vidtao.com/api/public/videos/${videoId}?encryptedId=`, {
+      const response = await fetch(`https://apiv1.vidtao.com/api/public/videos/${videoId}?full=1`, {
         method: 'GET',
         ...VidTaoSecurityUtils.createSecureFetchOptions({
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Referer': 'https://www.vidtao.com/',
+          'X-VidTao-Client': '3'
         }),
         signal: AbortSignal.timeout(30000) // 30 second timeout
       })
@@ -656,10 +663,21 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
+      const rawItem = (data && typeof data === 'object' && 'data' in data && data.data) ? data.data : (data || {})
+      const clickUrls: string[] = Array.isArray(rawItem.clickUrls)
+        ? rawItem.clickUrls.filter((u: unknown): u is string => typeof u === 'string' && u.trim().length > 0)
+        : (typeof rawItem.clickUrl === 'string' && rawItem.clickUrl.trim() ? [rawItem.clickUrl.trim()] : [])
+      const landingPage: string | null = clickUrls.length > 0 ? clickUrls[0] : (rawItem.landingPage || null)
+      const transcript: string | null = typeof rawItem.transcript === 'string' && rawItem.transcript.trim()
+        ? rawItem.transcript.trim()
+        : null
       
       return {
         success: true,
         data,
+        landingPage,
+        clickUrls,
+        transcript,
         account: account.id
       }
 

@@ -10,7 +10,8 @@ import { FavoriteButton } from "@/components/favorite-button"
 import { YouTubeImage } from "@/components/youtube-image"
 import {
   Eye, Calendar, TrendingUp, ExternalLink, Building2, Play, DollarSign,
-  Clock, AlertTriangle, X, Copy, Check, Video, BarChart3, Sparkles
+  Clock, AlertTriangle, X, Copy, Check, Video, BarChart3, Sparkles,
+  Globe, FileText, ChevronDown, ChevronUp, Link2
 } from "lucide-react"
 import { useVideoDetails } from "@/hooks/use-video-details"
 import { toast } from "sonner"
@@ -34,6 +35,9 @@ interface VideoDetailModalProps {
     avgViewDuration?: string
     ytVideoId?: string
     brandId?: string
+    landingPage?: string
+    clickUrls?: string[]
+    transcript?: string
   }
   onCompanyClick?: () => void
   onClose?: (videoId: string) => void
@@ -44,6 +48,9 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
   const [isPlaying, setIsPlaying] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const [descExpanded, setDescExpanded] = useState(false)
+  const [transcriptExpanded, setTranscriptExpanded] = useState(false)
+  const [isCopiedTranscript, setIsCopiedTranscript] = useState(false)
+  const [isCopiedLandingPage, setIsCopiedLandingPage] = useState(false)
 
   // Fetch video details when modal opens and video ID is available
   useEffect(() => {
@@ -54,6 +61,9 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
       setIsPlaying(false)
       setIsCopied(false)
       setDescExpanded(false)
+      setTranscriptExpanded(false)
+      setIsCopiedTranscript(false)
+      setIsCopiedLandingPage(false)
     }
   }, [open, video?.ytVideoId, fetchVideoDetails])
 
@@ -121,6 +131,11 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     lastSeen: videoDetails?.lastSeen ? formatDate(videoDetails?.lastSeen) : "Gần đây",
     spendHistory: videoDetails?.spend || [],
     ytVideoId: videoDetails?.ytVideoId || video?.ytVideoId,
+    clickUrls: Array.isArray(videoDetails?.clickUrls) && videoDetails.clickUrls.length > 0
+      ? videoDetails.clickUrls
+      : (video?.clickUrls || (video?.landingPage ? [video.landingPage] : [])),
+    landingPage: videoDetails?.landingPage || (videoDetails?.clickUrls && videoDetails.clickUrls[0]) || video?.landingPage || (video?.clickUrls && video.clickUrls[0]) || null,
+    transcript: videoDetails?.transcript || video?.transcript || null,
   } : {
     title: video?.title || "Video Quảng Cáo",
     channel: video?.channel || "Thương hiệu",
@@ -135,6 +150,9 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     lastSeen: "",
     spendHistory: [],
     ytVideoId: video?.ytVideoId || "",
+    clickUrls: video?.clickUrls || (video?.landingPage ? [video.landingPage] : []),
+    landingPage: video?.landingPage || (video?.clickUrls && video.clickUrls[0]) || null,
+    transcript: video?.transcript || null,
   }
 
   const videoUrl = displayData.ytVideoId
@@ -150,12 +168,34 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     }
   }
 
+  const handleCopyLandingPage = () => {
+    if (displayData.landingPage) {
+      navigator.clipboard.writeText(displayData.landingPage)
+      setIsCopiedLandingPage(true)
+      toast.success("Đã sao chép link Landing Page!")
+      setTimeout(() => setIsCopiedLandingPage(false), 2000)
+    }
+  }
+
+  const handleCopyTranscript = () => {
+    if (displayData.transcript) {
+      navigator.clipboard.writeText(displayData.transcript)
+      setIsCopiedTranscript(true)
+      toast.success("Đã sao chép toàn bộ lời thoại (transcript)!")
+      setTimeout(() => setIsCopiedTranscript(false), 2000)
+    }
+  }
+
   const handleCopyDescription = () => {
     if (displayData.description) {
       navigator.clipboard.writeText(displayData.description)
       toast.success("Đã sao chép kịch bản / mô tả quảng cáo!")
     }
   }
+
+  const transcriptWordCount = displayData.transcript
+    ? displayData.transcript.trim().split(/\s+/).filter(Boolean).length
+    : 0
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -209,7 +249,10 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                 ytVideoId: displayData.ytVideoId,
                 description: displayData.description,
                 duration: displayData.duration,
-                companyName: video?.companyName
+                companyName: video?.companyName,
+                landingPageUrl: displayData.landingPage || undefined,
+                clickUrls: displayData.clickUrls.length > 0 ? displayData.clickUrls : undefined,
+                transcript: displayData.transcript || undefined,
               } as VideoFavoriteData}
               variant="outline"
               showText={false}
@@ -296,6 +339,19 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                     </Button>
                   )}
 
+                  {displayData.landingPage && (
+                    <Button
+                      asChild
+                      variant="default"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 rounded-xl shadow-sm cursor-pointer"
+                    >
+                      <a href={displayData.landingPage} target="_blank" rel="noopener noreferrer">
+                        <Globe className="mr-1.5 h-3.5 w-3.5" />
+                        Mở Landing Page
+                      </a>
+                    </Button>
+                  )}
+
                   <Button
                     type="button"
                     variant="outline"
@@ -349,13 +405,203 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                   </div>
                 )}
 
-                {/* Video Description / Hook 3s Script */}
-                {displayData.description && (
+                {/* Landing Page (Click URL) Card */}
+                {displayData.landingPage && (
+                  <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/60 via-white to-blue-50/30 p-4 sm:p-5 space-y-3 shadow-2xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100/80 text-blue-700 flex-shrink-0 shadow-2xs">
+                          <Globe className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-blue-950 flex items-center gap-1.5 truncate">
+                            Trang đích quảng cáo (Landing Page)
+                          </h4>
+                          <p className="text-[11px] text-blue-600 truncate">
+                            Đường link URL khi người xem nhấp vào quảng cáo
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopyLandingPage}
+                          className="h-8 px-2.5 rounded-lg border-blue-200 text-xs font-medium text-blue-700 hover:bg-blue-100/70 cursor-pointer shadow-2xs"
+                        >
+                          {isCopiedLandingPage ? (
+                            <>
+                              <Check className="mr-1 h-3.5 w-3.5 text-emerald-600" />
+                              Đã chép
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="mr-1 h-3.5 w-3.5" />
+                              Sao chép
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          asChild
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-8 px-3 rounded-lg shadow-2xs cursor-pointer"
+                        >
+                          <a href={displayData.landingPage} target="_blank" rel="noopener noreferrer">
+                            Mở trang
+                            <ExternalLink className="ml-1 h-3 w-3" />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Primary Landing Page link display */}
+                    <div className="rounded-xl bg-white border border-blue-200/70 p-2.5 flex items-center justify-between gap-2 shadow-2xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link2 className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
+                        <a
+                          href={displayData.landingPage}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono text-blue-700 hover:text-blue-900 hover:underline truncate"
+                          title={displayData.landingPage}
+                        >
+                          {displayData.landingPage}
+                        </a>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] font-semibold text-blue-700 border-blue-200 bg-blue-50/50 flex-shrink-0">
+                        Click URL
+                      </Badge>
+                    </div>
+
+                    {/* Multiple Click URLs if VidTao returned more than 1 */}
+                    {displayData.clickUrls.length > 1 && (
+                      <div className="space-y-1.5 pt-1.5 border-t border-blue-100">
+                        <p className="text-[11px] font-semibold text-slate-500">
+                          Các URL điều hướng khác ({displayData.clickUrls.length}):
+                        </p>
+                        <div className="space-y-1 max-h-28 overflow-y-auto pr-1">
+                          {displayData.clickUrls.map((url, idx) => (
+                            <div key={idx} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 border border-slate-200/60 p-2 text-xs">
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono text-[11px] text-slate-700 hover:text-blue-600 truncate"
+                              >
+                                {url}
+                              </a>
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-blue-600 font-semibold hover:underline flex-shrink-0"
+                              >
+                                Mở link ↗
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Video Transcript Card (AI Speech-to-text / Lời thoại bóc băng) */}
+                {displayData.transcript && (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-2xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex-shrink-0 shadow-2xs">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 truncate">
+                              Lời thoại quảng cáo (Transcript)
+                            </h4>
+                            {transcriptWordCount > 0 && (
+                              <Badge variant="secondary" className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-1.5 py-0.2">
+                                ~{transcriptWordCount} từ
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            Toàn bộ kịch bản bóc băng âm thanh thực tế của video
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyTranscript}
+                        className="text-xs font-medium text-slate-500 hover:text-indigo-600 flex items-center gap-1 cursor-pointer transition-colors px-2.5 py-1 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 flex-shrink-0"
+                      >
+                        {isCopiedTranscript ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                            <span className="text-emerald-600 font-semibold">Đã chép</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span>Sao chép</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Transcript Body with Show More / Show Less */}
+                    <div className="relative">
+                      <div
+                        className={`text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line transition-all duration-300 ${
+                          !transcriptExpanded ? "max-h-36 overflow-hidden" : "max-h-[500px] overflow-y-auto pr-2"
+                        }`}
+                      >
+                        {displayData.transcript}
+                      </div>
+
+                      {/* Smooth gradient mask when collapsed */}
+                      {!transcriptExpanded && displayData.transcript.length > 250 && (
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+                      )}
+                    </div>
+
+                    {/* Show more / Show less toggle */}
+                    {displayData.transcript.length > 250 && (
+                      <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => setTranscriptExpanded(!transcriptExpanded)}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 cursor-pointer transition-colors"
+                        >
+                          {transcriptExpanded ? (
+                            <>
+                              <ChevronUp className="h-3.5 w-3.5" />
+                              Thu gọn lời thoại
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-3.5 w-3.5" />
+                              Xem toàn bộ lời thoại (Show more)
+                            </>
+                          )}
+                        </button>
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          {displayData.transcript.length.toLocaleString()} ký tự
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Video Description / Hook 3s Script (displayed if present and different from transcript) */}
+                {displayData.description && displayData.description.trim() !== displayData.transcript?.trim() && (
                   <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2.5 shadow-2xs">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                         <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                        Nội dung & Kịch bản quảng cáo
+                        Nội dung & Kịch bản mô tả video
                       </h4>
                       <button
                         type="button"

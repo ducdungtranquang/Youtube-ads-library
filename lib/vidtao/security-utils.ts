@@ -62,10 +62,13 @@ export class VidTaoSecurityUtils {
       'Accept-Encoding': acceptEncodings[Math.floor(Math.random() * acceptEncodings.length)],
       'Cache-Control': 'no-cache',
       'Pragma': 'no-cache',
+      'Referer': 'https://www.vidtao.com/',
+      'Origin': 'https://www.vidtao.com',
+      'X-VidTao-Client': '3',
       'Sec-Fetch-Dest': 'empty',
       'Sec-Fetch-Mode': 'cors',
       'Sec-Fetch-Site': 'same-origin',
-      'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+      'Sec-Ch-Ua': '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
       'Sec-Ch-Ua-Mobile': '?0',
       'Sec-Ch-Ua-Platform': '"Windows"'
     };

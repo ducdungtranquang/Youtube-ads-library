@@ -20,6 +20,35 @@ export interface VidTaoResponse {
   data?: any
   error?: string
   account?: string
+  landingPage?: string | null
+  clickUrls?: string[]
+  transcript?: string | null
+}
+
+export interface VidTaoVideoDetails {
+  ytVideoId: string
+  swiped?: boolean
+  channelId?: string
+  title: string
+  description?: string
+  duration?: number
+  brandId?: number
+  brandName?: string
+  publishedAt?: string
+  totalSpend?: number
+  last30Days?: number
+  isActive?: boolean
+  firstSeen?: string
+  lastSeen?: string | null
+  spend?: Array<{
+    date: string
+    spend: number
+  }>
+  categoryId?: number | null
+  clickUrls?: string[]
+  landingPage?: string | null
+  landingPages?: string[]
+  transcript?: string | null
 }
 
 export interface QuickSearchParams {

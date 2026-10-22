@@ -439,8 +439,12 @@ export default function FacebookAdsPage() {
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <Header />
         <main className="container py-12">
-          <Card className="max-w-md mx-auto border border-slate-200 bg-white shadow-xl rounded-2xl">
+          <Card className="max-w-md mx-auto border-2 border-amber-300 bg-white shadow-xl rounded-2xl">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs sm:text-sm font-black mb-5 shadow-sm animate-pulse">
+                <Sparkles className="h-4 w-4 fill-slate-950" />
+                CHÍNH THỨC RA MẮT: 01/11
+              </div>
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-6 border border-indigo-100">
                 <LogIn className="h-8 w-8" />
               </div>
@@ -448,7 +452,7 @@ export default function FacebookAdsPage() {
                 Đăng nhập để tìm kiếm Facebook Ads - ADS Spy Tool
               </h3>
               <p className="mb-6 text-sm text-slate-500">
-                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo Facebook.
+                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo Facebook (Chính thức mở ngày 01/11/2026).
               </p>
               <Button asChild className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-200 w-full max-w-[200px] transition-all">
                 <a href="/login">
@@ -513,30 +517,33 @@ export default function FacebookAdsPage() {
             </div>
 
             {/* Launch Announcement Banner */}
-            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200/90 shadow-sm">
+            <div className="mb-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-50 via-indigo-50 to-purple-50 border-2 border-amber-300 shadow-md shadow-amber-500/10">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-3.5">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20">
-                    <Sparkles className="h-5 w-5" />
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-400/30">
+                    <Sparkles className="h-7 w-7 fill-slate-950" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-slate-900 text-sm sm:text-base">
-                        Chức năng Facebook Ads sẽ chính thức ra mắt vào ngày 01/11/2026
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400 text-slate-950 text-xs sm:text-sm font-black shadow-sm animate-pulse tracking-wide">
+                        🚀 SẮP RA MẮT
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-600 text-white shadow-2xs">
-                        🚀 Sắp Ra Mắt
+                      <span className="font-extrabold text-slate-900 text-base sm:text-lg">
+                        Chức năng Facebook Ads sẽ chính thức mở vào ngày{" "}
+                        <span className="inline-block text-2xl sm:text-3xl font-black text-indigo-600 bg-amber-100/80 px-2.5 py-0.5 rounded-xl border border-amber-300">
+                          01/11
+                        </span>
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
                       Hệ thống đang được đội ngũ kỹ sư kết nối kho dữ liệu quảng cáo Facebook & Instagram toàn cầu. Mời bạn trải nghiệm trước tính năng Thư Viện YouTube Ads.
                     </p>
                   </div>
                 </div>
-                <Button asChild size="sm" className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs font-semibold h-10 px-4 cursor-pointer">
+                <Button asChild size="default" className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md font-bold h-11 px-5 cursor-pointer">
                   <Link href="/mkt">
                     <span>Xem YouTube Ads</span>
-                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
@@ -583,19 +590,19 @@ export default function FacebookAdsPage() {
               ) : (
                 <div className="mt-6">
                   {results.length === 0 ? (
-                    <Card className="overflow-hidden border border-indigo-200/80 bg-gradient-to-b from-white via-slate-50/50 to-indigo-50/20 shadow-xl shadow-indigo-500/5 rounded-3xl mt-4">
-                      <div className="p-8 sm:p-12 text-center max-w-2xl mx-auto">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-5">
-                          <Sparkles className="h-4 w-4" />
-                          Hẹn Ngày Ra Mắt Chính Thức: 01/11/2026
+                    <Card className="overflow-hidden border-2 border-amber-300 bg-gradient-to-b from-white via-amber-50/20 to-indigo-50/30 shadow-2xl shadow-indigo-500/10 rounded-3xl mt-4">
+                      <div className="p-8 sm:p-14 text-center max-w-2xl mx-auto">
+                        <div className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 font-black text-base sm:text-lg tracking-wide shadow-xl shadow-amber-400/30 mb-6 animate-pulse">
+                          <Sparkles className="h-6 w-6 fill-slate-950" />
+                          HẸN NGÀY RA MẮT CHÍNH THỨC: <span className="text-3xl sm:text-4xl font-black underline decoration-4 underline-offset-4 ml-1.5">01/11</span>
                         </div>
 
-                        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                        <h3 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
                           Tính Năng Facebook Ads Spy Sắp Xuất Hiện
                         </h3>
 
-                        <p className="text-sm sm:text-base text-slate-600 mt-3 leading-relaxed">
-                          Chức năng này sẽ được <strong>ra mắt chính thức vào ngày 01/11/2026</strong>. Đội ngũ kỹ sư đang hoàn thiện hạ tầng dữ liệu để mang tới cho bạn khả năng soi ngân sách, kịch bản video và sản phẩm win trên Facebook & Instagram Ads.
+                        <p className="text-base sm:text-lg text-slate-600 mt-4 leading-relaxed">
+                          Chức năng này sẽ được <strong className="text-indigo-600 font-black text-lg sm:text-xl">ra mắt chính thức vào ngày 01/11/2026</strong>. Đội ngũ kỹ sư đang hoàn thiện hạ tầng dữ liệu để mang tới cho bạn khả năng soi ngân sách, kịch bản video và sản phẩm win trên Facebook & Instagram Ads.
                         </p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8 text-left">

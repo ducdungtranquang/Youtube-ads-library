@@ -129,7 +129,10 @@ export default function HomePage() {
                     <DollarSign className="h-6 w-6 text-blue-600 group-hover:text-white transition-colors" />
                   </div>
                   <div>
-                    <h2 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-blue-600 transition-colors">Facebook Ads Spy</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-blue-600 transition-colors">Facebook Ads Spy</h2>
+                      <span className="px-2 py-0.5 text-xs font-black bg-amber-400 text-slate-950 rounded-full shadow-xs animate-pulse">1/11</span>
+                    </div>
                     <p className="text-xs text-slate-500 mt-0.5">Xem Spend, Reach & Duplicates</p>
                   </div>
                   <ArrowRight className="ml-auto h-5 w-5 text-slate-400 group-hover:translate-x-1.5 group-hover:text-blue-600 transition-all" />

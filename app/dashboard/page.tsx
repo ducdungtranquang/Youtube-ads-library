@@ -269,7 +269,10 @@ function DashboardPage() {
                       <DollarSign className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm">Facebook Ads Spy</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm">Facebook Ads Spy</p>
+                        <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">1/11</span>
+                      </div>
                       <p className="text-xs text-slate-500">Xem Spend, Reach, nhân bản và vít nhóm</p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />

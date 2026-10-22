@@ -18,6 +18,9 @@ export interface VidTaoVideoResult {
   brandName: string
   brandId: number
   similarity_score: number | null
+  clickUrls?: string[]
+  landingPage?: string | null
+  transcript?: string | null
   qdrant_data: {
     category_id: number | null
     language: string
@@ -176,4 +179,7 @@ export interface TransformedVideoResult {
   channel: string
   url: string
   companyName: string
+  clickUrls?: string[]
+  landingPage?: string | null
+  transcript?: string | null
 }

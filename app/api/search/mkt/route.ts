@@ -276,8 +276,20 @@ async function performBackgroundSearch(
   }
 }
 
-// Helper function to transform VidTao Enhanced Search video result to our expected format
+// Helper function to transform VidTao Enriched Search video result to our expected format
 function transformVidTaoVideo(video: any): TransformedVideoResult {
+  const clickUrls: string[] = Array.isArray(video.clickUrls)
+    ? video.clickUrls.filter((u: unknown): u is string => typeof u === 'string' && u.trim().length > 0)
+    : (typeof video.clickUrl === 'string' && video.clickUrl.trim() ? [video.clickUrl.trim()] : [])
+
+  const landingPage: string | null = clickUrls.length > 0
+    ? clickUrls[0]
+    : (typeof video.landingPage === 'string' && video.landingPage.trim() ? video.landingPage.trim() : null)
+
+  const transcript: string | null = typeof video.transcript === 'string' && video.transcript.trim()
+    ? video.transcript.trim()
+    : null
+
   return {
     ytVideoId: video.ytVideoId,
     title: video.title,
@@ -300,7 +312,10 @@ function transformVidTaoVideo(video: any): TransformedVideoResult {
     views: video.totalSpend, // Use totalSpend as proxy for views
     channel: video.brandName,
     url: `https://youtube.com/watch?v=${video.ytVideoId}`,
-    companyName: video.brandName
+    companyName: video.brandName,
+    clickUrls,
+    landingPage,
+    transcript
   }
 }
 

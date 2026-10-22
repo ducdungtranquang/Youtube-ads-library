@@ -25,6 +25,9 @@ export interface VideoFavoriteData {
   description?: string
   duration?: string
   companyName?: string
+  landingPageUrl?: string
+  clickUrls?: string[]
+  transcript?: string
 }
 
 // Offer favorite data structure
