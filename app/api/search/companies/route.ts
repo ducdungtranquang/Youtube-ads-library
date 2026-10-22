@@ -217,14 +217,15 @@ async function performBackgroundSearch(
       results_count: data?.data?.results?.length || 0
     })
 
-    // Transform response for frontend
+    // Transform response for frontend - preserve all enriched metadata and fields
     const transformedResponse = {
+      ...data,
       success: true,
-      data: data?.data || {},
+      data: data?.data || { results: [] },
       total_available: data?.total_available || 0,
       total_results: data?.total_results || 0,
       account: result.account,
-      search_type: 'companies',
+      search_type: data?.search_type || 'companies',
       cached: false
     }
 

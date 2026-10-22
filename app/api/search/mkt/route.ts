@@ -127,10 +127,12 @@ export async function POST(request: NextRequest) {
       dateFrom = '',
       dateTo = '',
       showVideos = 'unlisted',
-      sortProp = 'date',
+      sortProp = 'total',
       orderAsc = false,
-      limit = 500,
-      page = 1
+      limit = 210,
+      page = 1,
+      orientation = 0,
+      durationRanges = []
     } = searchPayload
 
     const searchParams = {
@@ -144,7 +146,9 @@ export async function POST(request: NextRequest) {
       sortProp,
       orderAsc,
       limit,
-      page
+      page,
+      orientation,
+      durationRanges
     }
 
     // Background VidTao search with AbortController
@@ -267,31 +271,45 @@ async function performBackgroundSearch(
   }
 }
 
-// Helper function to transform VidTao Enhanced Search video result to our expected format
+// Helper function to transform VidTao Enriched Search video result to our expected format
 function transformVidTaoVideo(video: any): TransformedVideoResult {
+  const cleanYtId = video.ytVideoId ? video.ytVideoId.replace(/^v_/, '') : ''
+  const thumbnail =
+    video.thumbnail ||
+    video.summary_data?.frame ||
+    (cleanYtId ? `https://i.ytimg.com/vi/${cleanYtId}/hqdefault.jpg` : '/placeholder.svg')
+
   return {
-    ytVideoId: video.ytVideoId || video?.summary_data["fv.yt_video_id"],
-    title: video.title,
-    description: video.description,
-    thumbnail: video.thumbnail,
-    duration: video.duration,
-    publishedAt: video.publishedAt,
-    totalSpend: video.totalSpend,
-    is_unlisted: video.is_unlisted,
-    language: video.language,
-    category: video.category,
-    last30Days: video.last30Days,
-    last90Days: video.last90Days,
-    brandName: video.brandName,
-    brandId: video.brandId,
-    similarity_score: video.similarity_score,
+    ...video,
+    ytVideoId: video.ytVideoId || video?.summary_data?.yt_video_id || video?.summary_data?.['fv.yt_video_id'] || '',
+    title: video.title || '',
+    description: video.description || null,
+    thumbnail,
+    duration: video.duration || 0,
+    publishedAt: video.publishedAt || video.summary_data?.published_at || '',
+    totalSpend: video.totalSpend || 0,
+    is_unlisted: Boolean(video.is_unlisted),
+    language: video.language || video.summary_data?.language || '',
+    category: video.category ?? video.summary_data?.category_id ?? null,
+    last30Days: video.last30Days || 0,
+    last90Days: video.last90Days || 0,
+    brandName: video.brandName || video.summary_data?.brand_name || '',
+    brandId: video.brandId || video.summary_data?.brand_id || 0,
+    similarity_score: video.similarity_score ?? null,
+    // Enriched fields from new VidTao Enriched API
+    orientation: video.orientation ?? video.summary_data?.orientation ?? 0,
+    days_running: video.days_running ?? 0,
+    is_active: video.is_active ?? false,
+    refreshed_at: video.refreshed_at || video.summary_data?.updated_at || null,
+    enrichment: video.enrichment || null,
+    summary_data: video.summary_data || null,
     // Additional metadata for UI compatibility
-    firstSeen: video.publishedAt,
-    lastSeen: video.summary_data?.updated_at || video.publishedAt,
-    views: video.totalSpend, // Use totalSpend as proxy for views
-    channel: video.brandName,
-    url: `https://youtube.com/watch?v=${video.ytVideoId}`,
-    companyName: video.brandName
+    firstSeen: video.publishedAt || video.summary_data?.published_at || '',
+    lastSeen: video.summary_data?.updated_at || video.refreshed_at || video.publishedAt || '',
+    views: video.totalSpend || 0, // Use totalSpend as proxy for views
+    channel: video.brandName || video.summary_data?.brand_name || '',
+    url: cleanYtId ? `https://youtube.com/watch?v=${cleanYtId}` : '',
+    companyName: video.brandName || video.summary_data?.brand_name || ''
   }
 }
 

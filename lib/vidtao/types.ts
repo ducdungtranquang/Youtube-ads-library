@@ -56,6 +56,8 @@ export interface MKTSearchParams {
   orderAsc?: boolean
   limit?: number
   page?: number
+  orientation?: number
+  durationRanges?: Array<{ min?: number | null; max?: number | null }>
   filters?: {
     countryId?: number
     language?: string
@@ -65,6 +67,8 @@ export interface MKTSearchParams {
     showVideos?: string
     sortProp?: string
     orderAsc?: boolean
+    orientation?: number
+    durationRanges?: Array<{ min?: number | null; max?: number | null }>
   }
 }
 

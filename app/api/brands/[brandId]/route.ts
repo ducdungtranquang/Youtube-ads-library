@@ -1,33 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { vidTaoManager } from '@/lib/vidtao-manager'
+import { vidTaoManager } from '@/lib/vidtao/manager'
+
+// CORS helper
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*")
+  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS")
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  return response
+}
+
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 })
+  return withCORS(res)
+}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { brandId: string } }
+  { params }: { params: Promise<{ brandId: string }> | { brandId: string } }
 ) {
   try {
-    const brandId = params.brandId
+    const resolvedParams = await Promise.resolve(params)
+    const { brandId } = resolvedParams
 
     if (!brandId) {
-      return NextResponse.json(
+      return withCORS(NextResponse.json(
         { error: 'Brand ID is required' },
         { status: 400 }
-      )
+      ))
     }
 
     // Call VidTao API for brand details
     const brandDetails = await vidTaoManager.getBrandDetails(brandId)
 
-    return NextResponse.json(brandDetails)
+    return withCORS(NextResponse.json(brandDetails))
   } catch (error: any) {
     console.error('Error fetching brand details:', error)
     
-    return NextResponse.json(
+    return withCORS(NextResponse.json(
       { 
         error: 'Failed to fetch brand details',
         details: error.message 
       },
       { status: 500 }
-    )
+    ))
   }
 }

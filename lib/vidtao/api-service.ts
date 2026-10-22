@@ -285,12 +285,17 @@ export class VidTaoAPIService {
         dateTo: filters.dateTo ?? params.dateTo ?? ''
       }
 
-      const response = await fetch('https://apiv2.vidtao.com/search/brands/enhanced', {
+      const response = await fetch('https://apiv2.vidtao.com/search/brands/enriched', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${account.token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'Referer': 'https://www.vidtao.com/',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36',
+          'X-VidTao-Client': '3',
+          'sec-ch-ua': '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"'
         },
         body: JSON.stringify(requestBody)
       })
@@ -411,7 +416,12 @@ export class VidTaoAPIService {
         headers: {
           'Authorization': `Bearer ${account.token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'Referer': 'https://www.vidtao.com/',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36',
+          'X-VidTao-Client': '3',
+          'sec-ch-ua': '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"'
         },
         body: JSON.stringify(requestBody)
       })
@@ -495,33 +505,52 @@ export class VidTaoAPIService {
     try {
       console.log(`Making MKT search request with account: ${account.id}`)
       
-      // Prepare request body for VidTao API (using filters object)
+      // Map sort properties to VidTao enriched API format
+      const mapEnrichedSortProp = (sortProp?: string): string => {
+        if (!sortProp) return 'total';
+        const normalized = sortProp.toLowerCase();
+        if (normalized === 'total' || normalized === 'totalspend' || normalized === 'views') {
+          return 'total';
+        }
+        if (normalized === 'date' || normalized === 'published_at' || normalized === 'publishedat') {
+          return 'date';
+        }
+        if (normalized === 'relevance' || normalized === 'similarity_score') {
+          return 'similarity_score';
+        }
+        return 'total';
+      };
+
+      // Prepare request body for VidTao Enriched API
       const filters = params.filters || {};
+      const sortProp = mapEnrichedSortProp(filters.sortProp ?? params.sortProp);
       const requestBody = {
-        affiliateCountryId: 0,
-        affiliateNetworkIds: [],
-        categoryIds: filters.categoryIds ?? params.categoryIds ?? [],
-        countryId: filters.countryId ?? params.countryId ?? 0,
+        searchTerm: params.searchTerm || "",
+        limit: params.limit || 210,
+        sortProp,
+        orderAsc: filters.orderAsc ?? params.orderAsc ?? false,
+        orientation: filters.orientation ?? params.orientation ?? 0,
+        durationRanges: filters.durationRanges ?? params.durationRanges ?? [],
         dateFrom: filters.dateFrom ?? params.dateFrom ?? "",
         dateTo: filters.dateTo ?? params.dateTo ?? "",
-        isAffiliate: false,
+        countryId: filters.countryId ?? params.countryId ?? 0,
         language: filters.language ?? params.language ?? "",
-        limit: params.limit || 20,
-        offerIds: [],
-        orderAsc: filters.orderAsc ?? params.orderAsc ?? false,
-        page: params.page || 1,
-        searchTerm: params.searchTerm,
+        categoryIds: filters.categoryIds ?? params.categoryIds ?? [],
         showVideos: filters.showVideos ?? params.showVideos ?? "unlisted",
-        softwareIds: [],
-        sortProp: filters.sortProp ?? params.sortProp ?? "date"
-      }
+        page: params.page || 1
+      };
 
-      const response = await fetch('https://apiv2.vidtao.com/search/videos/enhanced', {
+      const response = await fetch('https://apiv2.vidtao.com/search/videos/enriched', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${account.token}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'Referer': 'https://www.vidtao.com/',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36',
+          'X-VidTao-Client': '3',
+          'sec-ch-ua': '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"'
         },
         body: JSON.stringify(requestBody)
       })
@@ -612,12 +641,17 @@ export class VidTaoAPIService {
         throw new Error('No valid token found for account')
       }
 
-      const response = await fetch(`https://apiv1.vidtao.com/api/public/videos/${videoId}?encryptedId=`, {
+      const response = await fetch(`https://apiv1.vidtao.com/api/public/videos/${videoId}?full=1`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Referer': 'https://www.vidtao.com/',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36',
+          'X-VidTao-Client': '3',
+          'sec-ch-ua': '"Google Chrome";v="155", "Chromium";v="155", "Not(A:Brand";v="24"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"',
           'Accept': 'application/json',
         },
         signal: AbortSignal.timeout(30000) // 30 second timeout
