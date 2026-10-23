@@ -1,46 +1,73 @@
 import { useState, useCallback } from 'react'
 
-interface CompanyDetails {
-  company: {
+export interface CompanyDetails {
+  company?: {
     companyId: number
     legalName: string
     countryId: number
-    swiped: boolean
-    categoryId: number
-    revenue: string
-    headquarters: string
-    yearFounded: string
-    numberOfEmployees: string
-    spend: {
-      today: number
-      last7Days: number
-      last14Days: number
-      last21Days: number
-      last30Days: number
-      last60Days: number
-      last90Days: number
-      last180Days: number
-      last365Days: number
-      last720Days: number
-      collected_on: string
+    swiped?: boolean
+    categoryId?: number
+    revenue?: string | number | null
+    headquarters?: string | null
+    yearFounded?: string | number | null
+    numberOfEmployees?: string | number | null
+    spend?: {
+      today?: number
+      last7Days?: number
+      last14Days?: number
+      last21Days?: number
+      last30Days?: number
+      last60Days?: number
+      last90Days?: number
+      last180Days?: number
+      last365Days?: number
+      last720Days?: number
+      collected_on?: string
     }
   }
-  ranks: {
-    global: {
-      rank: number
-      change: number
+  // Also support direct properties in case response is flattened
+  companyId?: number
+  legalName?: string
+  name?: string
+  countryId?: number
+  categoryId?: number
+  revenue?: string | number | null
+  headquarters?: string | null
+  yearFounded?: string | number | null
+  numberOfEmployees?: string | number | null
+  spend?: {
+    today?: number
+    last7Days?: number
+    last14Days?: number
+    last21Days?: number
+    last30Days?: number
+    last60Days?: number
+    last90Days?: number
+    last180Days?: number
+    last365Days?: number
+    last720Days?: number
+    collected_on?: string
+  }
+  ranks?: {
+    global?: {
+      rank?: number
+      change?: number
     }
-    country: {
-      rank: number
-      change: number
+    country?: {
+      rank?: number
+      change?: number
     }
-    category: {
-      rank: number
-      change: number
+    category?: {
+      rank?: number
+      change?: number
+    }
+    similarweb?: {
+      rank?: number
+      change?: number
     }
   }
-  creativeCount: number
-  top5Countries: Array<{
+  creativeCount?: number
+  top5Countries?: Array<{
     countryId: number
     count: number
     percentage: number
@@ -77,7 +104,12 @@ export function useCompanyDetails(): UseCompanyDetailsResult {
       }
 
       if (result.success && result.data) {
-        setCompanyDetails(result.data.data)
+        // Robust unwrap: supports { success: true, data: { data: { company: ... } } }
+        // as well as { success: true, data: { company: ... } }
+        const details = result.data.data || result.data
+        setCompanyDetails(details)
+      } else if (result.company) {
+        setCompanyDetails(result)
       } else {
         throw new Error(result.error || 'Invalid response format')
       }

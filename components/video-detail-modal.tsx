@@ -500,25 +500,40 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
                 {/* Brand / Channel Info Card */}
                 {displayData.channel && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white border border-slate-200 text-indigo-600 shadow-2xs">
+                  <div
+                    onClick={onCompanyClick}
+                    className={`rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-850/60 p-4 transition-all ${
+                      onCompanyClick
+                        ? "hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 hover:border-indigo-200 dark:hover:border-indigo-800/80 cursor-pointer shadow-2xs hover:shadow-xs"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 shadow-2xs flex-shrink-0">
                           <Building2 className="h-5 w-5" />
                         </div>
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Thương hiệu / Kênh</p>
-                          <p className="font-bold text-slate-900 text-sm mt-0.5">{displayData.channel}</p>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Thương hiệu / Kênh YouTube
+                          </p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5 truncate">
+                            {displayData.channel}
+                          </p>
                         </div>
                       </div>
                       {onCompanyClick && (
                         <Button
+                          type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={onCompanyClick}
-                          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCompanyClick();
+                          }}
+                          className="self-end sm:self-auto text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-indigo-100/60 dark:hover:bg-indigo-950/50 cursor-pointer"
                         >
-                          Xem các video của kênh →
+                          Xem chi tiết thương hiệu & kênh →
                         </Button>
                       )}
                     </div>

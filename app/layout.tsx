@@ -53,6 +53,7 @@ export const metadata: Metadata = {
   keywords: [
     // Brand & Cốt lõi
     'Ads Spy Tool',
+    'Ads Spy Tools',
     'Facebook Ads Spy',
     'Youtube Ads Spy',
     'Ads Intelligence Tool',
