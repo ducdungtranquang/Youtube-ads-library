@@ -169,7 +169,9 @@ export async function GET(request: NextRequest) {
               views: formatViews(ad.views || ad.totalSpend),
               ctr: '—',
               channel: ad.channel || ad.brandName || '',
-              url: ad.url || (videoId ? `https://youtube.com/watch?v=${videoId}` : ''),
+              url: (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId) && !videoId.startsWith('v_'))
+                ? `https://youtube.com/watch?v=${videoId}`
+                : (ad.url && !ad.url.includes('v_') ? ad.url : ''),
               companyName: ad.companyName || ad.brandName || ''
             })
           }

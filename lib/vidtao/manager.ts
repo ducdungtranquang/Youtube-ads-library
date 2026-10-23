@@ -122,6 +122,11 @@ export class VidTaoManager {
     return this.apiService.getVideoDetails(videoId)
   }
 
+  async revealVideo(token: string): Promise<VidTaoResponse> {
+    await this.ensureInitialized()
+    return this.apiService.revealVideo(token)
+  }
+
   async getBrandDetails(brandId: string): Promise<VidTaoResponse> {
     await this.ensureInitialized()
     return this.apiService.getBrandDetails(brandId)

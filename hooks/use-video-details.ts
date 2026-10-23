@@ -2,6 +2,10 @@ import { useState, useCallback } from 'react'
 
 export interface VideoDetails {
   ytVideoId: string
+  realYtVideoId?: string
+  token?: string
+  url?: string
+  isRevealed?: boolean
   swiped?: boolean
   channelId?: string
   title: string
@@ -30,14 +34,56 @@ export interface VideoDetails {
 interface UseVideoDetailsReturn {
   videoDetails: VideoDetails | null
   loading: boolean
+  isRevealing: boolean
   error: string | null
   fetchVideoDetails: (videoId: string) => Promise<void>
+  revealVideoId: (token: string) => Promise<string | null>
 }
 
 export function useVideoDetails(): UseVideoDetailsReturn {
   const [videoDetails, setVideoDetails] = useState<VideoDetails | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isRevealing, setIsRevealing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const revealVideoId = useCallback(async (token: string): Promise<string | null> => {
+    if (!token) return null
+    // If already real YouTube ID
+    if (!token.startsWith('v_') && /^[a-zA-Z0-9_-]{11}$/.test(token)) {
+      return token
+    }
+
+    setIsRevealing(true)
+    try {
+      const response = await fetch('/api/videos/reveal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      })
+
+      const data = await response.json()
+      if (data.success && data.ytVideoId) {
+        const realId = data.ytVideoId
+        setVideoDetails((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            ytVideoId: realId,
+            realYtVideoId: realId,
+            url: data.url || `https://youtube.com/watch?v=${realId}`,
+            isRevealed: true
+          }
+        })
+        return realId
+      }
+      return null
+    } catch (err) {
+      console.error('Error in revealVideoId:', err)
+      return null
+    } finally {
+      setIsRevealing(false)
+    }
+  }, [])
 
   const fetchVideoDetails = useCallback(async (videoId: string) => {
     if (!videoId) {
@@ -67,13 +113,26 @@ export function useVideoDetails(): UseVideoDetailsReturn {
           ? raw.transcript.trim()
           : null
 
+        const currentYtId: string = raw.ytVideoId || raw.realYtVideoId || videoId
+        const isMasked = currentYtId.startsWith('v_') || currentYtId.length > 11
+
         setVideoDetails({
           ...raw,
+          ytVideoId: currentYtId,
+          realYtVideoId: raw.realYtVideoId || (!isMasked ? currentYtId : undefined),
+          token: raw.token || (isMasked ? currentYtId : undefined),
+          url: raw.url || (!isMasked ? `https://youtube.com/watch?v=${currentYtId}` : undefined),
+          isRevealed: !isMasked || Boolean(raw.realYtVideoId),
           clickUrls,
           landingPage,
           landingPages: clickUrls,
           transcript,
         })
+
+        // If still masked after fetch, do a fallback reveal
+        if (isMasked && !raw.realYtVideoId) {
+          revealVideoId(currentYtId)
+        }
       } else {
         throw new Error(result.error || 'No video data received')
       }
@@ -84,12 +143,14 @@ export function useVideoDetails(): UseVideoDetailsReturn {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [revealVideoId])
 
   return {
     videoDetails,
     loading,
+    isRevealing,
     error,
-    fetchVideoDetails
+    fetchVideoDetails,
+    revealVideoId
   }
 }

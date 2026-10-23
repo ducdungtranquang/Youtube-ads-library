@@ -50,8 +50,46 @@ export async function GET(
       ? innerData.transcript.trim()
       : null
 
+    // Check if ytVideoId is a masked VidTao token (starts with v_ or not 11-char)
+    const tokenCandidate = (typeof innerData.ytVideoId === 'string' && innerData.ytVideoId)
+      ? innerData.ytVideoId
+      : videoId
+
+    let realYtVideoId: string | null = null
+    const isMaskedToken = tokenCandidate.startsWith('v_') || tokenCandidate.length > 11
+
+    if (isMaskedToken) {
+      try {
+        console.log(`Auto-revealing real YouTube ID for token: ${tokenCandidate}`)
+        const revealResult = await vidTaoManager.revealVideo(tokenCandidate)
+        if (revealResult.success) {
+          const revealed = revealResult.data?.data?.ytVideoId || revealResult.data?.ytVideoId
+          if (typeof revealed === 'string' && revealed.trim()) {
+            realYtVideoId = revealed.trim()
+            console.log(`Auto-reveal success: ${tokenCandidate} -> ${realYtVideoId}`)
+          }
+        } else {
+          console.warn('Auto-reveal returned unsuccessful:', revealResult.error)
+        }
+      } catch (revealErr) {
+        console.warn('Auto-reveal failed gracefully:', revealErr)
+      }
+    } else {
+      realYtVideoId = tokenCandidate
+    }
+
+    const finalYtVideoId = realYtVideoId || innerData.ytVideoId || videoId
+    const finalUrl = realYtVideoId
+      ? `https://youtube.com/watch?v=${realYtVideoId}`
+      : (innerData.url || (innerData.ytVideoId ? `https://youtube.com/watch?v=${innerData.ytVideoId}` : ''))
+
     const enrichedVideo = {
       ...innerData,
+      ytVideoId: finalYtVideoId,
+      realYtVideoId: realYtVideoId || undefined,
+      token: tokenCandidate,
+      url: finalUrl,
+      isRevealed: Boolean(realYtVideoId),
       clickUrls,
       landingPage,
       landingPages: clickUrls,

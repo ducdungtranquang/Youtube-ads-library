@@ -417,6 +417,9 @@ function QuickSearchPage() {
                     ? new Date(video.firstSeen).toLocaleDateString("vi-VN")
                     : video.date || "Chưa rõ ngày";
 
+                  const isRealYt = video.ytVideoId && /^[a-zA-Z0-9_-]{11}$/.test(video.ytVideoId) && !video.ytVideoId.startsWith('v_')
+                  const videoUrl = isRealYt ? `https://youtube.com/watch?v=${video.ytVideoId}` : undefined
+
                   return (
                     <VideoCard
                       key={video.ytVideoId || index}
@@ -426,7 +429,7 @@ function QuickSearchPage() {
                       ctr={video.ctr || "N/A"}
                       date={dateString}
                       thumbnail={video.thumbnail || video.imageUrl || "/placeholder.svg"}
-                      url={video.ytVideoId ? `https://youtube.com/watch?v=${video.ytVideoId}` : undefined}
+                      url={videoUrl}
                       companyName={video.companyName}
                       ytVideoId={video.ytVideoId}
                       description={video.description}
@@ -435,7 +438,7 @@ function QuickSearchPage() {
                         setSelectedVideo({
                           ...video,
                           date: dateString,
-                          url: video.ytVideoId ? `https://youtube.com/watch?v=${video.ytVideoId}` : undefined,
+                          url: videoUrl,
                         })
                       }}
                       onCompanyClick={() => {

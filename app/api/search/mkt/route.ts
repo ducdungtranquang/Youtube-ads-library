@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const body = await request.json()
-    
+
     // Extract search parameters from request
     const {
       searchTerm,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       showVideos = 'unlisted',
       sortProp = 'date',
       orderAsc = false,
-      limit = 300, 
+      limit = 300,
       page = 1
     } = body
 
@@ -89,11 +89,11 @@ export async function POST(request: NextRequest) {
 
     // Check cache first
     const cacheEntry = await supabaseCacheManager.getCacheEntry('mkt', searchPayload)
-    
+
     if (cacheEntry) {
-      console.log('MKT API: Cache entry found:', { 
-        status: cacheEntry.status, 
-        created_at: cacheEntry.created_at 
+      console.log('MKT API: Cache entry found:', {
+        status: cacheEntry.status,
+        created_at: cacheEntry.created_at
       })
 
       if (cacheEntry.status === 'completed') {
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         // Return error from cache
         console.log('MKT API: Cached error found')
         return withCORS(NextResponse.json(
-          { 
+          {
             error: 'Search failed',
             details: cacheEntry.error_message || 'Cached error'
           },
@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
 
     // Create pending cache entry
     const pendingEntry = await supabaseCacheManager.createPendingEntry(
-      'mkt', 
-      searchPayload, 
+      'mkt',
+      searchPayload,
       120 // 2 hour TTL
     )
 
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       showVideos: showVideos,
       sortProp: sortProp,
       orderAsc: orderAsc,
-      limit: 300,
+      limit: 200,
       page: 1 // Always use page 1 for better caching
     }
 
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('MKT API error:', error)
     return withCORS(NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -186,8 +186,8 @@ export async function POST(request: NextRequest) {
 
 // Background search function
 async function performBackgroundSearch(
-  cacheId: string, 
-  searchParams: any, 
+  cacheId: string,
+  searchParams: any,
   signal: AbortSignal
 ) {
   try {
@@ -264,7 +264,7 @@ async function performBackgroundSearch(
 
   } catch (error) {
     console.error('Background search error for cache ID:', cacheId, error)
-    
+
     if (!signal.aborted) {
       await supabaseCacheManager.updateCacheEntry(
         cacheId,
@@ -290,8 +290,12 @@ function transformVidTaoVideo(video: any): TransformedVideoResult {
     ? video.transcript.trim()
     : null
 
+  const rawYtId = typeof video.ytVideoId === 'string' ? video.ytVideoId.trim() : ''
+  const isRealYtId = /^[a-zA-Z0-9_-]{11}$/.test(rawYtId) && !rawYtId.startsWith('v_')
+  const watchUrl = isRealYtId ? `https://youtube.com/watch?v=${rawYtId}` : ''
+
   return {
-    ytVideoId: video.ytVideoId,
+    ytVideoId: rawYtId,
     title: video.title,
     description: video.description,
     thumbnail: video.thumbnail,
@@ -311,7 +315,7 @@ function transformVidTaoVideo(video: any): TransformedVideoResult {
     lastSeen: video.summary_data?.updated_at || video.publishedAt,
     views: video.totalSpend, // Use totalSpend as proxy for views
     channel: video.brandName,
-    url: `https://youtube.com/watch?v=${video.ytVideoId}`,
+    url: watchUrl,
     companyName: video.brandName,
     clickUrls,
     landingPage,

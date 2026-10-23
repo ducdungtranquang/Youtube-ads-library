@@ -700,6 +700,103 @@ export class VidTaoAPIService {
   }
 
   /**
+   * Reveal real YouTube Video ID from masked VidTao video token
+   */
+  async revealVideo(token: string): Promise<VidTaoResponse> {
+    const account = this.accountManager.getAvailableAccount()
+    if (!account) {
+      return {
+        success: false,
+        error: 'No available VidTao accounts'
+      }
+    }
+
+    // Ensure account has valid token
+    const hasValidToken = await VidTaoAuth.ensureValidToken(account)
+    if (!hasValidToken) {
+      // Block this account temporarily
+      account.isBlocked = true
+      account.blockUntil = Date.now() + (10 * 60 * 1000) // 10 minutes
+      return this.revealVideo(token) // Try with next account
+    }
+
+    try {
+      console.log(`Making Reveal request with account: ${account.id} for token: ${token}`)
+
+      const authToken = account.token || account.accessToken
+      if (!authToken) {
+        throw new Error('No valid token found for account')
+      }
+
+      const response = await fetch(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}/api/vidtao3/videos/reveal`, {
+        method: 'POST',
+        ...VidTaoSecurityUtils.createSecureFetchOptions({
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Referer': 'https://www.vidtao.com/',
+          'X-VidTao-Client': '3'
+        }),
+        body: JSON.stringify({ token }),
+        signal: AbortSignal.timeout(20000)
+      })
+
+      // Update account usage
+      account.lastUsed = Date.now()
+      account.requestCount++
+      if (account.lastRequestTime !== undefined) {
+        account.lastRequestTime = Date.now()
+      }
+
+      if (response.status === 401) {
+        console.warn(`Account ${account.id} received 401 on reveal, attempting token refresh`)
+        const newToken = await VidTaoAuth.refreshToken(account)
+        if (newToken) {
+          return this.revealVideo(token)
+        } else {
+          account.isBlocked = true
+          account.blockUntil = Date.now() + (10 * 60 * 1000)
+          return this.revealVideo(token)
+        }
+      }
+
+      if (response.status === 429) {
+        console.warn(`Account ${account.id} hit rate limit on reveal, blocking temporarily`)
+        account.isBlocked = true
+        account.blockUntil = Date.now() + VIDTAO_CONFIG.BLOCK_TIME
+        return this.revealVideo(token)
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`Reveal API error: ${response.status} ${response.statusText}`, errorText)
+        throw new Error(`Reveal API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: true,
+        data,
+        account: account.id
+      }
+    } catch (error) {
+      console.error(`Reveal failed with account ${account.id}:`, error)
+
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        account.isBlocked = true
+        account.blockUntil = Date.now() + (5 * 60 * 1000)
+        return this.revealVideo(token)
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        account: account.id
+      }
+    }
+  }
+
+  /**
    * Get Brand Details using VidTao Brand API
    */
   async getBrandDetails(brandId: string): Promise<VidTaoResponse> {

@@ -582,7 +582,7 @@ export default function MKTPage() {
           type: "ads",
           searchTerm: searchQuery,
           page: 1,
-          limit: 300,
+          limit: 200,
           filters: {
             countryId: parseInt(selectedCountry),
             language: selectedLanguage && selectedLanguage !== "all" ? selectedLanguage : "",
@@ -636,7 +636,7 @@ export default function MKTPage() {
           type: "brands",
           searchTerm: searchQuery,
           page: 1,
-          limit: 300,
+          limit: 200,
           filters: {
             countryId: parseInt(selectedCountry),
             categoryIds: selectedCategory && selectedCategory !== "0" ? [parseInt(selectedCategory)] : [],
@@ -690,7 +690,7 @@ export default function MKTPage() {
           type: "companies",
           searchTerm: searchQuery,
           page: 1,
-          limit: 300,
+          limit: 200,
           filters: {
             countryId: parseInt(selectedCountry),
             categoryIds: selectedCategory && selectedCategory !== "0" ? [parseInt(selectedCategory)] : [],

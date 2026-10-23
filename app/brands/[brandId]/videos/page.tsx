@@ -134,6 +134,7 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
                   const views = video.totalSpend || "0";
                   const ctr = video.ctr || "0%";
                   const date = video.publishedAt ? new Date(video.publishedAt).toLocaleDateString() : "-";
+                  const isRealYt = video.ytVideoId && /^[a-zA-Z0-9_-]{11}$/.test(video.ytVideoId) && !video.ytVideoId.startsWith('v_')
                   return (
                     <VideoCard
                       key={video.ytVideoId}
@@ -143,7 +144,7 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
                       ctr={ctr}
                       date={date}
                       thumbnail={video.thumbnail}
-                      url={`https://youtube.com/watch?v=${video.ytVideoId}`}
+                      url={isRealYt ? `https://youtube.com/watch?v=${video.ytVideoId}` : undefined}
                       ytVideoId={video.ytVideoId}
                       description={video.description}
                       duration={video.duration}
@@ -177,7 +178,9 @@ export default function BrandVideosPage({ params }: { params: { brandId: string 
             ctr: selectedVideo?.ctr || "0%",
             date: selectedVideo?.publishedAt || "",
             thumbnail: selectedVideo?.thumbnail || "",
-            url: selectedVideo ? `https://youtube.com/watch?v=${selectedVideo.ytVideoId}` : "",
+            url: selectedVideo && /^[a-zA-Z0-9_-]{11}$/.test(selectedVideo.ytVideoId) && !selectedVideo.ytVideoId.startsWith('v_')
+              ? `https://youtube.com/watch?v=${selectedVideo.ytVideoId}`
+              : "",
             companyName: selectedVideo?.companyName || "",
             description: selectedVideo?.description || "",
             duration: selectedVideo?.duration || "",

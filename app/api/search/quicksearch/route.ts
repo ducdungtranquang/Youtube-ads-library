@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    
+
     // Extract search parameters from request
     const {
       query,
       page = 1,
-      limit = 300, 
+      limit = 300,
       ...otherParams
     } = body
 
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     // Check cache first
     const cacheEntry = await supabaseCacheManager.getCacheEntry('quicksearch', searchPayload)
-    
+
     if (cacheEntry && cacheEntry.status === 'completed') {
       console.log('QuickSearch API: Cache entry found, returning cached result')
       return withCORS(NextResponse.json(cacheEntry.result_data))
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const searchParams = {
       query: query.trim(),
       page: 1, // Always use page 1 for better caching
-      limit: 300, // Get more results for FE pagination
+      limit: 200, // Get more results for FE pagination
       ...otherParams
     }
 
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       console.error('VidTao quick search error:', result.error)
       return NextResponse.json(
-        { 
+        {
           error: 'Search failed',
           details: result.error || 'VidTao quick search failed'
         },
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('QuickSearch API error:', error)
     return withCORS(NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

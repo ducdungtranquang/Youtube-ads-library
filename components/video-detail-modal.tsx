@@ -11,11 +11,16 @@ import { YouTubeImage } from "@/components/youtube-image"
 import {
   Eye, Calendar, TrendingUp, ExternalLink, Building2, Play, DollarSign,
   Clock, AlertTriangle, X, Copy, Check, Video, BarChart3, Sparkles,
-  Globe, FileText, ChevronDown, ChevronUp, Link2
+  Globe, FileText, ChevronDown, ChevronUp, Link2, Loader2
 } from "lucide-react"
 import { useVideoDetails } from "@/hooks/use-video-details"
 import { toast } from "sonner"
 import { VideoFavoriteData } from "@/lib/favorites"
+
+function isRealYouTubeId(id?: string | null): boolean {
+  if (!id) return false
+  return /^[a-zA-Z0-9_-]{11}$/.test(id) && !id.startsWith('v_')
+}
 
 interface VideoDetailModalProps {
   open: boolean
@@ -44,7 +49,9 @@ interface VideoDetailModalProps {
 }
 
 export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, onClose }: VideoDetailModalProps) {
-  const { videoDetails, loading, error, fetchVideoDetails } = useVideoDetails()
+  const { videoDetails, loading, isRevealing, error, fetchVideoDetails, revealVideoId } = useVideoDetails()
+  const [revealedYtId, setRevealedYtId] = useState<string | null>(null)
+  const [isManualRevealing, setIsManualRevealing] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const [descExpanded, setDescExpanded] = useState(false)
@@ -56,6 +63,14 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
   useEffect(() => {
     if (open && video?.ytVideoId) {
       fetchVideoDetails(video.ytVideoId)
+      // Fast parallel reveal for masked VidTao token
+      if (video.ytVideoId.startsWith('v_') || video.ytVideoId.length > 11) {
+        revealVideoId(video.ytVideoId).then((revealed) => {
+          if (revealed) setRevealedYtId(revealed)
+        })
+      } else if (isRealYouTubeId(video.ytVideoId)) {
+        setRevealedYtId(video.ytVideoId)
+      }
     }
     if (!open) {
       setIsPlaying(false)
@@ -64,8 +79,19 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
       setTranscriptExpanded(false)
       setIsCopiedTranscript(false)
       setIsCopiedLandingPage(false)
+      setRevealedYtId(null)
+      setIsManualRevealing(false)
     }
-  }, [open, video?.ytVideoId, fetchVideoDetails])
+  }, [open, video?.ytVideoId, fetchVideoDetails, revealVideoId])
+
+  // Sync revealed real YouTube ID from videoDetails when available
+  useEffect(() => {
+    if (videoDetails?.realYtVideoId && isRealYouTubeId(videoDetails.realYtVideoId)) {
+      setRevealedYtId(videoDetails.realYtVideoId)
+    } else if (videoDetails?.ytVideoId && isRealYouTubeId(videoDetails.ytVideoId)) {
+      setRevealedYtId(videoDetails.ytVideoId)
+    }
+  }, [videoDetails])
 
   // Handle modal close with callback
   const handleOpenChange = (newOpen: boolean) => {
@@ -155,16 +181,79 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     transcript: video?.transcript || null,
   }
 
-  const videoUrl = displayData.ytVideoId
-    ? `https://youtube.com/watch?v=${displayData.ytVideoId}`
-    : video?.url
+  // Determine the active real YouTube Video ID
+  const rawCandidateId = videoDetails?.realYtVideoId || videoDetails?.ytVideoId || video?.ytVideoId || ""
+  const activeYtVideoId = (revealedYtId && isRealYouTubeId(revealedYtId) ? revealedYtId : null) ||
+    (isRealYouTubeId(videoDetails?.realYtVideoId) ? videoDetails!.realYtVideoId! : null) ||
+    (isRealYouTubeId(videoDetails?.ytVideoId) ? videoDetails!.ytVideoId! : null) ||
+    (isRealYouTubeId(video?.ytVideoId) ? video!.ytVideoId! : null)
 
-  const handleCopyLink = () => {
-    if (videoUrl) {
-      navigator.clipboard.writeText(videoUrl)
+  const isMaskedToken = Boolean(rawCandidateId && (rawCandidateId.startsWith('v_') || rawCandidateId.length > 11))
+
+  const ensureRealYouTubeId = async (): Promise<string | null> => {
+    if (activeYtVideoId) return activeYtVideoId
+
+    const token = videoDetails?.token || video?.ytVideoId || displayData.ytVideoId
+    if (!token) return null
+
+    if (isRealYouTubeId(token)) {
+      setRevealedYtId(token)
+      return token
+    }
+
+    setIsManualRevealing(true)
+    try {
+      const revealed = await revealVideoId(token)
+      if (revealed) {
+        setRevealedYtId(revealed)
+        return revealed
+      }
+      toast.error("Không thể lấy link video YouTube")
+      return null
+    } catch {
+      toast.error("Lỗi khi kết nối dịch vụ video")
+      return null
+    } finally {
+      setIsManualRevealing(false)
+    }
+  }
+
+  const videoUrl = activeYtVideoId
+    ? `https://youtube.com/watch?v=${activeYtVideoId}`
+    : (!isMaskedToken && video?.url ? video.url : null)
+
+  const handleOpenYouTube = async () => {
+    let targetId = activeYtVideoId
+    if (!targetId) {
+      targetId = await ensureRealYouTubeId()
+    }
+    if (targetId) {
+      window.open(`https://youtube.com/watch?v=${targetId}`, '_blank', 'noopener,noreferrer')
+    } else {
+      toast.error("Chưa có link video YouTube hợp lệ")
+    }
+  }
+
+  const handleCopyLink = async () => {
+    let targetId = activeYtVideoId
+    if (!targetId) {
+      targetId = await ensureRealYouTubeId()
+    }
+    if (targetId) {
+      const urlToCopy = `https://youtube.com/watch?v=${targetId}`
+      await navigator.clipboard.writeText(urlToCopy)
       setIsCopied(true)
-      toast.success("Đã sao chép link video vào clipboard!")
+      toast.success("Đã sao chép link video YouTube vào clipboard!")
       setTimeout(() => setIsCopied(false), 2000)
+    } else {
+      toast.error("Không thể lấy link video để sao chép")
+    }
+  }
+
+  const handlePlayVideo = async () => {
+    setIsPlaying(true)
+    if (!activeYtVideoId) {
+      await ensureRealYouTubeId()
     }
   }
 
@@ -237,7 +326,7 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
           <div className="flex items-center gap-2.5 flex-shrink-0">
             <FavoriteButton
               itemType="video"
-              itemId={displayData.ytVideoId || video?.ytVideoId || video?.title}
+              itemId={activeYtVideoId || displayData.ytVideoId || video?.ytVideoId || video?.title}
               itemData={{
                 title: displayData.title,
                 channel: displayData.channel,
@@ -245,8 +334,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                 ctr: video?.ctr,
                 date: displayData.publishedAt,
                 thumbnail: displayData.thumbnail,
-                url: videoUrl,
-                ytVideoId: displayData.ytVideoId,
+                url: videoUrl || undefined,
+                ytVideoId: activeYtVideoId || displayData.ytVideoId,
                 description: displayData.description,
                 duration: displayData.duration,
                 companyName: video?.companyName,
@@ -290,18 +379,26 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
               <div className="lg:col-span-7 space-y-5">
                 {/* Media Showcase */}
                 <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-950 border border-slate-200 shadow-md">
-                  {isPlaying && displayData.ytVideoId ? (
-                    <iframe
-                      src={`https://www.youtube-nocookie.com/embed/${displayData.ytVideoId}?autoplay=1`}
-                      title={displayData.title}
-                      className="h-full w-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                  {isPlaying ? (
+                    activeYtVideoId ? (
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${activeYtVideoId}?autoplay=1`}
+                        title={displayData.title}
+                        className="h-full w-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-slate-950 text-white p-6 space-y-3">
+                        <Loader2 className="h-10 w-10 animate-spin text-red-500" />
+                        <p className="text-sm font-semibold text-slate-200">Đang lấy link video từ YouTube...</p>
+                        <p className="text-xs text-slate-400">Video sẽ tự động phát sau giây lát</p>
+                      </div>
+                    )
                   ) : (
                     <div
                       className="group relative h-full w-full cursor-pointer"
-                      onClick={() => setIsPlaying(true)}
+                      onClick={handlePlayVideo}
                     >
                       <YouTubeImage
                         src={displayData.thumbnail || "/placeholder.svg"}
@@ -326,18 +423,25 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
 
                 {/* Quick Action Toolbar */}
                 <div className="flex flex-wrap items-center gap-2.5">
-                  {videoUrl && (
-                    <Button
-                      asChild
-                      variant="default"
-                      className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs h-9 rounded-xl shadow-sm cursor-pointer"
-                    >
-                      <a href={videoUrl} target="_blank" rel="noopener noreferrer">
+                  <Button
+                    type="button"
+                    variant="default"
+                    onClick={handleOpenYouTube}
+                    disabled={isManualRevealing}
+                    className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs h-9 rounded-xl shadow-sm cursor-pointer"
+                  >
+                    {isManualRevealing ? (
+                      <>
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        Đang lấy link...
+                      </>
+                    ) : (
+                      <>
                         <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                         Xem trên YouTube
-                      </a>
-                    </Button>
-                  )}
+                      </>
+                    )}
+                  </Button>
 
                   {displayData.landingPage && (
                     <Button
@@ -356,12 +460,18 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                     type="button"
                     variant="outline"
                     onClick={handleCopyLink}
+                    disabled={isManualRevealing}
                     className="h-9 rounded-xl border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
                   >
                     {isCopied ? (
                       <>
                         <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
                         Đã sao chép link
+                      </>
+                    ) : isManualRevealing ? (
+                      <>
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin text-slate-500" />
+                        Đang lấy link...
                       </>
                     ) : (
                       <>
@@ -371,11 +481,21 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
                     )}
                   </Button>
 
-                  {displayData.ytVideoId && (
-                    <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/60 ml-auto">
-                      ID: {displayData.ytVideoId}
+                  {activeYtVideoId ? (
+                    <span className="text-xs text-slate-700 font-mono bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/80 ml-auto flex items-center gap-1.5 shadow-2xs">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      ID: {activeYtVideoId}
                     </span>
-                  )}
+                  ) : (isRevealing || isManualRevealing) ? (
+                    <span className="text-xs text-amber-600 font-mono bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200 ml-auto flex items-center gap-1.5 animate-pulse">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Đang lấy ID...
+                    </span>
+                  ) : rawCandidateId ? (
+                    <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200/60 ml-auto">
+                      Token: {rawCandidateId.slice(0, 10)}...
+                    </span>
+                  ) : null}
                 </div>
 
                 {/* Brand / Channel Info Card */}
