@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, fullName?: string, referredBy?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
@@ -62,13 +62,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [router])
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string, referredBy?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          referred_by: referredBy,
         },
       },
     })

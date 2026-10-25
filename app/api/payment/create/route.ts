@@ -11,7 +11,8 @@ const supabaseAdmin = createClient(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, userEmail, planId = 'unlimited', billingCycle = 'monthly' } = body
+    const { userId, userEmail, planId = 'unlimited', billingCycle = 'monthly', referralCode } = body
+    const activeRefCode = (referralCode || request.cookies.get('ads_spy_ref')?.value || null)?.toString().trim().toUpperCase() || null
 
     // Validate input
     if (!userId || !userEmail || !planId) {
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
         amount: amount,
         status: 'pending',
         checkout_url: paymentLink.checkoutUrl,
+        referral_code: activeRefCode,
         created_at: new Date().toISOString()
       })
 

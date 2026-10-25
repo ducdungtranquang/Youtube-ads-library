@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/contexts/auth-context'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from 'sonner'
+import { ReferralTracker } from '@/components/referral-tracker'
 import './globals.css'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -215,6 +216,7 @@ export default function RootLayout({
 
       <body className={`font-sans ${plusJakartaSans.variable} ${jetbrainsMono.variable}`}>
         <AuthProvider>
+          <ReferralTracker />
           {children}
           <Toaster />
           <Sonner />

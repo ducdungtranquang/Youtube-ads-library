@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
-import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles } from "lucide-react"
+import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles, Gift, ChevronDown } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,27 +48,103 @@ export function Header() {
     { href: "/quicksearch", icon: Sparkles, label: "Quick Search" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads", badge: "1/11" },
-    { href: "/blog", icon: NotebookText, label: "Blog" },
-    { href: "/dashboard", icon: LayoutDashboard, label: "Bảng điều khiển" },
+    { href: "/affiliate", icon: Gift, label: "Tiếp thị", badge: "20%" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md supports-[backdrop-filter]:bg-slate-950/80">
       <div className="container px-4 md:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-3 group">
-            {/* Bo tròn hoàn toàn (rounded-full) để khung chứa logo ôm trọn bức ảnh hình tròn mượt mà */}
-            <div className="relative flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900 border border-indigo-500/30 shadow-lg shadow-indigo-600/20 overflow-hidden group-hover:border-indigo-500/60 transition-all">
-              <Image
-                src="/ava_ads-spy_tool.png"
-                alt="Ads Spy Tool Logo"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-            <span className="text-lg md:text-xl font-black text-white tracking-tight">Ads Spy Tool</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* Logo Icon with DropdownMenu for Dashboard & Blog */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="relative flex h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900 border border-indigo-500/30 shadow-lg shadow-indigo-600/20 hover:border-indigo-400 hover:ring-2 hover:ring-indigo-500/40 hover:scale-105 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/50 group"
+                  title="Bấm để mở Bảng điều khiển & Blog"
+                  aria-label="Menu logo"
+                >
+                  <div className="relative h-full w-full rounded-full overflow-hidden">
+                    <Image
+                      src="/ava_ads-spy_tool.png"
+                      alt="Ads Spy Tool Logo"
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  {/* Subtle chevron indicator */}
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 border border-slate-900 text-white shadow-sm group-hover:bg-indigo-500 transition-colors">
+                    <ChevronDown className="h-2.5 w-2.5" />
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-64 bg-slate-950/95 backdrop-blur-xl border border-slate-800 text-slate-200 shadow-2xl p-1.5 z-50 rounded-xl"
+                align="start"
+                sideOffset={8}
+              >
+                <div className="px-3 py-2 border-b border-slate-800/80 mb-1">
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>Lối tắt nhanh</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Truy cập Dashboard & Blog</p>
+                </div>
+
+                <DropdownMenuItem asChild className="focus:bg-indigo-600/15 focus:text-indigo-300 cursor-pointer rounded-lg p-2.5 transition-colors">
+                  <Link href="/dashboard" className="flex items-center gap-3 w-full">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                      <LayoutDashboard className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white flex items-center gap-1.5">
+                        Bảng điều khiển
+                        {pathname === "/dashboard" && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                        )}
+                      </div>
+                      <div className="text-[11px] text-slate-400 truncate">Thống kê tài khoản & lịch sử</div>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild className="focus:bg-sky-600/15 focus:text-sky-300 cursor-pointer rounded-lg p-2.5 transition-colors">
+                  <Link href="/blog" className="flex items-center gap-3 w-full">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                      <NotebookText className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white flex items-center gap-1.5">
+                        Blog & Kiến thức
+                        {pathname === "/blog" && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                        )}
+                      </div>
+                      <div className="text-[11px] text-slate-400 truncate">Kinh nghiệm chạy Ads & cập nhật</div>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="bg-slate-800/80 my-1" />
+
+                <DropdownMenuItem asChild className="focus:bg-slate-800/80 focus:text-white cursor-pointer rounded-lg px-3 py-2 text-xs text-slate-400 hover:text-white transition-colors">
+                  <Link href="/" className="flex items-center gap-2">
+                    <Search className="h-3.5 w-3.5" />
+                    <span>Về Trang chủ</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Brand text links to Home */}
+            <Link href="/" className="flex items-center group">
+              <span className="text-lg md:text-xl font-black text-white tracking-tight group-hover:text-indigo-400 transition-colors">
+                Ads Spy Tool
+              </span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation - Hidden on 1024px and below */}
           <nav className="hidden xl:flex items-center gap-6">
@@ -148,14 +224,33 @@ export function Header() {
                   )
                 })}
 
-                <div className="border-t border-slate-800 pt-4">
+                <div className="border-t border-slate-800 pt-3 space-y-1">
+                  <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Hệ thống & Nội dung
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <LayoutDashboard className="h-5 w-5 text-indigo-400" />
+                    <span>Bảng điều khiển</span>
+                  </Link>
+                  <Link
+                    href="/blog"
+                    className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <NotebookText className="h-5 w-5 text-sky-400" />
+                    <span>Blog & Kiến thức</span>
+                  </Link>
                   <Link
                     href="/pricing"
                     className="flex items-center gap-3 rounded-lg p-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <TrendingUp className="h-5 w-5" />
-                    Bảng giá
+                    <TrendingUp className="h-5 w-5 text-emerald-400" />
+                    <span>Bảng giá</span>
                   </Link>
                 </div>
 
@@ -298,6 +393,17 @@ export function Header() {
                   <Link href="/favorites">
                     <Heart className="mr-2 h-4 w-4" />
                     Yêu thích
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
+                  <Link href="/affiliate" className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                      <Gift className="mr-2 h-4 w-4 text-emerald-400" />
+                      Tiếp thị (Affiliate)
+                    </div>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-400 border border-emerald-400/30">
+                      20%
+                    </span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-800" />

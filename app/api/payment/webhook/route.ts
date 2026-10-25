@@ -85,6 +85,51 @@ export async function POST(request: NextRequest) {
         })
         .eq('order_code', orderCode)
 
+      // Xử lý tính hoa hồng 20% cho đối tác tiếp thị nếu có mã giới thiệu
+      if (payment.referral_code) {
+        try {
+          const { data: partner } = await supabaseAdmin
+            .from('affiliate_partners')
+            .select('*')
+            .eq('referral_code', payment.referral_code.toString().trim().toUpperCase())
+            .maybeSingle()
+
+          if (partner && partner.id !== payment.user_id) {
+            const commission = Math.round(Number(payment.amount) * 0.20)
+
+            // Ghi log hoa hồng
+            await supabaseAdmin
+              .from('affiliate_commissions')
+              .insert({
+                affiliate_id: partner.id,
+                referred_user_id: payment.user_id,
+                referred_email: payment.user_email,
+                order_code: orderCode,
+                plan_name: 'Gói Unlimited',
+                order_amount: payment.amount,
+                commission_rate: 0.20,
+                commission_amount: commission,
+                status: 'completed',
+              })
+
+            // Cập nhật số dư và số đơn chuyển đổi cho đối tác
+            await supabaseAdmin
+              .from('affiliate_partners')
+              .update({
+                balance: Number(partner.balance || 0) + commission,
+                total_earned: Number(partner.total_earned || 0) + commission,
+                total_conversions: Number(partner.total_conversions || 0) + 1,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', partner.id)
+
+            console.log(`Credited 20% commission (${commission} VND) to affiliate ${partner.referral_code}`)
+          }
+        } catch (affErr) {
+          console.error('Affiliate commission processing error:', affErr)
+        }
+      }
+
       console.log(`Payment ${orderCode} completed successfully for user ${payment.user_id}`)
 
       return NextResponse.json({ success: true })

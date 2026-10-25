@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, ArrowRight, Sparkles, Video, Target, BookOpen, Star, Zap } from "lucide-react"
+import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, ArrowRight, Sparkles, Video, Target, BookOpen, Star, Zap, Gift } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect, useState } from "react"
 import { useFavorites } from '@/hooks/use-favorites'
@@ -281,6 +281,34 @@ function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Affiliate Banner Card */}
+          <Card className="border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 text-white shadow-xl shadow-emerald-950/20 rounded-2xl mt-6 overflow-hidden">
+            <CardContent className="p-6 sm:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+              <div className="flex items-start sm:items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shrink-0">
+                  <Gift className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-white">Chương Trình Đối Tác Tiếp Thị (Affiliate)</h3>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950">
+                      Hoa hồng 20%
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                    Nhận 20% hoa hồng trọn đời trên mọi đơn hàng nâng cấp trả phí từ người dùng bạn giới thiệu. Cookie lưu 30 ngày, rút tiền tự động về ngân hàng.
+                  </p>
+                </div>
+              </div>
+              <Button asChild className="shrink-0 h-11 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-950 cursor-pointer">
+                <Link href="/affiliate">
+                  Lấy Link Tiếp Thị Ngay
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Guide Section */}
           <Card className="border border-slate-200 bg-white shadow-md shadow-slate-200/50 rounded-2xl mt-6">

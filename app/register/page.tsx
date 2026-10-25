@@ -65,10 +65,18 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const { error } = await signUp(email, password, fullName)
+      const refCode = typeof window !== 'undefined' ? localStorage.getItem('ads_spy_ref') : null
+      const { error } = await signUp(email, password, fullName, refCode || undefined)
       if (error) {
         toast.error(error.message || "Tạo tài khoản thất bại. Vui lòng kiểm tra lại thông tin.")
       } else {
+        if (refCode) {
+          fetch('/api/affiliate/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ referralCode: refCode, eventType: 'signup' })
+          }).catch(() => {})
+        }
         toast.success("Tài khoản đã được tạo thành công! Vui lòng kiểm tra email để xác minh.")
       }
     } catch {

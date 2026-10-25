@@ -132,14 +132,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     }
   }
 
-  const formatCurrency = (amount?: number) => {
-    if (amount == null) return "N/A"
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount)
+  const formatCurrency = (_amount?: number) => {
+    return "???"
   }
 
   // Use API data if available, fallback to props
@@ -150,8 +144,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     description: videoDetails?.description || video?.description || "",
     duration: formatDuration(videoDetails?.duration),
     publishedAt: formatDate(videoDetails?.publishedAt) || video?.date,
-    totalSpend: formatCurrency(videoDetails?.totalSpend),
-    last30Days: formatCurrency(videoDetails?.last30Days),
+    totalSpend: "???",
+    last30Days: "???",
     isActive: videoDetails?.isActive,
     firstSeen: formatDate(videoDetails?.firstSeen),
     lastSeen: videoDetails?.lastSeen ? formatDate(videoDetails?.lastSeen) : "Gần đây",
@@ -169,8 +163,8 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
     description: video?.description || "",
     duration: video?.duration || "N/A",
     publishedAt: video?.date || "Chưa xác định",
-    totalSpend: "N/A",
-    last30Days: "N/A",
+    totalSpend: "???",
+    last30Days: "???",
     isActive: false,
     firstSeen: "",
     lastSeen: "",
