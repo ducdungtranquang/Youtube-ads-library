@@ -956,7 +956,7 @@ export default function MKTPage() {
                         <p className="text-xs sm:text-sm text-slate-500 shrink-0 font-medium">{previewAds.length} quảng cáo</p>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-400 -mt-3">
-                        💡 Dữ liệu từ thư viện cache — Nhập từ khóa để tìm kiếm theo nhu cầu
+                        💡 Nhập từ khóa để tìm kiếm theo nhu cầu
                       </p>
                       <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                         {previewAds.map((video: any, index: number) => (
