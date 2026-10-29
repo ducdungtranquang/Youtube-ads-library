@@ -15,12 +15,12 @@ const playfair = Playfair_Display({
 const WELCOME_CHARS = "Welcome".split("");
 const BRAND_WORDS = [
   { text: "ADS", gradient: "from-indigo-600 via-indigo-500 to-purple-600", delay: 0 },
-  { text: "SPY", gradient: "from-purple-600 via-pink-600 to-rose-500", delay: 120 },
-  { text: "TOOL", gradient: "from-rose-500 via-orange-500 to-amber-500", delay: 240 }
+  { text: "SPY", gradient: "from-purple-600 via-pink-600 to-rose-500", delay: 140 },
+  { text: "TOOL", gradient: "from-rose-500 via-orange-500 to-amber-500", delay: 280 }
 ];
 
 export function HomepageIntroLoader() {
-  const [stage, setStage] = useState<"welcome" | "transition" | "brand" | "exit" | "hidden">("welcome");
+  const [stage, setStage] = useState<"static" | "welcome" | "transition" | "brand" | "exit" | "hidden">("static");
   const [progress, setProgress] = useState(15);
   const isSkippedRef = useRef(false);
 
@@ -31,39 +31,45 @@ export function HomepageIntroLoader() {
       return;
     }
 
-    // Timeline điều phối chuyển động nhanh gọn, mềm mại:
-    // 0ms: Chữ Welcome (Playfair Display Italic) lướt vào (7 chữ x 100ms)
-    // 1300ms: Welcome bắt đầu chuyển tiếp mờ dần nhẹ nhàng
+    // Timeline điều phối chuyển động mượt mà, không giật lag:
+    // 0 - 100ms: Màn hình tĩnh 100ms để trình duyệt hoàn tất hydrate DOM & tải font, loại bỏ hoàn toàn giật khung hình
+    const tWelcome = setTimeout(() => {
+      if (isSkippedRef.current) return;
+      setStage("welcome");
+    }, 100);
+
+    // 1600ms: Welcome bắt đầu chuyển tiếp mờ dần nhẹ nhàng (animation 800ms + đọc chữ)
     const tTransition = setTimeout(() => {
       if (isSkippedRef.current) return;
       setStage("transition");
-    }, 1300);
+    }, 1600);
 
-    // 1650ms: Kích hoạt stage "brand" -> ADS SPY TOOL bung nở rực rỡ
+    // 2000ms: Kích hoạt stage "brand" -> ADS SPY TOOL bung nở rực rỡ (animation 750ms)
     const tBrand = setTimeout(() => {
       if (isSkippedRef.current) return;
       setStage("brand");
       setProgress(60);
-    }, 1650);
+    }, 2000);
 
-    // 2250ms: Progress đạt 100%
+    // 2700ms: Progress đạt 100%
     const tProgress = setTimeout(() => {
       if (isSkippedRef.current) return;
       setProgress(100);
-    }, 2250);
+    }, 2700);
 
-    // 2800ms: Rèm trượt lên để lộ homepage
+    // 3350ms: Rèm trượt lên để lộ homepage
     const tExit = setTimeout(() => {
       if (isSkippedRef.current) return;
       setStage("exit");
-    }, 2800);
+    }, 3350);
 
-    // 3600ms: Ẩn hẳn khỏi DOM
+    // 4200ms: Ẩn hẳn khỏi DOM
     const tHidden = setTimeout(() => {
       setStage("hidden");
-    }, 3600);
+    }, 4200);
 
     return () => {
+      clearTimeout(tWelcome);
       clearTimeout(tTransition);
       clearTimeout(tBrand);
       clearTimeout(tProgress);
@@ -116,9 +122,11 @@ export function HomepageIntroLoader() {
       <div className="relative z-10 px-6 w-full max-w-4xl mx-auto text-center min-h-[300px] flex items-center justify-center">
         {/* Slide 1: WELCOME (Playfair Display Italic, chạy chậm, siêu mềm mại) */}
         <div
-          className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-600 ease-in-out ${stage === "welcome"
+          className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-[750ms] ease-in-out ${stage === "welcome"
             ? "opacity-100 translate-y-0 scale-100 filter-none pointer-events-auto"
-            : "opacity-0 -translate-y-8 scale-95 blur-md pointer-events-none"
+            : stage === "static"
+            ? "opacity-0 translate-y-2 pointer-events-none"
+            : "opacity-0 -translate-y-8 scale-95 blur-xs pointer-events-none"
             }`}
         >
           {/* Subtitle Badge */}
@@ -129,18 +137,22 @@ export function HomepageIntroLoader() {
 
           {/* Letter by Letter: Welcome in Playfair Display Italic */}
           <h1 className={`${playfair.className} italic font-semibold text-6xl sm:text-8xl md:text-9xl text-slate-900 tracking-tight flex items-center justify-center drop-shadow-sm`}>
-            {WELCOME_CHARS.map((char, idx) => (
-              <span
-                key={idx}
-                className="inline-block animate-char-luxury"
-                style={{
-                  animationDelay: `${idx * 100}ms`,
-                  animationFillMode: "both",
-                }}
-              >
-                {char}
-              </span>
-            ))}
+            {stage === "static" ? (
+              <span className="opacity-0 select-none">Welcome</span>
+            ) : (
+              WELCOME_CHARS.map((char, idx) => (
+                <span
+                  key={idx}
+                  className="inline-block animate-char-luxury"
+                  style={{
+                    animationDelay: `${idx * 100}ms`,
+                    animationFillMode: "both",
+                  }}
+                >
+                  {char}
+                </span>
+              ))
+            )}
           </h1>
 
           <p className="mt-5 text-sm sm:text-base text-slate-500 font-medium max-w-md mx-auto transition-opacity duration-700 delay-400">
@@ -150,9 +162,9 @@ export function HomepageIntroLoader() {
 
         {/* Slide 2: ADS SPY TOOL (Chỉ kích hoạt khi stage chuyển sang brand) */}
         <div
-          className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-600 ease-out ${stage === "brand" || stage === "exit"
+          className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-[750ms] ease-out ${stage === "brand" || stage === "exit"
             ? "opacity-100 translate-y-0 scale-100 filter-none pointer-events-auto"
-            : "opacity-0 translate-y-8 scale-95 blur-md pointer-events-none"
+            : "opacity-0 translate-y-8 scale-95 blur-xs pointer-events-none"
             }`}
         >
           {/* Badge */}

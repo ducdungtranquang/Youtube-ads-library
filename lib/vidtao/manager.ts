@@ -33,7 +33,7 @@ export class VidTaoManager {
   }
 
   private async initializeAccounts(): Promise<void> {
-    console.log('Initializing VidTao accounts...')
+    console.log('Initializing 3rd accounts...')
 
     const accounts = this.accountManager.getAccounts()
     let success = false

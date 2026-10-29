@@ -23,7 +23,7 @@ export class VidTaoAPIService {
       'views': 'total_spend', // VidTao doesn't have views, use spend as proxy
       'relevance': 'published_at' // Default to date for relevance
     }
-    
+
     return sortMap[sortProp] || 'published_at'
   }
 
@@ -32,11 +32,11 @@ export class VidTaoAPIService {
    */
   async makeRequest(endpoint: string, params: any = {}): Promise<VidTaoResponse> {
     const account = this.accountManager.getAvailableAccount()
-    
+
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts. All accounts are blocked or rate limited.'
+        error: 'No available 3rd accounts. All accounts are blocked or rate limited.'
       }
     }
 
@@ -51,7 +51,7 @@ export class VidTaoAPIService {
 
     try {
       console.log(`Making request to ${endpoint} with account: ${account.id}`)
-      
+
       const url = new URL(`${VIDTAO_CONFIG.VIDTAO_BASE_URL}${endpoint}`)
       Object.keys(params).forEach(key => {
         if (params[key] !== undefined && params[key] !== null) {
@@ -99,7 +99,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -108,7 +108,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`Request failed with account ${account.id}:`, error)
-      
+
       // If error is network-related, try next account
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
@@ -132,7 +132,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -147,7 +147,7 @@ export class VidTaoAPIService {
 
     try {
       console.log(`Making quickSearch request with account: ${account.id}`)
-      
+
       const requestBody = {
         affiliateCountryId: params.affiliateCountryId || 0,
         affiliateNetworkIds: params.affiliateNetworkIds || [],
@@ -204,7 +204,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -213,7 +213,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`QuickSearch failed with account ${account.id}:`, error)
-      
+
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
         account.blockUntil = Date.now() + (5 * 60 * 1000)
@@ -236,7 +236,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -251,7 +251,7 @@ export class VidTaoAPIService {
 
     try {
       console.log(`Making Brands search request with account: ${account.id}`)
-      
+
       // Map sort properties to VidTao brands API format
       const mapBrandsSortProp = (sortProp: string): string | null => {
         const sortMap: Record<string, string | null> = {
@@ -323,7 +323,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -332,7 +332,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`Brands Search failed with account ${account.id}:`, error)
-      
+
       // If error is network-related, try next account
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
@@ -356,7 +356,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -371,7 +371,7 @@ export class VidTaoAPIService {
 
     try {
       console.log(`Making Companies search request with account: ${account.id}`)
-      
+
       // Map sort properties to VidTao companies API format
       const mapCompaniesSortProp = (sortProp: string): string | null => {
         const sortMap: Record<string, string | null> = {
@@ -442,7 +442,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -451,7 +451,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`Companies Search failed with account ${account.id}:`, error)
-      
+
       // If error is network-related, try next account
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
@@ -475,7 +475,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -490,7 +490,7 @@ export class VidTaoAPIService {
 
     try {
       console.log(`Making MKT search request with account: ${account.id}`)
-      
+
       // Map parameters to VidTao Enriched Search API format
       let normalizedSortProp = params.sortProp || "total"
       if (normalizedSortProp === "totalSpend" || normalizedSortProp === "views") {
@@ -556,7 +556,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -565,7 +565,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`MKT Search failed with account ${account.id}:`, error)
-      
+
       // If error is network-related, try next account
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
@@ -589,7 +589,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -604,7 +604,7 @@ export class VidTaoAPIService {
 
     try {
       console.log(`Making Video Details request with account: ${account.id} for video: ${videoId}`)
-      
+
       // Use token (preferred) or accessToken as fallback
       const authToken = account.token || account.accessToken
       if (!authToken) {
@@ -671,7 +671,7 @@ export class VidTaoAPIService {
       const transcript: string | null = typeof rawItem.transcript === 'string' && rawItem.transcript.trim()
         ? rawItem.transcript.trim()
         : null
-      
+
       return {
         success: true,
         data,
@@ -683,7 +683,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`Video Details failed with account ${account.id}:`, error)
-      
+
       // If error is network-related, try next account
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
@@ -707,7 +707,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -804,7 +804,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -854,7 +854,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -863,7 +863,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`Brand Details failed with account ${account.id}:`, error)
-      
+
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
         account.blockUntil = Date.now() + (5 * 60 * 1000) // 5 minutes
@@ -886,7 +886,7 @@ export class VidTaoAPIService {
     if (!account) {
       return {
         success: false,
-        error: 'No available VidTao accounts'
+        error: 'No available 3rd accounts'
       }
     }
 
@@ -936,7 +936,7 @@ export class VidTaoAPIService {
       }
 
       const data = await response.json()
-      
+
       return {
         success: true,
         data,
@@ -945,7 +945,7 @@ export class VidTaoAPIService {
 
     } catch (error) {
       console.error(`Company Details failed with account ${account.id}:`, error)
-      
+
       if (error instanceof TypeError && error.message.includes('fetch')) {
         account.isBlocked = true
         account.blockUntil = Date.now() + (5 * 60 * 1000) // 5 minutes
