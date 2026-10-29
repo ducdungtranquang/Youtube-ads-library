@@ -32,12 +32,30 @@ export default function AuthCallbackPage() {
       }
 
       if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
         if (exchangeError) {
           toast.error('Không thể xác thực. Vui lòng thử lại.')
           router.replace('/login')
           return
+        }
+
+        // Đảm bảo user_profiles luôn tồn tại ngay sau khi đăng nhập Google thành công
+        if (exchangeData?.user) {
+          try {
+            await fetch('/api/user/sync-profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: exchangeData.user.id,
+                email: exchangeData.user.email,
+                fullName: exchangeData.user.user_metadata?.full_name || exchangeData.user.user_metadata?.name || '',
+                referredBy: exchangeData.user.user_metadata?.referred_by || null,
+              }),
+            })
+          } catch (e) {
+            console.warn('Sync profile on Google OAuth error:', e)
+          }
         }
 
         // Session is now set - onAuthStateChange in AuthProvider will fire SIGNED_IN

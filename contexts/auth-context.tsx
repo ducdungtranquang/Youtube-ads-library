@@ -26,6 +26,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false)
   const router = useRouter()
 
+  const syncUserProfile = async (targetUser: User | null, referredBy?: string) => {
+    if (!targetUser?.id) return
+    try {
+      await fetch('/api/user/sync-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: targetUser.id,
+          email: targetUser.email,
+          fullName: targetUser.user_metadata?.full_name || targetUser.user_metadata?.name || '',
+          referredBy: referredBy || targetUser.user_metadata?.referred_by || null,
+        }),
+      })
+    } catch (err) {
+      console.warn('Failed to sync user profile:', err)
+    }
+  }
+
   useEffect(() => {
     setIsClient(true)
     
@@ -34,6 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
+      if (session?.user) {
+        syncUserProfile(session.user)
+      }
     })
 
     // Listen for auth changes
@@ -45,6 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
 
       if (event === 'SIGNED_IN') {
+        if (session?.user) {
+          syncUserProfile(session.user)
+        }
         // Redirect về dashboard nếu user đang ở trang login/register
         if (typeof window !== 'undefined') {
           const authPages = ['/login', '/register']
@@ -63,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   const signUp = async (email: string, password: string, fullName?: string, referredBy?: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -73,14 +97,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       },
     })
+    if (!error && data?.user) {
+      syncUserProfile(data.user, referredBy)
+    }
     return { error }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
+    if (!error && data?.user) {
+      syncUserProfile(data.user)
+    }
     return { error }
   }
 

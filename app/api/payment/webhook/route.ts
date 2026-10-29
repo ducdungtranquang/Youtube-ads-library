@@ -56,17 +56,18 @@ export async function POST(request: NextRequest) {
       }
       subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths)
 
-      // Update user profile with subscription
+      // Upsert user profile with subscription (create if not exists)
       const { error: updateError } = await supabaseAdmin
         .from('user_profiles')
-        .update({
+        .upsert({
+          id: payment.user_id,
+          email: payment.user_email,
           subscription_status: 'unlimited',
           subscription_plan: 'unlimited',
           subscription_start: subscriptionStart.toISOString(),
           subscription_end: subscriptionEnd.toISOString(),
           updated_at: new Date().toISOString()
-        })
-        .eq('id', payment.user_id)
+        }, { onConflict: 'id' })
 
       if (updateError) {
         console.error('Profile update error:', updateError)

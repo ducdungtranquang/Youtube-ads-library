@@ -31,7 +31,27 @@ export async function GET(request: NextRequest) {
       .eq('id', userId)
       .maybeSingle()
 
-    if (error || !profile) {
+    let userProfile = profile
+    if (!userProfile) {
+      // Auto-create missing user profile with free plan
+      const { data: createdProfile } = await supabaseAdmin
+        .from('user_profiles')
+        .upsert({
+          id: userId,
+          subscription_plan: 'free',
+          subscription_status: 'free',
+          daily_search_count: 0,
+          last_search_date: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+        .select('subscription_plan, subscription_status, daily_search_count, last_search_date')
+        .maybeSingle()
+
+      userProfile = createdProfile
+    }
+
+    if (!userProfile) {
       return NextResponse.json({
         plan: 'free',
         limit: 5,
@@ -41,7 +61,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const plan = (profile.subscription_plan || profile.subscription_status || 'free').toLowerCase()
+    const plan = (userProfile.subscription_plan || userProfile.subscription_status || 'free').toLowerCase()
     let limit = 5
     if (plan === 'unlimited' || plan === 'business' || plan === 'company' || plan === 'personal') {
       limit = -1
