@@ -37,8 +37,40 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
   const activeCycle = BILLING_CYCLES[selectedCycle]
 
   const handleCheckout = async () => {
-    toast.info('Cổng thanh toán tự động gói Không Giới Hạn sẽ chính thức mở vào ngày 01/11. Cảm ơn bạn đã quan tâm!')
-    return
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để nâng cấp gói Không Giới Hạn')
+      onClose()
+      router.push('/login?redirect=/pricing')
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      const response = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email,
+          planId: 'unlimited',
+          billingCycle: selectedCycle,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success || !data.checkoutUrl) {
+        throw new Error(data.error || 'Không thể tạo liên kết thanh toán. Vui lòng thử lại sau.')
+      }
+
+      window.location.href = data.checkoutUrl
+    } catch (error: any) {
+      toast.error(error?.message || 'Đã có lỗi xảy ra khi tạo thanh toán')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const formatCurrency = (val: number) => {
@@ -181,29 +213,36 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
           {/* Action Button */}
           <div className="space-y-2.5">
             <Button
-              disabled={true}
-              className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200 shadow-none px-4 select-none opacity-95 transition-none"
+              onClick={handleCheckout}
+              disabled={isProcessing}
+              className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-700 hover:via-indigo-600 hover:to-purple-700 text-white font-extrabold text-base shadow-xl shadow-indigo-600/30 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer px-4"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex flex-col items-start text-left">
-                  <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5 text-slate-800">
-                    <Clock className="h-4 w-4 text-amber-500" />
-                    Mở Thanh Toán Ngày 01/11
-                  </span>
-                  <span className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                    Tính năng thanh toán tự động chính thức mở từ 01/11
-                  </span>
+              {isProcessing ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Đang khởi tạo thanh toán...
+                </span>
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 fill-white" />
+                    <span>Nâng Cấp Ngay ({formatCurrency(activeCycle.totalPrice)})</span>
+                  </div>
+                  <ArrowRight className="h-5 w-5" />
                 </div>
-                <div className="flex items-center gap-1.5 pl-3 border-l border-slate-300 shrink-0">
-                  <span className="text-xs font-bold text-amber-700 bg-amber-100/90 border border-amber-300/80 px-2.5 py-1 rounded-full">
-                    1/11 Release
-                  </span>
-                </div>
-              </div>
+              )}
             </Button>
 
-            <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-center text-[11px] text-amber-800 font-medium leading-relaxed">
-              🚀 Cổng thanh toán gói Không Giới Hạn sẽ chính thức mở vào ngày <strong>01/11</strong>. Lượt tìm kiếm miễn phí của bạn sẽ được làm mới lúc 00:00 mỗi ngày!
+            <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
+              <span className="inline-flex items-center gap-1">
+                <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+                Bảo mật VietQR PayOS
+              </span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1">
+                <Zap className="h-3.5 w-3.5 text-amber-500" />
+                Kích hoạt tự động tức thì
+              </span>
             </div>
           </div>
 

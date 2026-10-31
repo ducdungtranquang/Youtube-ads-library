@@ -47,7 +47,7 @@ export function Header() {
     { href: "/", icon: Search, label: "Trang chủ" },
     { href: "/quicksearch", icon: Sparkles, label: "Quick Search" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
-    { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads", badge: "1/11" },
+    { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/affiliate", icon: Gift, label: "Tiếp thị", badge: "20%" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
@@ -384,9 +384,6 @@ export function Header() {
                       <Video className="mr-2 h-4 w-4 text-cyan-400" />
                       Facebook Ads
                     </div>
-                    <span className="text-xs font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs animate-pulse">
-                      1/11
-                    </span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">

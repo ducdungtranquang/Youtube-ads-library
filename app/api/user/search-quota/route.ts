@@ -68,11 +68,11 @@ export async function GET(request: NextRequest) {
     }
 
     const today = new Date().toISOString().split('T')[0]
-    const lastDate = profile.last_search_date
-      ? new Date(profile.last_search_date).toISOString().split('T')[0]
+    const lastDate = userProfile?.last_search_date
+      ? new Date(userProfile.last_search_date).toISOString().split('T')[0]
       : null
 
-    const used = lastDate === today ? (profile.daily_search_count || 0) : 0
+    const used = lastDate === today ? (userProfile?.daily_search_count || 0) : 0
     const remaining = limit === -1 ? -1 : Math.max(0, limit - used)
 
     return NextResponse.json({

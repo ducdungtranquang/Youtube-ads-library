@@ -175,7 +175,6 @@ export const HeroSlider = memo(() => {
               <Link href="/facebook-ads-search" title="Xem Facebook Ads Scaling và Duplicates">
                 <ShieldCheck className="mr-2 h-4 w-4 fill-white/20" />
                 Facebook Ads Spy & Duplicates
-                <span className="ml-2.5 px-2.5 py-0.5 text-xs font-black bg-amber-400 text-slate-950 rounded-full shadow-md animate-pulse">1/11</span>
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

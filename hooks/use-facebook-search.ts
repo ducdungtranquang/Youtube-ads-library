@@ -17,6 +17,12 @@ interface FacebookSearchFilters {
   min_trending_score?: string;
   funnel?: string; // Dạng chuỗi, ví dụ: "TOF,MOF"
   scaling_level?: string;
+  filter?: string; //  preset: new_ads | ready_to_scale | weekly_winner
+  is_active?: boolean | string;
+  page_name?: string;
+  domain?: string;
+  sort_by?: string;
+  sort_order?: number | string;
 
   /* --- CÁC FILTER CŨ TẠM KHÔNG DÙNG ĐẾN ---
   per_page?: number;
@@ -61,7 +67,7 @@ export function useFacebookAdsSearch() {
 
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         // Nếu không có session hoặc token của user đã hết hạn, chặn ngay lập tức tại Client
         if (sessionError || !session?.access_token) {
           const authErrMsg = "Yêu cầu đăng nhập. Vui lòng đăng nhập lại để tìm kiếm.";
@@ -69,7 +75,7 @@ export function useFacebookAdsSearch() {
           setLoading(false);
           return { success: false, error: authErrMsg };
         }
-        
+
         // Gọi route NextJS nội bộ để ẩn endpoint thật và kèm xác thực server-side
         const res = await fetch(`/api/search/facebook-ads?${queryString}`, {
           method: "GET",

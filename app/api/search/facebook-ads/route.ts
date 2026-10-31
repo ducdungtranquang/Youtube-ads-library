@@ -9,12 +9,13 @@ export async function GET(request: NextRequest) {
     const queryString = request.nextUrl.searchParams.toString();
     const targetUrl = `${SEARCH_API_URL}/api/ads/search${queryString ? `?${queryString}` : ""}`;
 
+    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000; // 60 giây timeout để xử lý các truy vấn quét dữ liệu lớn
     const res = await fetch(targetUrl, {
       method: "GET",
       headers: {
         [INTERNAL_SECRET_HEADER]: INTERNAL_SECRET_VALUE,
       },
-      signal: AbortSignal.timeout(10000), // 10 giây timeout tránh treo giao diện
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     const data = await res.json().catch(() => ({ success: false, error: "Invalid proxy response" }));
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     const isTimeout = error?.name === "TimeoutError" || error?.name === "AbortError";
     const errorMessage = isTimeout
-      ? `Không thể kết nối tới Backend Search (${SEARCH_API_URL}): Hết thời gian chờ (Timeout 10s). Vui lòng kiểm tra lại địa chỉ IP/Port.`
+      ? `Không thể kết nối tới Backend Search (${SEARCH_API_URL}): Hết thời gian chờ phản hồi từ máy chủ phân tích (Timeout > 60s). Vui lòng thử lại hoặc thu hẹp bộ lọc.`
       : `Lỗi kết nối Backend Search (${SEARCH_API_URL}): ${error?.message || "Proxy request failed"}`;
 
     console.error("Facebook ads proxy error:", error);

@@ -44,8 +44,8 @@ const QUICK_LINKS = [
     title: "Facebook Ads Spy",
     desc: "Kho dữ liệu quảng cáo Facebook toàn cầu",
     icon: Video,
-    badge: "1/11",
-    color: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400",
+    badge: "Hot",
+    color: "from-blue-500/20 to-indigo-500/20 border-blue-500/30 text-blue-400",
   },
   {
     href: "/mkt",

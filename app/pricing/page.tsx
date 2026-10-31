@@ -39,10 +39,41 @@ export default function PricingPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Handle PayOS payment for Unlimited plan (Temporarily disabled until release 01/11)
-  const handlePayment = async (_cycle: BillingCycle = billingCycle) => {
-    toast.info('Cổng thanh toán tự động gói Không Giới Hạn sẽ chính thức mở vào ngày 01/11. Cảm ơn bạn đã quan tâm!')
-    return
+  // Handle PayOS payment for Unlimited plan
+  const handlePayment = async (cycle: BillingCycle = billingCycle) => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để nâng cấp gói Không Giới Hạn')
+      router.push('/login?redirect=/pricing')
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      const response = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email,
+          planId: 'unlimited',
+          billingCycle: cycle,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success || !data.checkoutUrl) {
+        throw new Error(data.error || 'Không thể tạo liên kết thanh toán. Vui lòng thử lại sau.')
+      }
+
+      window.location.href = data.checkoutUrl
+    } catch (error: any) {
+      toast.error(error?.message || 'Đã có lỗi xảy ra khi tạo thanh toán')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -375,30 +406,25 @@ export default function PricingPage() {
 
             <div className="p-6 sm:p-8 pt-0 space-y-3">
               <Button
-                disabled={true}
-                className="w-full h-14 rounded-2xl bg-slate-100 hover:bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200 shadow-none px-4 select-none opacity-95 transition-none"
+                onClick={() => handlePayment(billingCycle)}
+                disabled={isProcessing}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-700 hover:via-indigo-600 hover:to-purple-700 text-white font-extrabold text-base shadow-xl shadow-indigo-600/30 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer px-4"
               >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex flex-col items-start text-left">
-                    <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight flex items-center gap-1.5 text-slate-800">
-                      <Clock className="h-4 w-4 text-amber-500" />
-                      Mở Thanh Toán Ngày 01/11
-                    </span>
-                    <span className="text-[11px] sm:text-xs text-slate-500 font-medium">
-                      Tính năng thanh toán tự động chính thức mở từ 01/11
-                    </span>
+                {isProcessing ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Đang kết nối cổng thanh toán...
+                  </span>
+                ) : (
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      <span>Nâng Cấp Gói Không Giới Hạn</span>
+                    </div>
+                    <ArrowRight className="h-5 w-5" />
                   </div>
-                  <div className="flex items-center gap-1.5 pl-3 border-l border-slate-300 shrink-0">
-                    <span className="text-xs font-bold text-amber-700 bg-amber-100/90 border border-amber-300/80 px-2.5 py-1 rounded-full">
-                      1/11 Release
-                    </span>
-                  </div>
-                </div>
+                )}
               </Button>
-
-              <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-center text-xs text-amber-800 font-medium leading-relaxed">
-                🚀 Cổng thanh toán gói Không Giới Hạn đang trong giai đoạn hoàn thiện và sẽ chính thức mở vào ngày <strong>01/11</strong>. Hiện tại bạn vẫn có thể sử dụng miễn phí mỗi ngày!
-              </div>
 
               <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
                 <span className="inline-flex items-center gap-1">
@@ -408,7 +434,7 @@ export default function PricingPage() {
                 <span>•</span>
                 <span className="inline-flex items-center gap-1">
                   <Zap className="h-3 w-3 text-amber-500" />
-                  Kích hoạt tự động (Từ 01/11)
+                  Kích hoạt tự động ngay sau khi quét mã
                 </span>
               </div>
             </div>

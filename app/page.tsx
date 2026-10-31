@@ -131,7 +131,6 @@ export default function HomePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-blue-600 transition-colors">Facebook Ads Spy</h2>
-                      <span className="px-2 py-0.5 text-xs font-black bg-amber-400 text-slate-950 rounded-full shadow-xs animate-pulse">1/11</span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">Xem Spend, Reach & Duplicates</p>
                   </div>

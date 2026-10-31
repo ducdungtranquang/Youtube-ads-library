@@ -42,13 +42,13 @@ async function requireAuth(request: NextRequest) {
 }
 
 
-const MINEA_API_URL = process.env.MINEA_API_URL;
-const MINEA_COGNITO_USER_POOL_ID = process.env.MINEA_COGNITO_USER_POOL_ID;
-const MINEA_COGNITO_CLIENT_ID = process.env.MINEA_COGNITO_CLIENT_ID;
+const _API_URL = process.env._API_URL;
+const _COGNITO_USER_POOL_ID = process.env._COGNITO_USER_POOL_ID;
+const _COGNITO_CLIENT_ID = process.env._COGNITO_CLIENT_ID;
 
 // Pool of credentials for rotation
-const MINEA_CREDENTIALS_POOL = [
-  { username: process.env.MINEA_COGNITO_USERNAME, password: process.env.MINEA_COGNITO_PASSWORD },
+const _CREDENTIALS_POOL = [
+  { username: process.env._COGNITO_USERNAME, password: process.env._COGNITO_PASSWORD },
   // Thêm các tài khoản khác ở đây
   // { username: "user2", password: "pass2" },
   // { username: "user3", password: "pass3" },
@@ -57,11 +57,11 @@ let exhaustedAccounts: string[] = [];
 
 
 
-function getMineaTokenWithCredential(username: string, password: string): Promise<string> {
+function getTokenWithCredential(username: string, password: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const poolData = {
-      UserPoolId: MINEA_COGNITO_USER_POOL_ID!,
-      ClientId: MINEA_COGNITO_CLIENT_ID!,
+      UserPoolId: _COGNITO_USER_POOL_ID!,
+      ClientId: _COGNITO_CLIENT_ID!,
     };
     const userPool = new CognitoUserPool(poolData);
     const userData = {
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const body = await request.json();
-    // Build Minea payload: remove empty fields/arrays from variables.query
+    // Build  payload: remove empty fields/arrays from variables.query
     const { operationName, variables, query } = body;
     const queryVars = variables?.query || {};
     // Remove empty arrays and undefined/null fields, and set defaults
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const mineaPayload = {
+    const Payload = {
       operationName: operationName || "SearchMeta",
       variables: { query: filteredQueryVars },
       query: query || `query SearchMeta($query: SearchMetaAdsInput) {\n  searchMeta(query: $query) {\n    count\n    total_count\n    per_page\n    page\n    items {\n      attachments {\n        cta_text\n        cta_type\n        description\n        header\n        is_sub\n        link_url\n        link_url_domain\n        media_height\n        media_poster_url\n        media_url\n        media_url_type\n        media_width\n        state\n        title\n        typ\n        __typename\n      }\n      aggregated_archive_ads {\n        is_active\n        total_active_ads\n        total_reach_by_country {\n          country\n          rank\n          total_reach\n          __typename\n        }\n        total_ads\n        total_reach\n        __typename\n      }\n      asset_type\n      creation_date\n      cta_text\n      cta_type\n      first_seen_date\n      lang_iso_code\n      last_seen_date\n      format\n      id\n      link_url\n      link_url_domain\n      page_id\n      page_link_url\n      page_name\n      page_profile_image_url\n      snapshot {\n        anger\n        at\n        comment\n        haha\n        like\n        love\n        share\n        sorry\n        total_reactions\n        view\n        wow\n        __typename\n      }\n      url\n      days_running\n      __typename\n    }\n    __typename\n  }\n}`,
@@ -143,76 +143,76 @@ export async function POST(request: NextRequest) {
     // Get tokenFB from request cookies
     const cookieHeader = request.headers.get("cookie") || "";
     const tokenMatch = cookieHeader.match(/tokenFB=([^;]+)/);
-    let mineaToken = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
-    let mineaRes, mineaData;
+    let Token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
+    let Res, Data;
 
     async function doSearch(token: string) {
-      console.log("mineaPayload:", mineaPayload);
-      return await fetch(MINEA_API_URL!, {
+      console.log("Payload:", Payload);
+      return await fetch(_API_URL!, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(mineaPayload),
+        body: JSON.stringify(Payload),
       });
     }
 
     // --- END CACHE LOGIC ---
     // Try with cookie token first
     let setCookieHeader = "";
-    if (mineaToken) {
-      mineaRes = await doSearch(String(mineaToken));
+    if (Token) {
+      Res = await doSearch(String(Token));
       // If token expired (401), refresh and retry once
-      if (mineaRes.status === 401) {
+      if (Res.status === 401) {
         try {
-          const cred = MINEA_CREDENTIALS_POOL[0];
-          mineaToken = await getMineaTokenWithCredential(String(cred.username), String(cred.password));
-          setCookieHeader = `tokenFB=${encodeURIComponent(String(mineaToken))}; Path=/; Max-Age=${55 * 60}`;
+          const cred = _CREDENTIALS_POOL[0];
+          Token = await getTokenWithCredential(String(cred.username), String(cred.password));
+          setCookieHeader = `tokenFB=${encodeURIComponent(String(Token))}; Path=/; Max-Age=${55 * 60}`;
         } catch (err) {
           return withCORS(NextResponse.json({ error: "Auth failed" }, { status: 500 }));
         }
-        mineaRes = await doSearch(String(mineaToken));
+        Res = await doSearch(String(Token));
       }
     } else {
       // No cookie token, login
       try {
-        const cred = MINEA_CREDENTIALS_POOL[0];
-        mineaToken = await getMineaTokenWithCredential(String(cred.username), String(cred.password));
-        setCookieHeader = `tokenFB=${encodeURIComponent(String(mineaToken))}; Path=/; Max-Age=${55 * 60}`;
+        const cred = _CREDENTIALS_POOL[0];
+        Token = await getTokenWithCredential(String(cred.username), String(cred.password));
+        setCookieHeader = `tokenFB=${encodeURIComponent(String(Token))}; Path=/; Max-Age=${55 * 60}`;
       } catch (err) {
         return withCORS(NextResponse.json({ error: "Auth failed" }, { status: 500 }));
       }
-      mineaRes = await doSearch(String(mineaToken));
+      Res = await doSearch(String(Token));
     }
 
-    if (!mineaRes.ok) {
+    if (!Res.ok) {
       // If still 401 after refresh, clear cookie
-      if (mineaRes.status === 401) {
+      if (Res.status === 401) {
         const res = NextResponse.json({ error: "FB API error" }, { status: 500 });
         res.headers.set("Set-Cookie", "tokenFB=; Path=/; Max-Age=0");
         return withCORS(res);
       }
       return withCORS(NextResponse.json({ error: "FB API error" }, { status: 500 }));
     }
-    mineaData = await mineaRes.json();
+    Data = await Res.json();
     // Check for no_credits error and retry with a new account
     const isNoCredits =
-      mineaData?.errors?.some(
+      Data?.errors?.some(
         (err: any) => err?.message === "no_credits"
       );
     if (isNoCredits) {
       // Xoay vòng qua các tài khoản chưa hết credits
       let found = false;
-      for (let i = 0; i < MINEA_CREDENTIALS_POOL.length; i++) {
-        const cred = MINEA_CREDENTIALS_POOL[i];
+      for (let i = 0; i < _CREDENTIALS_POOL.length; i++) {
+        const cred = _CREDENTIALS_POOL[i];
         if (!cred.username || exhaustedAccounts.includes(cred.username)) continue;
         try {
-          mineaToken = await getMineaTokenWithCredential(String(cred.username), String(cred.password));
-          setCookieHeader = `tokenFB=${encodeURIComponent(mineaToken)}; Path=/; Max-Age=${55 * 60}`;
-          mineaRes = await doSearch(mineaToken);
-          mineaData = await mineaRes.json();
-          const stillNoCredits = mineaData?.errors?.some((err: any) => err?.message === "no_credits");
+          Token = await getTokenWithCredential(String(cred.username), String(cred.password));
+          setCookieHeader = `tokenFB=${encodeURIComponent(Token)}; Path=/; Max-Age=${55 * 60}`;
+          Res = await doSearch(Token);
+          Data = await Res.json();
+          const stillNoCredits = Data?.errors?.some((err: any) => err?.message === "no_credits");
           if (!stillNoCredits) {
             found = true;
             break;
@@ -234,11 +234,11 @@ export async function POST(request: NextRequest) {
       payload_hash: payloadHash,
       endpoint: "facebook",
       status: "completed",
-      data: mineaData,
+      data: Data,
       created_at: new Date().toISOString(),
       expires_at: new Date(Date.now() + CACHE_EXPIRATION_HOURS * 60 * 60 * 1000).toISOString(),
     });
-    const res = NextResponse.json(mineaData);
+    const res = NextResponse.json(Data);
     if (setCookieHeader) res.headers.set("Set-Cookie", setCookieHeader);
     return withCORS(res);
   } catch (err) {

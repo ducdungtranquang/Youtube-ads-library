@@ -19,16 +19,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Loader2, Sparkles, ArrowRight, LogIn } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
+  Search,
+  Loader2,
+  Sparkles,
+  ArrowRight,
+  LogIn,
+  ArrowUpDown,
+  SlidersHorizontal,
+} from "lucide-react";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
 import { FacebookAdsFilters } from "@/components/ads-spy/facebook-ads-filters";
+import { PresetTabs } from "@/components/ads-spy/preset-tabs";
 import { useSearchQuota } from "@/hooks/use-search-quota";
 import { SearchQuotaBadge } from "@/components/search-quota-badge";
 import { UpgradeModal } from "@/components/upgrade-modal";
@@ -41,29 +44,16 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 
-const LEVEL_OPTIONS = [
-  { value: "🔥 WINNER", label: "🔥 WINNER Ads (Sản phẩm Thắng lớn)" },
-  { value: "⚡ GOOD", label: "⚡ GOOD Ads (Tiềm năng cao)" },
-  { value: "LOW", label: "LOW Ads (Chạy thông thường)" },
-];
-
-const ESTIMATED_SPEND_OPTIONS = {
-  LOW: "Thấp (Low)",
-  MEDIUM: "Trung bình (Medium)",
-  HIGH: "Cao (High)",
-  VERY_HIGH: "Rất cao (Very High)",
-};
-
-const FUNNEL_OPTIONS = {
-  TOF: "TOF - Top of Funnel",
-  MOF: "MOF - Middle of Funnel",
-  BOF: "BOF - Bottom of Funnel",
-};
-
-const SCALING_LEVEL_OPTIONS = [
-  { value: "LOW", label: "Scaling thấp" },
-  { value: "MEDIUM", label: "Scaling trung bình" },
-  { value: "HIGH", label: "Scaling cao" },
+const SORT_OPTIONS = [
+  { value: "score", label: "🏆 Điểm đánh giá (Score)" },
+  { value: "trending_score", label: "🔥 Đang thịnh hành (Trending)" },
+  { value: "scaling_score", label: "🚀 Điểm Scaling (Vít mạnh)" },
+  { value: "duplicates_count", label: "👥 Nhiều bản sao nhất (Duplicates)" },
+  { value: "start_date", label: "📅 Mới xuất bản nhất" },
+  { value: "duration_days", label: "⏳ Chạy lâu nhất (Duration)" },
+  { value: "estimated_spend_usd", label: "💰 Chi tiêu ước tính cao nhất" },
+  { value: "estimated_reach", label: "👁️ Lượt tiếp cận ước tính" },
+  { value: "seen_count", label: "🎯 Lượt quét thấy (Seen count)" },
 ];
 
 // 📌 Banners & Slogans
@@ -210,11 +200,17 @@ export default function FacebookAdsPage() {
     isUpgradeModalOpen,
     openUpgradeModal,
     closeUpgradeModal,
-  } = useSearchQuota('fb');
+  } = useSearchQuota("fb");
 
   const searchQueryRef = useRef<HTMLInputElement>(null);
 
+  //  Strategy Preset
+  const [selectedPreset, setSelectedPreset] = useState<string>("");
+
+  // Country (Priority: Vietnam)
   const [selectedCountry, setSelectedCountry] = useState<string>("");
+
+  // Dates & Scores
   const [publicDateFrom, setPublicDateFrom] = useState("");
   const [publicDateTo, setPublicDateTo] = useState("");
   const [minScore, setMinScore] = useState("");
@@ -225,7 +221,51 @@ export default function FacebookAdsPage() {
   const [selectedFunnels, setSelectedFunnels] = useState<string[]>([]);
   const [scalingLevel, setScalingLevel] = useState("");
 
+  // New  Fields
+  const [isActive, setIsActive] = useState<string>("");
+  const [pageName, setPageName] = useState<string>("");
+  const [domain, setDomain] = useState<string>("");
+
+  // Sorting
+  const [sortBy, setSortBy] = useState<string>("score");
+  const [sortOrder, setSortOrder] = useState<number>(-1);
+  const [isSortExplicit, setIsSortExplicit] = useState<boolean>(false);
+
+  // Filter Stats
+  const [filterStats, setFilterStats] = useState<{
+    total?: number;
+    presets?: Record<string, number>;
+  }>({});
+
+  const [results, setResults] = useState<any[]>([]);
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 20;
+
+  const { searchFacebookAds, loading, error, data } = useFacebookAdsSearch();
+
+  // Load Preset Stats
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/ads/filter-stats");
+        const json = await res.json();
+        if (json?.success && json?.data) {
+          setFilterStats(json.data);
+        }
+      } catch (err) {
+        // Silently fail if stats endpoint is unreachable
+      }
+    }
+    loadStats();
+  }, []);
+
   const handleClearAllFilters = useCallback(() => {
+    setSelectedPreset("");
     setSelectedCountry("");
     setPublicDateFrom("");
     setPublicDateTo("");
@@ -236,10 +276,17 @@ export default function FacebookAdsPage() {
     setMinTrendingScore("");
     setSelectedFunnels([]);
     setScalingLevel("");
+    setIsActive("");
+    setPageName("");
+    setDomain("");
+    setSortBy("score");
+    setSortOrder(-1);
+    setIsSortExplicit(false);
   }, []);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
+    if (selectedPreset) count++;
     if (selectedCountry) count++;
     if (selectedLevel) count++;
     if (minScore || maxScore) count++;
@@ -248,8 +295,12 @@ export default function FacebookAdsPage() {
     if (minTrendingScore) count++;
     if (selectedFunnels.length > 0) count++;
     if (scalingLevel) count++;
+    if (isActive) count++;
+    if (pageName) count++;
+    if (domain) count++;
     return count;
   }, [
+    selectedPreset,
     selectedCountry,
     selectedLevel,
     minScore,
@@ -260,12 +311,52 @@ export default function FacebookAdsPage() {
     minTrendingScore,
     selectedFunnels,
     scalingLevel,
+    isActive,
+    pageName,
+    domain,
   ]);
 
   const activeChips = useMemo(() => {
     const chips = [];
+    if (selectedPreset) {
+      const presetLabels: Record<string, string> = {
+        new_ads: "⚡ Ads mới lên",
+        ready_to_scale: "🚀 Sẵn sàng Scale",
+        weekly_winner: "🏆 Weekly Winner",
+      };
+      chips.push({
+        id: "preset",
+        label: `: ${presetLabels[selectedPreset] || selectedPreset}`,
+        onRemove: () => setSelectedPreset(""),
+      });
+    }
     if (selectedCountry) {
-      chips.push({ id: "country", label: `Quốc gia: ${selectedCountry}`, onRemove: () => setSelectedCountry("") });
+      chips.push({
+        id: "country",
+        label: `Quốc gia: ${selectedCountry === "VN" ? "🇻🇳 Việt Nam (VN)" : selectedCountry}`,
+        onRemove: () => setSelectedCountry(""),
+      });
+    }
+    if (isActive) {
+      chips.push({
+        id: "is_active",
+        label: isActive === "true" ? "🟢 Đang chạy" : "⚪ Đã tắt",
+        onRemove: () => setIsActive(""),
+      });
+    }
+    if (pageName) {
+      chips.push({
+        id: "page_name",
+        label: `Page: ${pageName}`,
+        onRemove: () => setPageName(""),
+      });
+    }
+    if (domain) {
+      chips.push({
+        id: "domain",
+        label: `Domain: ${domain}`,
+        onRemove: () => setDomain(""),
+      });
     }
     if (selectedLevel) {
       chips.push({ id: "level", label: selectedLevel, onRemove: () => setSelectedLevel("") });
@@ -280,17 +371,35 @@ export default function FacebookAdsPage() {
       chips.push({ id: "funnel", label: `Phễu: ${selectedFunnels.join(", ")}`, onRemove: () => setSelectedFunnels([]) });
     }
     if (minScore || maxScore) {
-      chips.push({ id: "score", label: `Điểm: ${minScore || 0} - ${maxScore || "max"}`, onRemove: () => { setMinScore(""); setMaxScore(""); } });
+      chips.push({
+        id: "score",
+        label: `Điểm: ${minScore || 0} - ${maxScore || "max"}`,
+        onRemove: () => {
+          setMinScore("");
+          setMaxScore("");
+        },
+      });
     }
     if (publicDateFrom || publicDateTo) {
-      chips.push({ id: "date", label: `Ngày: ${publicDateFrom || "..."} → ${publicDateTo || "..."}`, onRemove: () => { setPublicDateFrom(""); setPublicDateTo(""); } });
+      chips.push({
+        id: "date",
+        label: `Ngày: ${publicDateFrom || "..."} → ${publicDateTo || "..."}`,
+        onRemove: () => {
+          setPublicDateFrom("");
+          setPublicDateTo("");
+        },
+      });
     }
     if (minTrendingScore) {
       chips.push({ id: "trending", label: `Trending ≥ ${minTrendingScore}`, onRemove: () => setMinTrendingScore("") });
     }
     return chips;
   }, [
+    selectedPreset,
     selectedCountry,
+    isActive,
+    pageName,
+    domain,
     selectedLevel,
     scalingLevel,
     selectedSpends,
@@ -302,48 +411,51 @@ export default function FacebookAdsPage() {
     minTrendingScore,
   ]);
 
-  const { searchFacebookAds, loading, error, data } = useFacebookAdsSearch();
-
-  const [results, setResults] = useState<any[]>([]);
-  const [selectedAd, setSelectedAd] = useState<any | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
-
   const normalizeAdForModal = (ad: any) => {
-    const imageItem = ad?.images?.[0];
-    const videoItem = ad?.videos?.[0];
+    const images = Array.isArray(ad?.images) ? ad.images : [];
+    const videos = Array.isArray(ad?.videos) ? ad.videos : [];
+    const snapshot = ad?.snapshot || {};
+
+    const imageItem = images.length > 0 ? images[0] : (snapshot?.images?.[0] || undefined);
+    const videoItem = videos.length > 0 ? videos[0] : (snapshot?.videos?.[0] || undefined);
+
     const mediaUrl =
       imageItem?.resized_image_url ||
       imageItem?.original_image_url ||
       imageItem?.watermarked_resized_image_url ||
       videoItem?.video_hd_url ||
-      videoItem?.video_sd_url;
+      videoItem?.video_sd_url ||
+      snapshot?.page_profile_picture_url ||
+      ad?.thumbnail_local;
+
     const mediaType = videoItem?.video_hd_url || videoItem?.video_sd_url ? "video" : "image";
     const attachment = mediaUrl
-      ? [{
-        media_url: mediaUrl,
-        media_poster_url: imageItem?.resized_image_url || imageItem?.original_image_url || undefined,
-        media_url_type: mediaType,
-        title: ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
-        description: ad?.text || ad?.description || "",
-      }]
+      ? [
+        {
+          media_url: mediaUrl,
+          media_poster_url: imageItem?.resized_image_url || imageItem?.original_image_url || undefined,
+          media_url_type: mediaType,
+          title: ad?.headline || ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
+          description: ad?.text || ad?.description || snapshot?.body?.text || "",
+        },
+      ]
       : [];
 
     return {
       ...ad,
-      page_name: ad?.page_name || "Facebook Ad",
-      page_profile_image_url: ad?.page_profile_image_url,
-      text: ad?.text || ad?.description || "",
-      link: ad?.link || ad?.link_url || null,
+      page_name: ad?.page_name || snapshot?.page_name || "Facebook Ad",
+      page_profile_image_url: ad?.page_profile_image_url || snapshot?.page_profile_picture_url,
+      text: ad?.text || ad?.description || snapshot?.body?.text || "",
+      link: ad?.link || ad?.link_url || snapshot?.link_url || null,
       attachments: attachment,
       snapshot: {
-        ...(ad?.snapshot || {}),
-        page_name: ad?.page_name || "Facebook Ad",
-        page_profile_picture_url: ad?.page_profile_image_url,
-        title: ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
-        body: { text: ad?.text || ad?.description || "" },
-        link_url: ad?.link || ad?.link_url || null,
-        videos: ad?.videos || [],
+        ...snapshot,
+        page_name: ad?.page_name || snapshot?.page_name || "Facebook Ad",
+        page_profile_picture_url: ad?.page_profile_image_url || snapshot?.page_profile_picture_url,
+        title: ad?.headline || ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
+        body: { text: ad?.text || ad?.description || snapshot?.body?.text || "" },
+        link_url: ad?.link || ad?.link_url || snapshot?.link_url || null,
+        videos: videos.length > 0 ? videos : snapshot?.videos || [],
         cards: attachment,
       },
     };
@@ -375,20 +487,19 @@ export default function FacebookAdsPage() {
     }
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 20;
-
   useEffect(() => {
     if (user) {
-      // Pass isInitialLoad = true so initial feed display on mount does not deduct quota
       executeSearch(true);
     }
-  }, [currentPage]);
+  }, [currentPage, selectedPreset, sortBy, sortOrder]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Chức năng Facebook Ads sẽ chính thức ra mắt vào ngày 01/11/2026. Mời bạn trải nghiệm YouTube Ads trong thời gian này nhé!");
+    if (currentPage === 1) {
+      executeSearch(false);
+    } else {
+      setCurrentPage(1);
+    }
   };
 
   const executeSearch = async (isInitialLoad: boolean = false) => {
@@ -401,17 +512,26 @@ export default function FacebookAdsPage() {
     params.append("limit", itemsPerPage.toString());
 
     if (searchQueryRef.current?.value) params.append("text", searchQueryRef.current.value);
+    if (selectedPreset) params.append("filter", selectedPreset);
     if (selectedCountry) params.append("country", selectedCountry);
+    if (isActive) params.append("is_active", isActive);
+    if (pageName) params.append("page_name", pageName);
+    if (domain) params.append("domain", domain);
     if (publicDateFrom) params.append("date_from", publicDateFrom);
     if (publicDateTo) params.append("date_to", publicDateTo);
     if (minScore) params.append("min_score", minScore);
     if (maxScore) params.append("max_score", maxScore);
     if (selectedLevel) params.append("level", selectedLevel);
-
     if (selectedSpends.length > 0) params.append("estimated_spend", selectedSpends.join(","));
     if (minTrendingScore) params.append("min_trending_score", minTrendingScore);
     if (selectedFunnels.length > 0) params.append("funnel", selectedFunnels.join(","));
     if (scalingLevel) params.append("scaling_level", scalingLevel);
+    // Khi có preset được chọn mà người dùng chưa đổi sort thủ công,
+    // hãy để backend dùng sort tự nhiên của preset để tối ưu hiệu năng
+    if (isSortExplicit || !selectedPreset) {
+      if (sortBy) params.append("sort_by", sortBy);
+      if (sortOrder) params.append("sort_order", sortOrder.toString());
+    }
 
     try {
       const result = await searchFacebookAds({ queryString: params.toString() });
@@ -439,12 +559,8 @@ export default function FacebookAdsPage() {
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <Header />
         <main className="container py-12">
-          <Card className="max-w-md mx-auto border-2 border-amber-300 bg-white shadow-xl rounded-2xl">
+          <Card className="max-w-md mx-auto border border-slate-200 bg-white shadow-xl rounded-2xl">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-slate-950 text-xs sm:text-sm font-black mb-5 shadow-sm animate-pulse">
-                <Sparkles className="h-4 w-4 fill-slate-950" />
-                CHÍNH THỨC RA MẮT: 01/11
-              </div>
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-6 border border-indigo-100">
                 <LogIn className="h-8 w-8" />
               </div>
@@ -452,7 +568,7 @@ export default function FacebookAdsPage() {
                 Đăng nhập để tìm kiếm Facebook Ads - ADS Spy Tool
               </h3>
               <p className="mb-6 text-sm text-slate-500">
-                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm quảng cáo Facebook (Chính thức mở ngày 01/11/2026).
+                Bạn cần đăng nhập để sử dụng tính năng tìm kiếm và phân tích quảng cáo Facebook.
               </p>
               <Button asChild className="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-200 w-full max-w-[200px] transition-all">
                 <a href="/login">
@@ -468,26 +584,32 @@ export default function FacebookAdsPage() {
   }
 
   return (
-    // 📌 Chuyển vùng nội dung sang Light Theme
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero Banner Slider */}
       <HeroSlider />
 
       <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
-        <div className="grid gap-8 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)] items-start">
-
-          {/* Vùng chứa bộ lọc - Chuyển sang Light Theme tối ưu UI/UX */}
+        <div className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)] items-start">
+          {/* Vùng chứa bộ lọc Sidebar -  Standard */}
           <div className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             <AdsSpyFilterPanel
-              title="Bộ lọc Facebook Ads"
+              title="Bộ lọc Facebook Ads ()"
               activeCount={activeFilterCount}
               onClear={handleClearAllFilters}
             >
               <FacebookAdsFilters
+                selectedPreset={selectedPreset}
+                setSelectedPreset={(val) => {
+                  setSelectedPreset(val);
+                  setCurrentPage(1);
+                }}
                 selectedCountry={selectedCountry}
-                setSelectedCountry={setSelectedCountry}
+                setSelectedCountry={(c) => {
+                  setSelectedCountry(c);
+                  setCurrentPage(1);
+                }}
                 publicDateFrom={publicDateFrom}
                 setPublicDateFrom={setPublicDateFrom}
                 publicDateTo={publicDateTo}
@@ -506,60 +628,48 @@ export default function FacebookAdsPage() {
                 setSelectedFunnels={setSelectedFunnels}
                 scalingLevel={scalingLevel}
                 setScalingLevel={setScalingLevel}
+                isActive={isActive}
+                setIsActive={setIsActive}
+                pageName={pageName}
+                setPageName={setPageName}
+                domain={domain}
+                setDomain={setDomain}
+                filterStats={filterStats}
               />
             </AdsSpyFilterPanel>
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-6">
             {/* Search Quota Badge */}
-            <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <SearchQuotaBadge quota={quota} onUpgradeClick={openUpgradeModal} />
             </div>
 
-            {/* Launch Announcement Banner */}
-            <div className="mb-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-50 via-indigo-50 to-purple-50 border-2 border-amber-300 shadow-md shadow-amber-500/10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-400/30">
-                    <Sparkles className="h-7 w-7 fill-slate-950" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400 text-slate-950 text-xs sm:text-sm font-black shadow-sm animate-pulse tracking-wide">
-                        🚀 SẮP RA MẮT
-                      </span>
-                      <span className="font-extrabold text-slate-900 text-base sm:text-lg">
-                        Chức năng Facebook Ads sẽ chính thức mở vào ngày{" "}
-                        <span className="inline-block text-2xl sm:text-3xl font-black text-indigo-600 bg-amber-100/80 px-2.5 py-0.5 rounded-xl border border-amber-300">
-                          01/11
-                        </span>
-                      </span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
-                      Hệ thống đang được đội ngũ kỹ sư kết nối kho dữ liệu quảng cáo Facebook & Instagram toàn cầu. Mời bạn trải nghiệm trước tính năng Thư Viện YouTube Ads.
-                    </p>
-                  </div>
-                </div>
-                <Button asChild size="default" className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md font-bold h-11 px-5 cursor-pointer">
-                  <Link href="/mkt">
-                    <span>Xem YouTube Ads</span>
-                    <ArrowRight className="ml-1.5 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
+            {/* 🚀  Preset Quick Bar */}
+            <PresetTabs
+              currentPreset={selectedPreset}
+              onSelectPreset={(preset) => {
+                setSelectedPreset(preset);
+                setCurrentPage(1);
+              }}
+              stats={filterStats}
+            />
 
-            {/* Search Bar - Light Theme */}
-            <form onSubmit={handleSearchSubmit} className="mb-6 flex flex-col sm:flex-row gap-3">
+            {/* Search Bar - Modern White Card */}
+            <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
-                  placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết ..."
+                  placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết..."
                   className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
                 />
               </div>
-              <Button type="submit" disabled={loading} className="w-full sm:w-auto shrink-0 h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all font-semibold">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto shrink-0 h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all font-bold"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -574,74 +684,71 @@ export default function FacebookAdsPage() {
               </Button>
             </form>
 
-            {/* Results Container Section */}
+            {/* Results Toolbar with  Sorting */}
             <section>
               <AdsSpyResultsToolbar
-                title="Thư viện quảng cáo Facebook"
-                subtitle="Khám phá và Nghiên cứu các chiến dịch quảng cáo Facebook & Instagram toàn cầu"
+                title="Thư viện Facebook Ads"
+                subtitle="Nghiên cứu & Khám phá các chiến dịch quảng cáo Facebook, Instagram bùng nổ doanh số"
                 count={results.length}
                 activeChips={activeChips}
                 onClearAll={handleClearAllFilters}
-              />
+              >
+                {/* Sort Controller */}
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={sortBy}
+                    onValueChange={(val) => {
+                      setSortBy(val);
+                      setIsSortExplicit(true);
+                    }}
+                  >
+                    <SelectTrigger className="h-9 text-xs bg-white border-slate-200 text-slate-800 rounded-xl shadow-2xs font-medium w-[210px] sm:w-[230px]">
+                      <SelectValue placeholder="Sắp xếp theo" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 text-slate-800 text-xs shadow-xl">
+                      {SORT_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="text-xs cursor-pointer">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSortOrder((prev) => (prev === -1 ? 1 : -1));
+                      setIsSortExplicit(true);
+                    }}
+                    title={sortOrder === -1 ? "Thứ tự: Giảm dần" : "Thứ tự: Tăng dần"}
+                    className="h-9 px-3 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold"
+                  >
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                    {sortOrder === -1 ? "Giảm dần" : "Tăng dần"}
+                  </Button>
+                </div>
+              </AdsSpyResultsToolbar>
+
               {loading ? (
                 <div className="flex justify-center items-center py-20">
                   <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
                 </div>
               ) : (
-                <div className="mt-6">
+                <div className="mt-4">
                   {results.length === 0 ? (
-                    <Card className="overflow-hidden border-2 border-amber-300 bg-gradient-to-b from-white via-amber-50/20 to-indigo-50/30 shadow-2xl shadow-indigo-500/10 rounded-3xl mt-4">
-                      <div className="p-8 sm:p-14 text-center max-w-2xl mx-auto">
-                        <div className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 font-black text-base sm:text-lg tracking-wide shadow-xl shadow-amber-400/30 mb-6 animate-pulse">
-                          <Sparkles className="h-6 w-6 fill-slate-950" />
-                          HẸN NGÀY RA MẮT CHÍNH THỨC: <span className="text-3xl sm:text-4xl font-black underline decoration-4 underline-offset-4 ml-1.5">01/11</span>
+                    <Card className="border border-slate-200 bg-white shadow-sm rounded-2xl mt-4">
+                      <div className="p-10 sm:p-14 text-center max-w-md mx-auto">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mx-auto mb-4">
+                          <Search className="h-8 w-8" />
                         </div>
-
-                        <h3 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                          Tính Năng Facebook Ads Spy Sắp Xuất Hiện
+                        <h3 className="text-lg font-bold text-slate-900">
+                          Chưa có kết quả tìm kiếm
                         </h3>
-
-                        <p className="text-base sm:text-lg text-slate-600 mt-4 leading-relaxed">
-                          Chức năng này sẽ được <strong className="text-indigo-600 font-black text-lg sm:text-xl">ra mắt chính thức vào ngày 01/11/2026</strong>. Đội ngũ kỹ sư đang hoàn thiện hạ tầng dữ liệu để mang tới cho bạn khả năng soi ngân sách, kịch bản video và sản phẩm win trên Facebook & Instagram Ads.
+                        <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                          Thử chọn chiến lược  (Ads mới lên, Sẵn sàng Scale, Weekly Winner) hoặc thay đổi từ khóa/bộ lọc quốc gia để tìm thêm quảng cáo.
                         </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8 text-left">
-                          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                            <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm mb-2">
-                              50k+
-                            </div>
-                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Mẫu Ads mới/ngày</h4>
-                            <p className="text-[11px] text-slate-500 mt-1">Cập nhật liên tục từ thị trường US, VN, SEA</p>
-                          </div>
-                          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                            <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm mb-2">
-                              🎯
-                            </div>
-                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Bộ lọc WINNER Ads</h4>
-                            <p className="text-[11px] text-slate-500 mt-1">Phát hiện camp vít ngân sách lớn, scaling mạnh</p>
-                          </div>
-                          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                            <div className="h-8 w-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm mb-2">
-                              📊
-                            </div>
-                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Ước tính Spend & Reach</h4>
-                            <p className="text-[11px] text-slate-500 mt-1">Đo lường ngân sách chi tiêu và ngày chạy</p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                          <Button asChild size="lg" className="w-full sm:w-auto h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold shadow-lg shadow-indigo-600/25 cursor-pointer">
-                            <Link href="/mkt">
-                              <span>Trải nghiệm Thư viện YouTube Ads</span>
-                              <ArrowRight className="ml-2 h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-12 rounded-xl border-slate-300 font-semibold hover:bg-slate-100 cursor-pointer">
-                            <Link href="/quicksearch">
-                              Dùng thử QuickSearch
-                            </Link>
-                          </Button>
-                        </div>
                       </div>
                     </Card>
                   ) : (
@@ -656,32 +763,32 @@ export default function FacebookAdsPage() {
                     </div>
                   )}
 
-                  {/* Server-Side Pagination Controller - Light Theme */}
+                  {/* Server-Side Pagination Controller */}
                   {totalPages > 1 && (
                     <div className="flex justify-center items-center gap-4 mt-10">
                       <Button
                         variant="outline"
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl"
                       >
                         Trang trước
                       </Button>
-                      <span className="text-sm font-medium text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-md shadow-sm">
+                      <span className="text-sm font-semibold text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-xs">
                         Trang {currentPage} / {totalPages}
                       </span>
                       <Button
                         variant="outline"
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl"
                       >
                         Trang sau
                       </Button>
                     </div>
                   )}
 
-                  {/* Detail Info Modal View */}
+                  {/* Detail Info Modal View with exam_res.txt data */}
                   {selectedAd && (
                     <FacebookAdDetailModal
                       open={modalOpen}
@@ -712,7 +819,7 @@ export default function FacebookAdsPage() {
 
       <footer className="border-t border-slate-200 py-8 mt-12 bg-white">
         <div className="container text-center text-sm text-slate-500">
-          <p>© 2026 Ads Spy Tool. Dữ liệu phân tích quảng cáo chuyên sâu.</p>
+          <p>© 2026 Ads Spy Tool. Dữ liệu phân tích quảng cáo chuyên sâu theo chuẩn .</p>
         </div>
       </footer>
     </div>
