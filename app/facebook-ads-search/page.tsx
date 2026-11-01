@@ -487,11 +487,21 @@ export default function FacebookAdsPage() {
     }
   };
 
+  const handleFilterByPage = useCallback((targetPageName: string) => {
+    if (!targetPageName || targetPageName === "Facebook Ad") return;
+    setPageName(targetPageName);
+    setCurrentPage(1);
+    toast.success(`Đang lọc quảng cáo của Fanpage: "${targetPageName}" (tối đa 20 ads/trang)`);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 520, behavior: "smooth" });
+    }
+  }, []);
+
   useEffect(() => {
     if (user) {
       executeSearch(true);
     }
-  }, [currentPage, selectedPreset, sortBy, sortOrder]);
+  }, [currentPage, selectedPreset, sortBy, sortOrder, pageName]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -758,6 +768,7 @@ export default function FacebookAdsPage() {
                           key={ad.ad_archive_id || ad._id || ad.id || idx}
                           ad={ad}
                           onClick={() => handleAdClick(ad)}
+                          onFilterByPage={handleFilterByPage}
                         />
                       ))}
                     </div>
@@ -801,6 +812,7 @@ export default function FacebookAdsPage() {
                       }}
                       ad={selectedAd}
                       loading={detailLoading}
+                      onFilterByPage={handleFilterByPage}
                     />
                   )}
                 </div>

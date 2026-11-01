@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { facebookAdsCache } from "@/lib/cache/facebook-ads-cache";
 
 const SEARCH_API_URL = (process.env.SEARCH_API_URL || "http://192.168.0.125:80").replace(/\/+$/, "");
 const INTERNAL_SECRET_HEADER = "x-fb-internal-token";
@@ -6,10 +7,40 @@ const INTERNAL_SECRET_VALUE = process.env.INTERNAL_API_TOKEN || "fb-analyzer-sec
 
 export async function GET(request: NextRequest) {
   try {
-    const queryString = request.nextUrl.searchParams.toString();
+    const searchParams = new URLSearchParams(request.nextUrl.searchParams);
+
+    // 🔒 Bắt buộc giới hạn tối đa 20 items / trang (limit <= 20)
+    const rawLimit = parseInt(searchParams.get("limit") || "20", 10);
+    const safeLimit = Math.min(Math.max(rawLimit || 20, 1), 20);
+    searchParams.set("limit", String(safeLimit));
+
+    // ⚡ Kiểm tra Cache 10 giờ tại tầng Next.js
+    const cacheKey = facebookAdsCache.createSearchKey(searchParams);
+    const cachedEntry = await facebookAdsCache.get<any>(cacheKey);
+
+    if (cachedEntry) {
+      return NextResponse.json(
+        {
+          ...cachedEntry.data,
+          cached: true,
+          cached_at: cachedEntry.cachedAt,
+          expires_at: cachedEntry.expiresAt,
+        },
+        {
+          status: 200,
+          headers: {
+            "X-Cache": "HIT",
+            "X-Cache-Expires-At": new Date(cachedEntry.expiresAt).toISOString(),
+          },
+        }
+      );
+    }
+
+    // 🌐 Cache MISS -> Chuyển tiếp request sang Backend Search API
+    const queryString = searchParams.toString();
     const targetUrl = `${SEARCH_API_URL}/api/ads/search${queryString ? `?${queryString}` : ""}`;
 
-    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000; // 60 giây timeout để xử lý các truy vấn quét dữ liệu lớn
+    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000; // 60 giây timeout
     const res = await fetch(targetUrl, {
       method: "GET",
       headers: {
@@ -20,7 +51,17 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json().catch(() => ({ success: false, error: "Invalid proxy response" }));
 
-    return NextResponse.json(data, { status: res.status });
+    // Chỉ lưu vào Cache khi Backend trả về thành công 200 và success === true
+    if (res.status === 200 && data?.success) {
+      await facebookAdsCache.set(cacheKey, data);
+    }
+
+    return NextResponse.json(data, {
+      status: res.status,
+      headers: {
+        "X-Cache": "MISS",
+      },
+    });
   } catch (error: any) {
     const isTimeout = error?.name === "TimeoutError" || error?.name === "AbortError";
     const errorMessage = isTimeout
@@ -31,4 +72,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, message: errorMessage, error: errorMessage }, { status: 500 });
   }
 }
-

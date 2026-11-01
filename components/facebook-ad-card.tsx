@@ -22,9 +22,10 @@ import {
 interface FacebookAdCardProps {
   ad: any;
   onClick?: () => void;
+  onFilterByPage?: (pageName: string) => void;
 }
 
-export function FacebookAdCard({ ad, onClick }: FacebookAdCardProps) {
+export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardProps) {
   const images = Array.isArray(ad?.images) ? ad.images : [];
   const videos = Array.isArray(ad?.videos) ? ad.videos : [];
   const snapshot = ad?.snapshot || {};
@@ -66,6 +67,12 @@ export function FacebookAdCard({ ad, onClick }: FacebookAdCardProps) {
   const link = ad?.link || ad?.link_url || snapshot?.link_url || "";
   const pageName = ad?.page_name || snapshot?.page_name || "Facebook Ad";
   const pageProfile = ad?.page_profile_image_url || snapshot?.page_profile_picture_url;
+  const pageId = ad?.page_id || snapshot?.page_id;
+  const fbPageUrl =
+    snapshot?.page_profile_uri ||
+    ad?.page_profile_uri ||
+    (pageId ? `https://www.facebook.com/${pageId}` : null) ||
+    (pageName && pageName !== "Facebook Ad" ? `https://www.facebook.com/search/top?q=${encodeURIComponent(pageName)}` : null);
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
 
   // Format Helper for USD
@@ -180,19 +187,50 @@ export function FacebookAdCard({ ad, onClick }: FacebookAdCardProps) {
         {/* Card Body */}
         <div className="flex flex-1 flex-col p-4">
           {/* Page Info & Title */}
-          <div className="flex items-center gap-2 mb-2">
-            {pageProfile ? (
-              <img
-                src={pageProfile}
-                alt={pageName}
-                className="w-6 h-6 rounded-full object-cover border border-slate-200 shrink-0"
-              />
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                FB
-              </div>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2 min-w-0">
+              {pageProfile ? (
+                <img
+                  src={pageProfile}
+                  alt={pageName}
+                  className="w-6 h-6 rounded-full object-cover border border-slate-200 shrink-0"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                  FB
+                </div>
+              )}
+              {onFilterByPage ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFilterByPage(pageName);
+                  }}
+                  className="text-xs font-semibold text-slate-700 hover:text-indigo-600 truncate hover:underline text-left cursor-pointer transition-colors"
+                  title={`Lọc ads của Fanpage "${pageName}" (tối đa 20 ads/trang)`}
+                >
+                  {pageName}
+                </button>
+              ) : (
+                <p className="text-xs font-semibold text-slate-600 truncate">{pageName}</p>
+              )}
+            </div>
+
+            {/* Direct Link to Facebook Fanpage */}
+            {fbPageUrl && (
+              <a
+                href={fbPageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 transition-colors border border-blue-200/60 shrink-0 cursor-pointer shadow-2xs"
+                title={`Mở Fanpage "${pageName}" trên Facebook`}
+              >
+                <span>Fanpage</span>
+                <ExternalLink className="size-2.5" />
+              </a>
             )}
-            <p className="text-xs font-semibold text-slate-600 truncate">{pageName}</p>
           </div>
 
           <h3 className="line-clamp-2 text-sm font-bold leading-snug text-slate-900 group-hover:text-indigo-600 transition-colors">

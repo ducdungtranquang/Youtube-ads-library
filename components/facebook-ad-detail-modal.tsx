@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,7 @@ interface FacebookAdDetailModalProps {
   onOpenChange: (open: boolean) => void;
   ad: any;
   loading?: boolean;
+  onFilterByPage?: (pageName: string) => void;
 }
 
 export function FacebookAdDetailModal({
@@ -55,11 +56,18 @@ export function FacebookAdDetailModal({
   onOpenChange,
   ad,
   loading = false,
+  onFilterByPage,
 }: FacebookAdDetailModalProps) {
   const [expanded, setExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [activeTab, setActiveTab] = useState("estimates");
+
+  // State quản lý danh sách Ads cùng Page (tối đa 20 size/page theo yêu cầu)
+  const [pageAds, setPageAds] = useState<any[]>([]);
+  const [pageAdsLoading, setPageAdsLoading] = useState(false);
+  const [pageAdsTotal, setPageAdsTotal] = useState<number>(0);
+  const [pageAdsPage, setPageAdsPage] = useState(1);
 
   const snapshot = ad?.snapshot ?? {};
 
@@ -130,7 +138,46 @@ export function FacebookAdDetailModal({
 
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
   const adLibraryUrl = ad?.ad_library_url || (itemId ? `https://www.facebook.com/ads/library/?id=${itemId}` : null);
+  const pageId = ad?.page_id || snapshot?.page_id;
   const pageProfileUri = snapshot?.page_profile_uri || ad?.page_profile_uri;
+  const fbPageUrl =
+    pageProfileUri ||
+    (pageId ? `https://www.facebook.com/${pageId}` : null) ||
+    (pageName && pageName !== "Facebook Ad" ? `https://www.facebook.com/search/top?q=${encodeURIComponent(pageName)}` : null);
+
+  // Tự động tải danh sách quảng cáo của cùng Fanpage (giới hạn tối đa 20 ads/trang)
+  useEffect(() => {
+    if (!open || !pageName || pageName === "Facebook Ad") {
+      setPageAds([]);
+      setPageAdsTotal(0);
+      setPageAdsPage(1);
+      return;
+    }
+
+    let isMounted = true;
+    async function loadPageAds() {
+      setPageAdsLoading(true);
+      try {
+        const res = await fetch(`/api/pages/${encodeURIComponent(pageName)}/ads?page=${pageAdsPage}&limit=20`);
+        const json = await res.json();
+        if (isMounted && json?.success && Array.isArray(json?.data)) {
+          setPageAds(json.data);
+          if (json?.pagination?.total != null) {
+            setPageAdsTotal(json.pagination.total);
+          }
+        }
+      } catch (err) {
+        console.warn("Lỗi khi tải quảng cáo của page:", err);
+      } finally {
+        if (isMounted) setPageAdsLoading(false);
+      }
+    }
+
+    loadPageAds();
+    return () => {
+      isMounted = false;
+    };
+  }, [open, pageName, pageAdsPage]);
 
   let linkDomain = ad?.domain || snapshot?.domain || ad?.link_url_domain;
   if (!linkDomain && link) {
@@ -282,6 +329,35 @@ export function FacebookAdDetailModal({
               className="h-9 w-9 rounded-full border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700"
             />
 
+            {fbPageUrl && (
+              <Button
+                asChild
+                variant="outline"
+                className="hidden md:inline-flex h-9 rounded-xl border-blue-200 bg-blue-50/70 text-xs font-semibold text-blue-700 hover:bg-blue-100 hover:text-blue-800 shadow-2xs cursor-pointer"
+              >
+                <a href={fbPageUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5 text-blue-600" />
+                  Fanpage Facebook
+                </a>
+              </Button>
+            )}
+
+            {onFilterByPage && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  onFilterByPage(pageName);
+                  onOpenChange(false);
+                }}
+                className="hidden lg:inline-flex h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200/80 cursor-pointer shadow-2xs"
+                title={`Xem toàn bộ ads của ${pageName} trên trang tìm kiếm (tối đa 20 ads/trang)`}
+              >
+                <Layers className="mr-1.5 size-3.5 text-indigo-600" />
+                Lọc ads của Page (20/trang)
+              </Button>
+            )}
+
             {adLibraryUrl && (
               <Button
                 asChild
@@ -332,7 +408,8 @@ export function FacebookAdDetailModal({
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 lg:grid-cols-12 items-start">
+            <div className="space-y-6">
+              <div className="grid gap-6 lg:grid-cols-12 items-start">
               {/* CỘT TRÁI (7 CỘT): CREATIVE FACEBOOK FEED + THÔNG BÁO VIDEO */}
               <div className="lg:col-span-7 space-y-5">
                 {/* 📌 THÔNG BÁO KỸ THUẬT VỀ VIDEO (NẾU LÀ VIDEO AD) */}
@@ -830,7 +907,178 @@ export function FacebookAdDetailModal({
                 )}
               </div>
             </div>
-          )}
+
+            {/* PHÂN KHU HIỂN THỊ CÁC QUẢNG CÁO CỦA CÙNG FANPAGE (Limit tối đa 20 ads/trang - Cache 10h) */}
+            <div className="rounded-3xl border-2 border-indigo-100 bg-slate-50/70 p-5 sm:p-6 space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-indigo-600 text-white shadow-xs">
+                    <Layers className="size-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 flex-wrap">
+                      Quảng cáo từ cùng Fanpage: {pageName}
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+                        {pageAdsTotal > 0 ? `${pageAdsTotal} ads` : `${pageAds.length} ads`}
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Giới hạn tối đa 20 ads / trang • Tự động Cache 10 giờ tại Next.js layer
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {fbPageUrl && (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl border-blue-200 bg-white text-blue-700 hover:bg-blue-50 text-xs font-semibold h-8"
+                    >
+                      <a href={fbPageUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-1.5 size-3 text-blue-600" />
+                        Mở Fanpage trên Facebook
+                      </a>
+                    </Button>
+                  )}
+
+                  {onFilterByPage && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        onFilterByPage(pageName);
+                        onOpenChange(false);
+                      }}
+                      className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold h-8 cursor-pointer"
+                    >
+                      Lọc trên trang chính
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {pageAdsLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="size-7 animate-spin text-indigo-600" />
+                  <p className="text-xs font-medium">Đang tải danh sách quảng cáo của Page (tối đa 20 ads)...</p>
+                </div>
+              ) : pageAds.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200 p-4">
+                  Không tìm thấy thêm quảng cáo nào khác của Fanpage này trong kho dữ liệu hiện tại.
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+                    {pageAds.map((pAd, idx) => {
+                      const pImg = pAd?.images?.[0]?.resized_image_url || pAd?.images?.[0]?.original_image_url || pAd?.thumbnail_local;
+                      const pSpend = pAd?.estimated_spend_usd != null ? formatCurrency(pAd.estimated_spend_usd) : null;
+                      const pScore = pAd?.score;
+                      const pId = pAd?.ad_archive_id;
+                      const pFbLib = pAd?.ad_library_url || (pId ? `https://www.facebook.com/ads/library/?id=${pId}` : null);
+
+                      return (
+                        <div
+                          key={pId || idx}
+                          className="group/item flex flex-col justify-between p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-400 hover:shadow-md transition-all text-xs"
+                        >
+                          <div className="space-y-2">
+                            {/* Media Thumbnail */}
+                            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center">
+                              {pImg ? (
+                                <img
+                                  src={pImg}
+                                  alt="Ad thumbnail"
+                                  className="w-full h-full object-cover transition-transform group-hover/item:scale-105"
+                                />
+                              ) : (
+                                <div className="text-[10px] text-slate-400 flex flex-col items-center gap-1 p-2 text-center">
+                                  <AlertTriangle className="size-3.5 text-amber-400" />
+                                  <span>Xem trên Ad Library</span>
+                                </div>
+                              )}
+
+                              <div className="absolute top-1.5 left-1.5">
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                                    pAd?.is_active
+                                      ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                                      : "bg-slate-900/80 text-slate-400"
+                                  }`}
+                                >
+                                  <span className={`size-1 rounded-full ${pAd?.is_active ? "bg-emerald-400" : "bg-slate-400"}`} />
+                                  {pAd?.is_active ? "Active" : "Paused"}
+                                </span>
+                              </div>
+
+                              {pScore != null && (
+                                <div className="absolute top-1.5 right-1.5">
+                                  <span className="rounded-full bg-indigo-600/90 text-white text-[9px] font-black px-1.5 py-0.5 shadow-xs">
+                                    Score: {pScore}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Ad Text snippet */}
+                            <p className="line-clamp-2 text-[11px] text-slate-700 font-medium leading-relaxed">
+                              {pAd?.text || "Quảng cáo Facebook"}
+                            </p>
+                          </div>
+
+                          {/* Footer stats & link */}
+                          <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1 text-[10px] text-slate-500">
+                            <span className="font-bold text-slate-900">
+                              {pSpend ? `Spend: ${pSpend}` : formatTimestamp(pAd?.start_date)}
+                            </span>
+
+                            {pFbLib && (
+                              <a
+                                href={pFbLib}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-0.5 font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                              >
+                                Library <ExternalLink className="size-2.5" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination for Page Ads (tối đa 20 ads / page) */}
+                  {pageAdsTotal > 20 && (
+                    <div className="flex items-center justify-center gap-3 pt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pageAdsPage === 1}
+                        onClick={() => setPageAdsPage((prev) => Math.max(prev - 1, 1))}
+                        className="h-8 text-xs rounded-xl bg-white border-slate-200 cursor-pointer"
+                      >
+                        Trang trước
+                      </Button>
+                      <span className="text-xs font-semibold text-slate-600 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                        Trang {pageAdsPage} / {Math.ceil(pageAdsTotal / 20)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={pageAdsPage >= Math.ceil(pageAdsTotal / 20)}
+                        onClick={() => setPageAdsPage((prev) => prev + 1)}
+                        className="h-8 text-xs rounded-xl bg-white border-slate-200 cursor-pointer"
+                      >
+                        Trang sau
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
         </div>
       </DialogContent>
     </Dialog>

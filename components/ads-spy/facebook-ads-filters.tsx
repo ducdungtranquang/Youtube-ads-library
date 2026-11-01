@@ -24,6 +24,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { CountrySelect } from "./country-select";
+import { ReleaseCountdownFilterCard } from "@/components/countdown";
 
 const levels = [
   { value: "ALL", label: "Tất cả cấp độ" },
@@ -123,6 +124,9 @@ export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
 
   return (
     <div className="space-y-5 text-slate-800">
+      {/* ⏳ Bộ đếm ngược thời gian Release 23:00 tối nay */}
+      <ReleaseCountdownFilterCard />
+
       {/* 🚀  PRESETS (Winning Ads Presets) */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
