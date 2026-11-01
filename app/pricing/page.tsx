@@ -10,7 +10,6 @@ import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users, Loader
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
 import { BILLING_CYCLES, BillingCycle } from "@/lib/subscription-plans"
-import { ReleaseCountdownPricingBanner } from "@/components/countdown"
 
 export default function PricingPage() {
   const router = useRouter()
@@ -147,9 +146,6 @@ export default function PricingPage() {
       </section>
 
       <main className="container py-12 -mt-10 relative z-20">
-        {/* Banner đếm ngược thời gian mở cổng thanh toán & Facebook Ads */}
-        <ReleaseCountdownPricingBanner />
-
         {/* Billing Cycle Switcher */}
         <div className="flex flex-col items-center justify-center mb-12 max-w-2xl mx-auto px-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50/90 border border-indigo-200/80 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-4 shadow-xs">

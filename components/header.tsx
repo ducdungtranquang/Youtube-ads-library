@@ -24,7 +24,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { toast } from "sonner"
-import { ReleaseCountdownTopBar } from "@/components/countdown"
 
 export function Header() {
   const { user, signOut, loading } = useAuth()
@@ -54,7 +53,6 @@ export function Header() {
   ]
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md supports-[backdrop-filter]:bg-slate-950/80">
-      <ReleaseCountdownTopBar />
       <div className="container px-4 md:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
