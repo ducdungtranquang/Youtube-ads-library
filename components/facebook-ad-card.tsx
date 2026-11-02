@@ -18,6 +18,7 @@ import {
   Layers,
   AlertTriangle,
 } from "lucide-react";
+import { getIndustryLabel } from "@/lib/constants/industries";
 
 interface FacebookAdCardProps {
   ad: any;
@@ -280,6 +281,11 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
                 className="text-[10px] font-bold px-2 py-0.5 bg-indigo-50 text-indigo-700 border-indigo-200"
               >
                 {ad.scaling_level}
+              </Badge>
+            )}
+            {ad?.industry && (
+              <Badge variant="outline" className="text-[10px] font-medium px-2 py-0.5 text-slate-600 bg-slate-50 border-slate-200">
+                {getIndustryLabel(ad.industry)}
               </Badge>
             )}
             {ad?.cta && (

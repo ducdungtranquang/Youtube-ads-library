@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,9 +39,13 @@ import {
   Store,
   Info,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getIndustryLabel } from "@/lib/constants/industries";
 
 interface FacebookAdDetailModalProps {
   open: boolean;
@@ -49,6 +53,7 @@ interface FacebookAdDetailModalProps {
   ad: any;
   loading?: boolean;
   onFilterByPage?: (pageName: string) => void;
+  onSelectAd?: (ad: any) => void;
 }
 
 export function FacebookAdDetailModal({
@@ -57,11 +62,18 @@ export function FacebookAdDetailModal({
   ad,
   loading = false,
   onFilterByPage,
+  onSelectAd,
 }: FacebookAdDetailModalProps) {
   const [expanded, setExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [activeTab, setActiveTab] = useState("estimates");
+
+  // State quản lý danh sách Quảng cáo tương tự (Minea Style Scroll ngang)
+  const [similarAds, setSimilarAds] = useState<any[]>(ad?.similar_ads || []);
+  const [similarLoading, setSimilarLoading] = useState(false);
+  const similarScrollRef = useRef<HTMLDivElement>(null);
+  const modalBodyRef = useRef<HTMLDivElement>(null);
 
   // State quản lý danh sách Ads cùng Page (tối đa 20 size/page theo yêu cầu)
   const [pageAds, setPageAds] = useState<any[]>([]);
@@ -90,10 +102,13 @@ export function FacebookAdDetailModal({
   const mediaUrl =
     attachment?.media_url ||
     snapshotVideo?.video_hd_url ||
-    snapshotVideo?.video_sd_url;
+    snapshotVideo?.video_sd_url ||
+    ad?.thumbnail_r2 ||
+    ad?.thumbnail_local;
   const mediaPoster =
     attachment?.media_poster_url ||
     snapshotVideo?.video_preview_image_url ||
+    ad?.thumbnail_r2 ||
     ad?.thumbnail_local;
 
   const pageImage =
@@ -178,6 +193,63 @@ export function FacebookAdDetailModal({
       isMounted = false;
     };
   }, [open, pageName, pageAdsPage]);
+
+  // Quản lý Similar Ads: ưu tiên lấy từ ad.similar_ads hoặc fetch tự động
+  useEffect(() => {
+    if (Array.isArray(ad?.similar_ads) && ad.similar_ads.length > 0) {
+      setSimilarAds(ad.similar_ads);
+      return;
+    }
+
+    if (!open || !itemId) {
+      setSimilarAds([]);
+      return;
+    }
+
+    let isMounted = true;
+    async function fetchSimilar() {
+      setSimilarLoading(true);
+      try {
+        const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}?include_similar=true&similar_limit=15`);
+        const json = await res.json();
+        if (isMounted && json?.success && Array.isArray(json?.similar_ads)) {
+          setSimilarAds(json.similar_ads);
+        }
+      } catch (err) {
+        console.warn("Lỗi khi tải similar ads:", err);
+      } finally {
+        if (isMounted) setSimilarLoading(false);
+      }
+    }
+
+    fetchSimilar();
+    return () => {
+      isMounted = false;
+    };
+  }, [open, itemId, ad?.similar_ads]);
+
+  // Tự động cuộn lên đầu modal khi chuyển sang xem ad khác
+  useEffect(() => {
+    if (modalBodyRef.current) {
+      modalBodyRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [itemId]);
+
+  const handleSelectAd = (targetAd: any) => {
+    if (!targetAd) return;
+    // Cuộn ngay lên đầu modal để user thấy ad mới
+    modalBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (onSelectAd) {
+      onSelectAd(targetAd);
+    }
+  };
+
+  const scrollSimilar = (direction: "left" | "right") => {
+    if (similarScrollRef.current) {
+      const offset = direction === "left" ? -320 : 320;
+      similarScrollRef.current.scrollBy({ left: offset, behavior: "smooth" });
+    }
+  };
 
   let linkDomain = ad?.domain || snapshot?.domain || ad?.link_url_domain;
   if (!linkDomain && link) {
@@ -290,6 +362,12 @@ export function FacebookAdDetailModal({
                   {ad?.is_active ? "Đang chạy (Active)" : "Tạm dừng (Paused)"}
                 </span>
 
+                {ad?.industry && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                    <ShoppingBag className="size-3 text-purple-600" />
+                    {getIndustryLabel(ad.industry)}
+                  </span>
+                )}
 
                 {ad?.scaling_level && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -391,8 +469,8 @@ export function FacebookAdDetailModal({
         </div>
 
         {/* Scrollable Modal Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
-          {loading ? (
+        <div ref={modalBodyRef} className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+          {loading && !pageName && !mediaUrl && !description ? (
             <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
               <div className="flex flex-col items-center gap-3 text-center text-slate-500">
                 <Loader2 className="h-9 w-9 animate-spin text-indigo-600" />
@@ -404,6 +482,19 @@ export function FacebookAdDetailModal({
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Subtle top indicator when updating detail in background */}
+              {loading && (
+                <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-indigo-50/90 border border-indigo-200/80 text-indigo-800 text-xs font-semibold shadow-xs backdrop-blur-sm animate-pulse">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="size-4 animate-spin text-indigo-600 shrink-0" />
+                    <span>Đang cập nhật số liệu phân tích và ước tính chi tiêu chi tiết cho quảng cáo này...</span>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase bg-indigo-200/80 text-indigo-900 px-2 py-0.5 rounded-md font-bold shrink-0">
+                    Đang nạp
+                  </span>
+                </div>
+              )}
+
               <div className="grid gap-6 lg:grid-cols-12 items-start">
               {/* CỘT TRÁI (7 CỘT): CREATIVE FACEBOOK FEED + THÔNG BÁO VIDEO */}
               <div className="lg:col-span-7 space-y-5">
@@ -895,6 +986,212 @@ export function FacebookAdDetailModal({
               </div>
             </div>
 
+            {/* 🚀 PHÂN KHU QUẢNG CÁO TƯƠNG TỰ (SIMILAR ADS - MINEA STYLE HORIZONTAL SCROLL) */}
+            <div className="rounded-3xl border-2 border-indigo-200/90 bg-gradient-to-b from-indigo-50/60 via-white to-white p-5 sm:p-6 space-y-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-indigo-600 text-white shadow-xs">
+                    <Sparkles className="size-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 flex-wrap">
+                      Quảng cáo tương tự (Similar Ads)
+                      {linkDomain ? (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+                          Cùng Domain: {linkDomain}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+                          Cùng Fanpage: {pageName}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                        {similarAds.length} ads liên quan
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Khám phá các mẫu creative đang chạy cùng hệ sinh thái đối thủ • Cuộn ngang (Scroll) để xem tiếp
+                    </p>
+                  </div>
+                </div>
+
+                {/* Nút điều hướng cuộn ngang (Horizontal Scroll Controls) */}
+                <div className="flex items-center gap-1.5 self-end sm:self-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scrollSimilar("left")}
+                    className="h-8 w-8 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
+                    title="Cuộn sang trái"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scrollSimilar("right")}
+                    className="h-8 w-8 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
+                    title="Cuộn sang phải"
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {similarLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="size-7 animate-spin text-indigo-600" />
+                  <p className="text-xs font-medium">Đang tìm kiếm các quảng cáo tương tự...</p>
+                </div>
+              ) : similarAds.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-dashed border-slate-200 p-6">
+                  <Sparkles className="size-6 text-slate-300 mx-auto mb-2" />
+                  Chưa tìm thấy thêm quảng cáo tương tự nào khác cùng Domain hoặc Fanpage trong kho dữ liệu hiện tại.
+                </div>
+              ) : (
+                /* Thanh cuộn ngang (Horizontal Scroll Track) */
+                <div
+                  ref={similarScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent"
+                >
+                  {similarAds.map((simAd, idx) => {
+                    const simImg =
+                      simAd?.thumbnail_r2 ||
+                      simAd?.images?.[0]?.resized_image_url ||
+                      simAd?.images?.[0]?.original_image_url ||
+                      simAd?.thumbnail_local;
+                    const simSpend = simAd?.estimated_spend_usd != null ? formatCurrency(simAd.estimated_spend_usd) : null;
+                    const simId = simAd?.ad_archive_id;
+                    const simFbLib = simAd?.ad_library_url || (simId ? `https://www.facebook.com/ads/library/?id=${simId}` : null);
+                    const simIndustry = getIndustryLabel(simAd?.industry);
+                    const simDuration = simAd?.duration_days;
+                    const simDuplicates = simAd?.duplicates_count;
+
+                    return (
+                      <div
+                        key={simId || idx}
+                        onClick={() => handleSelectAd(simAd)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSelectAd(simAd);
+                          }
+                        }}
+                        className="snap-start shrink-0 w-[240px] sm:w-[260px] rounded-2xl border border-slate-200 bg-white hover:border-indigo-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between overflow-hidden group/sim cursor-pointer select-none active:scale-[0.98] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+                        title={`Xem chi tiết quảng cáo của ${simAd?.page_name || "Facebook Ad"}`}
+                      >
+                        {/* Media Thumbnail */}
+                        <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
+                          {simImg ? (
+                            <img
+                              src={simImg}
+                              alt={simAd?.page_name || "Ad thumbnail"}
+                              className="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 text-[10px] p-2 text-center">
+                              <AlertTriangle className="size-4 text-amber-400 mb-1" />
+                              <span>FB Ads Library</span>
+                            </div>
+                          )}
+
+                          {/* Hover Overlay Hint (Minea style) */}
+                          <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/sim:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white font-bold text-xs backdrop-blur-2xs">
+                            <Eye className="size-4" />
+                            <span>Xem chi tiết Ad</span>
+                          </div>
+
+                          {/* Top Left: Active Status */}
+                          <div className="absolute top-2 left-2 z-10">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold backdrop-blur-md ${
+                                simAd?.is_active
+                                  ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                                  : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
+                              }`}
+                            >
+                              <span className={`size-1 rounded-full ${simAd?.is_active ? "bg-emerald-400 animate-pulse" : "bg-slate-400"}`} />
+                              {simAd?.is_active ? "Active" : "Paused"}
+                            </span>
+                          </div>
+
+                          {/* Top Right: Industry Tag */}
+                          {simIndustry && (
+                            <div className="absolute top-2 right-2 z-10">
+                              <span className="rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 border border-white/20">
+                                {simIndustry}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Card Body */}
+                        <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                          <div className="space-y-1.5">
+                            <p className="font-bold text-xs text-slate-900 truncate group-hover/sim:text-indigo-600 transition-colors">
+                              {simAd?.page_name || "Facebook Ad"}
+                            </p>
+                            <p className="line-clamp-2 text-[11px] text-slate-600 leading-relaxed font-normal">
+                              {simAd?.text || "Nội dung quảng cáo Facebook"}
+                            </p>
+                          </div>
+
+                          {/* Stats Row */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                            <span className="flex items-center gap-1 font-medium">
+                              <Calendar className="size-3 text-slate-400" />
+                              {simDuration != null ? `${simDuration} ngày` : "Mới chạy"}
+                            </span>
+                            {simDuplicates != null && (
+                              <span className="flex items-center gap-1 font-medium">
+                                <Layers className="size-3 text-amber-500" />
+                                {simDuplicates} bản sao
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Card Footer Actions */}
+                        <div className="p-3 pt-0 flex items-center justify-between gap-1.5 border-t border-slate-50">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectAd(simAd);
+                            }}
+                            className="flex-1 h-8 text-[11px] font-bold bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white rounded-xl transition-all cursor-pointer shadow-2xs"
+                          >
+                            <Eye className="mr-1.5 size-3.5" />
+                            Xem Ad này
+                          </Button>
+
+                          {simFbLib && (
+                            <Button
+                              asChild
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => e.stopPropagation()}
+                              className="h-8 px-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl cursor-pointer"
+                              title="Mở thư viện Facebook"
+                            >
+                              <a href={simFbLib} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="size-3.5" />
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* PHÂN KHU HIỂN THỊ CÁC QUẢNG CÁO CỦA CÙNG FANPAGE (Limit tối đa 20 ads/trang - Cache 10h) */}
             <div className="rounded-3xl border-2 border-indigo-100 bg-slate-50/70 p-5 sm:p-6 space-y-4 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
@@ -967,7 +1264,17 @@ export function FacebookAdDetailModal({
                       return (
                         <div
                           key={pId || idx}
-                          className="group/item flex flex-col justify-between p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-400 hover:shadow-md transition-all text-xs"
+                          onClick={() => handleSelectAd(pAd)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleSelectAd(pAd);
+                            }
+                          }}
+                          className="group/item flex flex-col justify-between p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-500 hover:shadow-lg hover:-translate-y-0.5 transition-all text-xs cursor-pointer select-none active:scale-[0.98] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+                          title="Click để xem chi tiết quảng cáo này"
                         >
                           <div className="space-y-2">
                             {/* Media Thumbnail */}
@@ -1008,7 +1315,7 @@ export function FacebookAdDetailModal({
                             </div>
 
                             {/* Ad Text snippet */}
-                            <p className="line-clamp-2 text-[11px] text-slate-700 font-medium leading-relaxed">
+                            <p className="line-clamp-2 text-[11px] text-slate-700 font-medium leading-relaxed group-hover/item:text-indigo-600 transition-colors">
                               {pAd?.text || "Quảng cáo Facebook"}
                             </p>
                           </div>
@@ -1024,7 +1331,9 @@ export function FacebookAdDetailModal({
                                 href={pFbLib}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-0.5 font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-0.5 font-bold text-blue-600 hover:text-blue-700 hover:underline p-1"
+                                title="Mở Facebook Ads Library"
                               >
                                 Library <ExternalLink className="size-2.5" />
                               </a>

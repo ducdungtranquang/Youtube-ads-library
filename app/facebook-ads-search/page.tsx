@@ -43,6 +43,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { getIndustryLabel } from "@/lib/constants/industries";
 
 const SORT_OPTIONS = [
   { value: "start_date", label: "📅 Mới xuất bản nhất" },
@@ -208,6 +209,9 @@ export default function FacebookAdsPage() {
   // Country (Priority: Vietnam)
   const [selectedCountry, setSelectedCountry] = useState<string>("");
 
+  // Industry / Ngành hàng
+  const [selectedIndustry, setSelectedIndustry] = useState<string>("");
+
   // Dates & Spends
   const [publicDateFrom, setPublicDateFrom] = useState("");
   const [publicDateTo, setPublicDateTo] = useState("");
@@ -263,6 +267,7 @@ export default function FacebookAdsPage() {
   const handleClearAllFilters = useCallback(() => {
     setSelectedPreset("");
     setSelectedCountry("");
+    setSelectedIndustry("");
     setPublicDateFrom("");
     setPublicDateTo("");
     setSelectedSpends([]);
@@ -280,6 +285,7 @@ export default function FacebookAdsPage() {
     let count = 0;
     if (selectedPreset) count++;
     if (selectedCountry) count++;
+    if (selectedIndustry) count++;
     if (publicDateFrom || publicDateTo) count++;
     if (selectedSpends.length > 0) count++;
     if (scalingLevel) count++;
@@ -290,6 +296,7 @@ export default function FacebookAdsPage() {
   }, [
     selectedPreset,
     selectedCountry,
+    selectedIndustry,
     publicDateFrom,
     publicDateTo,
     selectedSpends,
@@ -322,6 +329,16 @@ export default function FacebookAdsPage() {
         label: `Quốc gia: ${selectedCountry === "VN" ? "🇻🇳 Việt Nam (VN)" : selectedCountry}`,
         onRemove: () => {
           setSelectedCountry("");
+          setCurrentPage(1);
+        },
+      });
+    }
+    if (selectedIndustry) {
+      chips.push({
+        id: "industry",
+        label: `Ngành: ${getIndustryLabel(selectedIndustry) || selectedIndustry}`,
+        onRemove: () => {
+          setSelectedIndustry("");
           setCurrentPage(1);
         },
       });
@@ -391,6 +408,7 @@ export default function FacebookAdsPage() {
   }, [
     selectedPreset,
     selectedCountry,
+    selectedIndustry,
     isActive,
     pageName,
     domain,
@@ -415,6 +433,7 @@ export default function FacebookAdsPage() {
       videoItem?.video_hd_url ||
       videoItem?.video_sd_url ||
       snapshot?.page_profile_picture_url ||
+      ad?.thumbnail_r2 ||
       ad?.thumbnail_local;
 
     const mediaType = videoItem?.video_hd_url || videoItem?.video_sd_url ? "video" : "image";
@@ -422,7 +441,12 @@ export default function FacebookAdsPage() {
       ? [
         {
           media_url: mediaUrl,
-          media_poster_url: imageItem?.resized_image_url || imageItem?.original_image_url || undefined,
+          media_poster_url:
+            imageItem?.resized_image_url ||
+            imageItem?.original_image_url ||
+            ad?.thumbnail_r2 ||
+            ad?.thumbnail_local ||
+            undefined,
           media_url_type: mediaType,
           title: ad?.headline || ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",
           description: ad?.text || ad?.description || snapshot?.body?.text || "",
@@ -466,7 +490,13 @@ export default function FacebookAdsPage() {
     try {
       const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}`);
       const result = await res.json();
-      const detailAd = result?.success ? result.data : ad;
+      const detailAd = result?.success
+        ? {
+            ...result.data,
+            similar_ads: result.similar_ads || [],
+            similar_pagination: result.similar_pagination || null,
+          }
+        : ad;
       setSelectedAd(normalizeAdForModal(detailAd || ad));
     } catch (err) {
       console.error("Lỗi gọi API chi tiết Facebook Ad:", err);
@@ -494,6 +524,7 @@ export default function FacebookAdsPage() {
     currentPage,
     selectedPreset,
     selectedCountry,
+    selectedIndustry,
     isActive,
     scalingLevel,
     selectedSpends,
@@ -534,6 +565,7 @@ export default function FacebookAdsPage() {
       }
     }
     if (selectedCountry) params.append("country", selectedCountry);
+    if (selectedIndustry) params.append("industry", selectedIndustry);
     if (isActive) params.append("is_active", isActive);
     if (debouncedPageName) params.append("page_name", debouncedPageName);
     if (debouncedDomain) params.append("domain", debouncedDomain);
@@ -623,6 +655,11 @@ export default function FacebookAdsPage() {
                 selectedCountry={selectedCountry}
                 setSelectedCountry={(c) => {
                   setSelectedCountry(c);
+                  setCurrentPage(1);
+                }}
+                selectedIndustry={selectedIndustry}
+                setSelectedIndustry={(ind) => {
+                  setSelectedIndustry(ind);
                   setCurrentPage(1);
                 }}
                 publicDateFrom={publicDateFrom}
@@ -829,6 +866,7 @@ export default function FacebookAdsPage() {
                       ad={selectedAd}
                       loading={detailLoading}
                       onFilterByPage={handleFilterByPage}
+                      onSelectAd={handleAdClick}
                     />
                   )}
                 </div>

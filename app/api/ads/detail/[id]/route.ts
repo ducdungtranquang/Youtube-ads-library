@@ -28,7 +28,8 @@ export async function GET(
       );
     }
 
-    const targetUrl = `${SEARCH_API_URL}/api/ads/detail/${encodeURIComponent(id)}`;
+    const queryString = request.nextUrl.search || "";
+    const targetUrl = `${SEARCH_API_URL}/api/ads/detail/${encodeURIComponent(id)}${queryString}`;
 
     const res = await fetch(targetUrl, {
       method: "GET",
