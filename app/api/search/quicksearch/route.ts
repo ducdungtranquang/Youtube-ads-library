@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { vidTaoManager } from '@/lib/vidtao-manager'
 import { supabaseCacheManager, SearchPayload } from '@/lib/supabase-cache'
 import { supabase } from '@/lib/supabase'
+import { serverRateLimiter } from '@/lib/server-rate-limiter'
 
 // Hàm thêm CORS headers
 function withCORS(response: NextResponse) {
@@ -34,8 +35,15 @@ async function requireAuth(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Authentication intentionally removed for quicksearch endpoint
-  // Requests are allowed without Authorization header
+  // 🛡️ Rate limit: Giới hạn tối đa 30 requests / phút / IP
+  const rateLimitResult = serverRateLimiter.check(request, {
+    prefix: "quicksearch",
+    windowMs: 60 * 1000,
+    maxRequests: 30,
+  });
+  if (!rateLimitResult.allowed) {
+    return withCORS(serverRateLimiter.createTooManyRequestsResponse(rateLimitResult));
+  }
 
   try {
     const body = await request.json()
@@ -44,9 +52,13 @@ export async function POST(request: NextRequest) {
     const {
       query,
       page = 1,
-      limit = 300,
+      limit = 20,
       ...otherParams
     } = body
+
+    // 🔒 Chống crawl: Giới hạn tối đa 30 items/trang và 50 trang
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 30);
+    const safePage = Math.min(Math.max(parseInt(page, 10) || 1, 1), 50);
 
     // Validate required parameters
     if (!query || query.trim() === '') {
@@ -59,8 +71,8 @@ export async function POST(request: NextRequest) {
     // Create search payload for caching
     const searchPayload: SearchPayload = {
       query: query.trim(),
-      page,
-      limit,
+      page: safePage,
+      limit: safeLimit,
       ...otherParams
     }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { vidTaoManager } from '@/lib/vidtao-manager'
 import { cacheManager } from '@/lib/cache-manager'
+import { serverRateLimiter } from '@/lib/server-rate-limiter'
 
 // Hàm thêm CORS headers
 function withCORS(response: NextResponse) {
@@ -17,13 +18,25 @@ export async function OPTIONS() {
 }
 
 export async function GET(request: NextRequest) {
+  // 🛡️ Rate limit: Giới hạn tối đa 35 requests / phút / IP
+  const rateLimitResult = serverRateLimiter.check(request, {
+    prefix: "ads-search",
+    windowMs: 60 * 1000,
+    maxRequests: 35,
+  });
+  if (!rateLimitResult.allowed) {
+    return withCORS(serverRateLimiter.createTooManyRequestsResponse(rateLimitResult));
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams
     
     // Extract search parameters
     const query = searchParams.get('query')
-    const page = searchParams.get('page') || '1'
-    const limit = searchParams.get('limit') || '20'
+    const rawPage = parseInt(searchParams.get('page') || '1', 10) || 1
+    const rawLimit = parseInt(searchParams.get('limit') || '20', 10) || 20
+    const page = Math.min(Math.max(rawPage, 1), 50)
+    const limit = Math.min(Math.max(rawLimit, 1), 20)
     const country = searchParams.get('country')
     const dateRange = searchParams.get('dateRange')
     const category = searchParams.get('category')
@@ -46,7 +59,7 @@ export async function GET(request: NextRequest) {
     // Prepare parameters for VidTao QuickSearch API
     const quickSearchParams = {
       searchTerm: query,
-      page: parseInt(page),
+      page: page,
       sortProp: sortBy === 'relevance' ? 'totalSpend' : sortBy,
       affiliateCountryId: country ? parseInt(country) : 0,
       countryId: countryId ? parseInt(countryId) : 0,
@@ -58,7 +71,7 @@ export async function GET(request: NextRequest) {
       videoType: 'all',
       showVideos: 'unlisted',
       orderAsc: false,
-      limit: parseInt(limit)
+      limit: limit
     }
 
     console.log('Searching ads with quickSearch params:', quickSearchParams)
@@ -83,8 +96,8 @@ export async function GET(request: NextRequest) {
     // Transform data to match expected format (VidTao returns data.results array)
     const videos = result.data?.data?.results || result.data?.results || []
     const totalCount = result.data?.totalCount || result.data?.total || result.data?.count || videos.length
-    const currentPage = parseInt(page)
-    const itemsPerPage = parseInt(limit)
+    const currentPage = page
+    const itemsPerPage = limit
     
     // If no explicit total from API, estimate based on returned results
     const estimatedTotal = videos.length < itemsPerPage ? 

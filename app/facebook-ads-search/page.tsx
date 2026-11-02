@@ -45,11 +45,9 @@ import {
 } from "@/components/ui/carousel";
 
 const SORT_OPTIONS = [
-  { value: "score", label: "🏆 Điểm đánh giá (Score)" },
-  { value: "trending_score", label: "🔥 Đang thịnh hành (Trending)" },
+  { value: "start_date", label: "📅 Mới xuất bản nhất" },
   { value: "scaling_score", label: "🚀 Điểm Scaling (Vít mạnh)" },
   { value: "duplicates_count", label: "👥 Nhiều bản sao nhất (Duplicates)" },
-  { value: "start_date", label: "📅 Mới xuất bản nhất" },
   { value: "duration_days", label: "⏳ Chạy lâu nhất (Duration)" },
   { value: "estimated_spend_usd", label: "💰 Chi tiêu ước tính cao nhất" },
   { value: "estimated_reach", label: "👁️ Lượt tiếp cận ước tính" },
@@ -210,24 +208,36 @@ export default function FacebookAdsPage() {
   // Country (Priority: Vietnam)
   const [selectedCountry, setSelectedCountry] = useState<string>("");
 
-  // Dates & Scores
+  // Dates & Spends
   const [publicDateFrom, setPublicDateFrom] = useState("");
   const [publicDateTo, setPublicDateTo] = useState("");
-  const [minScore, setMinScore] = useState("");
-  const [maxScore, setMaxScore] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedSpends, setSelectedSpends] = useState<string[]>([]);
-  const [minTrendingScore, setMinTrendingScore] = useState("");
-  const [selectedFunnels, setSelectedFunnels] = useState<string[]>([]);
   const [scalingLevel, setScalingLevel] = useState("");
 
-  // New  Fields
+  // New Fields
   const [isActive, setIsActive] = useState<string>("");
   const [pageName, setPageName] = useState<string>("");
   const [domain, setDomain] = useState<string>("");
 
-  // Sorting
-  const [sortBy, setSortBy] = useState<string>("score");
+  // Debounced values for text inputs to auto-trigger search without typing lag
+  const [debouncedPageName, setDebouncedPageName] = useState(pageName);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPageName(pageName);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [pageName]);
+
+  const [debouncedDomain, setDebouncedDomain] = useState(domain);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedDomain(domain);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [domain]);
+
+  // Sorting: Default to start_date (Mới nhất) instead of score
+  const [sortBy, setSortBy] = useState<string>("start_date");
   const [sortOrder, setSortOrder] = useState<number>(-1);
   const [isSortExplicit, setIsSortExplicit] = useState<boolean>(false);
 
@@ -248,52 +258,30 @@ export default function FacebookAdsPage() {
 
   const { searchFacebookAds, loading, error, data } = useFacebookAdsSearch();
 
-  // Load Preset Stats
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const res = await fetch("/api/ads/filter-stats");
-        const json = await res.json();
-        if (json?.success && json?.data) {
-          setFilterStats(json.data);
-        }
-      } catch (err) {
-        // Silently fail if stats endpoint is unreachable
-      }
-    }
-    loadStats();
-  }, []);
+  // Preset stats không còn hiển thị số lượng trên bộ lọc nên không cần fetch để giảm tải database
 
   const handleClearAllFilters = useCallback(() => {
     setSelectedPreset("");
     setSelectedCountry("");
     setPublicDateFrom("");
     setPublicDateTo("");
-    setMinScore("");
-    setMaxScore("");
-    setSelectedLevel("");
     setSelectedSpends([]);
-    setMinTrendingScore("");
-    setSelectedFunnels([]);
     setScalingLevel("");
     setIsActive("");
     setPageName("");
     setDomain("");
-    setSortBy("score");
+    setSortBy("start_date");
     setSortOrder(-1);
     setIsSortExplicit(false);
+    setCurrentPage(1);
   }, []);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (selectedPreset) count++;
     if (selectedCountry) count++;
-    if (selectedLevel) count++;
-    if (minScore || maxScore) count++;
     if (publicDateFrom || publicDateTo) count++;
     if (selectedSpends.length > 0) count++;
-    if (minTrendingScore) count++;
-    if (selectedFunnels.length > 0) count++;
     if (scalingLevel) count++;
     if (isActive) count++;
     if (pageName) count++;
@@ -302,14 +290,9 @@ export default function FacebookAdsPage() {
   }, [
     selectedPreset,
     selectedCountry,
-    selectedLevel,
-    minScore,
-    maxScore,
     publicDateFrom,
     publicDateTo,
     selectedSpends,
-    minTrendingScore,
-    selectedFunnels,
     scalingLevel,
     isActive,
     pageName,
@@ -327,56 +310,69 @@ export default function FacebookAdsPage() {
       chips.push({
         id: "preset",
         label: `: ${presetLabels[selectedPreset] || selectedPreset}`,
-        onRemove: () => setSelectedPreset(""),
+        onRemove: () => {
+          setSelectedPreset("");
+          setCurrentPage(1);
+        },
       });
     }
     if (selectedCountry) {
       chips.push({
         id: "country",
         label: `Quốc gia: ${selectedCountry === "VN" ? "🇻🇳 Việt Nam (VN)" : selectedCountry}`,
-        onRemove: () => setSelectedCountry(""),
+        onRemove: () => {
+          setSelectedCountry("");
+          setCurrentPage(1);
+        },
       });
     }
     if (isActive) {
       chips.push({
         id: "is_active",
         label: isActive === "true" ? "🟢 Đang chạy" : "⚪ Đã tắt",
-        onRemove: () => setIsActive(""),
+        onRemove: () => {
+          setIsActive("");
+          setCurrentPage(1);
+        },
       });
     }
     if (pageName) {
       chips.push({
         id: "page_name",
         label: `Page: ${pageName}`,
-        onRemove: () => setPageName(""),
+        onRemove: () => {
+          setPageName("");
+          setCurrentPage(1);
+        },
       });
     }
     if (domain) {
       chips.push({
         id: "domain",
         label: `Domain: ${domain}`,
-        onRemove: () => setDomain(""),
+        onRemove: () => {
+          setDomain("");
+          setCurrentPage(1);
+        },
       });
     }
-    if (selectedLevel) {
-      chips.push({ id: "level", label: selectedLevel, onRemove: () => setSelectedLevel("") });
-    }
     if (scalingLevel) {
-      chips.push({ id: "scaling", label: `Scale: ${scalingLevel}`, onRemove: () => setScalingLevel("") });
+      chips.push({
+        id: "scaling",
+        label: `Scale: ${scalingLevel}`,
+        onRemove: () => {
+          setScalingLevel("");
+          setCurrentPage(1);
+        },
+      });
     }
     if (selectedSpends.length > 0) {
-      chips.push({ id: "spend", label: `Spend: ${selectedSpends.join(", ")}`, onRemove: () => setSelectedSpends([]) });
-    }
-    if (selectedFunnels.length > 0) {
-      chips.push({ id: "funnel", label: `Phễu: ${selectedFunnels.join(", ")}`, onRemove: () => setSelectedFunnels([]) });
-    }
-    if (minScore || maxScore) {
       chips.push({
-        id: "score",
-        label: `Điểm: ${minScore || 0} - ${maxScore || "max"}`,
+        id: "spend",
+        label: `Spend: ${selectedSpends.join(", ")}`,
         onRemove: () => {
-          setMinScore("");
-          setMaxScore("");
+          setSelectedSpends([]);
+          setCurrentPage(1);
         },
       });
     }
@@ -387,11 +383,9 @@ export default function FacebookAdsPage() {
         onRemove: () => {
           setPublicDateFrom("");
           setPublicDateTo("");
+          setCurrentPage(1);
         },
       });
-    }
-    if (minTrendingScore) {
-      chips.push({ id: "trending", label: `Trending ≥ ${minTrendingScore}`, onRemove: () => setMinTrendingScore("") });
     }
     return chips;
   }, [
@@ -400,15 +394,10 @@ export default function FacebookAdsPage() {
     isActive,
     pageName,
     domain,
-    selectedLevel,
     scalingLevel,
     selectedSpends,
-    selectedFunnels,
-    minScore,
-    maxScore,
     publicDateFrom,
     publicDateTo,
-    minTrendingScore,
   ]);
 
   const normalizeAdForModal = (ad: any) => {
@@ -501,7 +490,20 @@ export default function FacebookAdsPage() {
     if (user) {
       executeSearch(true);
     }
-  }, [currentPage, selectedPreset, sortBy, sortOrder, pageName]);
+  }, [
+    currentPage,
+    selectedPreset,
+    selectedCountry,
+    isActive,
+    scalingLevel,
+    selectedSpends,
+    publicDateFrom,
+    publicDateTo,
+    debouncedPageName,
+    debouncedDomain,
+    sortBy,
+    sortOrder,
+  ]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -522,19 +524,22 @@ export default function FacebookAdsPage() {
     params.append("limit", itemsPerPage.toString());
 
     if (searchQueryRef.current?.value) params.append("text", searchQueryRef.current.value);
-    if (selectedPreset) params.append("filter", selectedPreset);
+    if (selectedPreset) {
+      params.append("filter", selectedPreset);
+      if (selectedPreset === "new_ads") {
+        params.append("new_max_days", "5");
+      } else if (selectedPreset === "weekly_winner") {
+        params.append("winner_min_days", "7");
+        params.append("winner_max_days", "9");
+      }
+    }
     if (selectedCountry) params.append("country", selectedCountry);
     if (isActive) params.append("is_active", isActive);
-    if (pageName) params.append("page_name", pageName);
-    if (domain) params.append("domain", domain);
+    if (debouncedPageName) params.append("page_name", debouncedPageName);
+    if (debouncedDomain) params.append("domain", debouncedDomain);
     if (publicDateFrom) params.append("date_from", publicDateFrom);
     if (publicDateTo) params.append("date_to", publicDateTo);
-    if (minScore) params.append("min_score", minScore);
-    if (maxScore) params.append("max_score", maxScore);
-    if (selectedLevel) params.append("level", selectedLevel);
     if (selectedSpends.length > 0) params.append("estimated_spend", selectedSpends.join(","));
-    if (minTrendingScore) params.append("min_trending_score", minTrendingScore);
-    if (selectedFunnels.length > 0) params.append("funnel", selectedFunnels.join(","));
     if (scalingLevel) params.append("scaling_level", scalingLevel);
     // Khi có preset được chọn mà người dùng chưa đổi sort thủ công,
     // hãy để backend dùng sort tự nhiên của preset để tối ưu hiệu năng
@@ -621,29 +626,40 @@ export default function FacebookAdsPage() {
                   setCurrentPage(1);
                 }}
                 publicDateFrom={publicDateFrom}
-                setPublicDateFrom={setPublicDateFrom}
+                setPublicDateFrom={(d) => {
+                  setPublicDateFrom(d);
+                  setCurrentPage(1);
+                }}
                 publicDateTo={publicDateTo}
-                setPublicDateTo={setPublicDateTo}
-                minScore={minScore}
-                setMinScore={setMinScore}
-                maxScore={maxScore}
-                setMaxScore={setMaxScore}
-                selectedLevel={selectedLevel}
-                setSelectedLevel={setSelectedLevel}
+                setPublicDateTo={(d) => {
+                  setPublicDateTo(d);
+                  setCurrentPage(1);
+                }}
                 selectedSpends={selectedSpends}
-                setSelectedSpends={setSelectedSpends}
-                minTrendingScore={minTrendingScore}
-                setMinTrendingScore={setMinTrendingScore}
-                selectedFunnels={selectedFunnels}
-                setSelectedFunnels={setSelectedFunnels}
+                setSelectedSpends={(s) => {
+                  setSelectedSpends(s);
+                  setCurrentPage(1);
+                }}
                 scalingLevel={scalingLevel}
-                setScalingLevel={setScalingLevel}
+                setScalingLevel={(sl) => {
+                  setScalingLevel(sl);
+                  setCurrentPage(1);
+                }}
                 isActive={isActive}
-                setIsActive={setIsActive}
+                setIsActive={(a) => {
+                  setIsActive(a);
+                  setCurrentPage(1);
+                }}
                 pageName={pageName}
-                setPageName={setPageName}
+                setPageName={(pn) => {
+                  setPageName(pn);
+                  setCurrentPage(1);
+                }}
                 domain={domain}
-                setDomain={setDomain}
+                setDomain={(dm) => {
+                  setDomain(dm);
+                  setCurrentPage(1);
+                }}
                 filterStats={filterStats}
               />
             </AdsSpyFilterPanel>

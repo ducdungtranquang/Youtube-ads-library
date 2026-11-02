@@ -38,7 +38,7 @@ export function PresetTabs({
     {
       id: "new_ads",
       label: "Ads mới lên",
-      sublabel: "Chạy ≤ 3 ngày",
+      sublabel: "Chạy 3 - 5 ngày",
       icon: Zap,
       count: stats?.presets?.new_ads,
       badgeColor: "bg-indigo-100 text-indigo-700",
@@ -47,7 +47,7 @@ export function PresetTabs({
     {
       id: "ready_to_scale",
       label: "Sẵn sàng Scale",
-      sublabel: "Đang nhân nhóm vít",
+      sublabel: "Tiềm năng vít mạnh",
       icon: Flame,
       count: stats?.presets?.ready_to_scale,
       badgeColor: "bg-amber-100 text-amber-800",
@@ -56,7 +56,7 @@ export function PresetTabs({
     {
       id: "weekly_winner",
       label: "Weekly Winner",
-      sublabel: "Sản phẩm Thắng tuần",
+      sublabel: "Chạy 7 - 9 ngày",
       icon: Trophy,
       count: stats?.presets?.weekly_winner,
       badgeColor: "bg-rose-100 text-rose-800",
@@ -94,16 +94,6 @@ export function PresetTabs({
                   {tab.sublabel}
                 </span>
               </div>
-              {typeof tab.count === "number" && (
-                <span
-                  className={cn(
-                    "ml-1 font-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold",
-                    isActive ? "bg-white/20 text-white" : tab.badgeColor
-                  )}
-                >
-                  {tab.count.toLocaleString("vi-VN")}
-                </span>
-              )}
             </button>
           );
         })}

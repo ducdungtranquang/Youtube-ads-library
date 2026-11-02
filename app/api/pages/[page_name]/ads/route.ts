@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { facebookAdsCache } from "@/lib/cache/facebook-ads-cache";
+import { serverRateLimiter } from "@/lib/server-rate-limiter";
 
 const SEARCH_API_URL = (process.env.SEARCH_API_URL || "http://192.168.0.125:80").replace(/\/+$/, "");
 const INTERNAL_SECRET_HEADER = "x-fb-internal-token";
@@ -13,6 +14,16 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    // 🛡️ Rate limit: Giới hạn tối đa 40 requests / phút / IP
+    const rateLimitResult = serverRateLimiter.check(request, {
+      prefix: "fb-page-ads",
+      windowMs: 60 * 1000,
+      maxRequests: 40,
+    });
+    if (!rateLimitResult.allowed) {
+      return serverRateLimiter.createTooManyRequestsResponse(rateLimitResult);
+    }
+
     const resolvedParams = await params;
     const rawPageName = resolvedParams.page_name;
 
@@ -26,7 +37,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const decodedPageName = decodeURIComponent(rawPageName);
     const searchParams = request.nextUrl.searchParams;
 
-    const page = Math.max(parseInt(searchParams.get("page") || "1", 10) || 1, 1);
+    const rawPage = parseInt(searchParams.get("page") || "1", 10) || 1;
+    // 🔒 Chống crawl: Giới hạn duyệt tối đa 50 trang
+    const MAX_PAGE = 50;
+    if (rawPage > MAX_PAGE) {
+      return NextResponse.json(
+        { success: false, message: `Chỉ hỗ trợ xem tối đa ${MAX_PAGE} trang để tránh crawl tự động.` },
+        { status: 400 }
+      );
+    }
+    const page = Math.max(rawPage, 1);
+
     // 🔒 Bắt buộc giới hạn tối đa 20 items / page (limit <= 20)
     const rawLimit = parseInt(searchParams.get("limit") || "20", 10) || 20;
     const limit = Math.min(Math.max(rawLimit, 1), 20);
@@ -36,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const cachedEntry = await facebookAdsCache.get<any>(cacheKey);
 
     if (cachedEntry) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           ...cachedEntry.data,
           cached: true,
@@ -51,6 +72,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           },
         }
       );
+      return serverRateLimiter.applyHeaders(response, rateLimitResult);
     }
 
     const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000;

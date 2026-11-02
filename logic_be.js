@@ -28,20 +28,55 @@ function checkSpecialHeader(req, res, next) {
     next();
 }
 
+// ===== RATE LIMITER ĐƠN GIẢN (CHỐNG CRAWLER) =====
+const ipRequestCounts = new Map();
+if (typeof setInterval !== 'undefined') {
+    setInterval(() => {
+        const now = Date.now();
+        for (const [ip, record] of ipRequestCounts.entries()) {
+            if (now > record.resetTime) {
+                ipRequestCounts.delete(ip);
+            }
+        }
+    }, 2 * 60 * 1000);
+}
+
+function rateLimitMiddleware(maxRequests = 60, windowMs = 60 * 1000) {
+    return (req, res, next) => {
+        const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.ip || req.socket?.remoteAddress || 'unknown';
+        const now = Date.now();
+        let record = ipRequestCounts.get(ip);
+        if (!record || now > record.resetTime) {
+            record = { count: 1, resetTime: now + windowMs };
+            ipRequestCounts.set(ip, record);
+            return next();
+        }
+        record.count++;
+        if (record.count > maxRequests) {
+            const retryAfter = Math.ceil((record.resetTime - now) / 1000);
+            res.setHeader('Retry-After', retryAfter);
+            return res.status(429).json({
+                success: false,
+                message: `Quá nhiều yêu cầu từ IP của bạn. Vui lòng chờ ${retryAfter}s trước khi gửi tiếp.`,
+                retry_after_seconds: retryAfter
+            });
+        }
+        next();
+    };
+}
+
 // ===== -STYLE FILTER PRESETS =====
 // Các preset dùng field do analyzer tính sẵn (duration_days, duplicates_count,
 // scaling_score, trending_score, filter_signals). Mọi ngưỡng đều chỉnh được
 // qua query param — xem FILTER_DEFAULTS.
 const FILTER_DEFAULTS = {
-    new_max_days: 3,            // Ads mới lên: chạy <= 3 ngày
+    new_max_days: 5,            // Ads mới lên: mở rộng phạm vi 3 - 5 ngày (chạy <= 5 ngày)
     scale_min_days: 4,          // Ready to Scale: chạy khoảng 4-5 ngày
     scale_max_days: 5,
     scale_min_duplicates: 2,    // ... + có duplicate (đang nhân bản)
     scale_min_scaling_score: 6, // ... + scaling_score đạt ngưỡng SCALING
-    winner_min_score: 30,       // Weekly Winner: đạt level WINNER
-    winner_min_trending: 10,
-    winner_min_duplicates: 2,
-    winner_min_days: 3,
+    winner_min_days: 7,         // Weekly Winner: chỉ ads chạy 7 - 9 ngày
+    winner_max_days: 9,
 };
 
 function numParam(value, fallback) {
@@ -73,11 +108,12 @@ function buildPresetConditions(presets, q) {
                 scaling_score: { $gte: numParam(q.scale_min_scaling_score, FILTER_DEFAULTS.scale_min_scaling_score) },
             });
         } else if (p === 'weekly_winner' || p === 'winner') {
+            // Weekly Winner chỉ ads chạy 7-9 ngày (không phụ thuộc score hay trending)
             conds.push({
-                score: { $gte: numParam(q.winner_min_score, FILTER_DEFAULTS.winner_min_score) },
-                trending_score: { $gte: numParam(q.winner_min_trending, FILTER_DEFAULTS.winner_min_trending) },
-                duplicates_count: { $gte: numParam(q.winner_min_duplicates, FILTER_DEFAULTS.winner_min_duplicates) },
-                duration_days: { $gte: numParam(q.winner_min_days, FILTER_DEFAULTS.winner_min_days) },
+                duration_days: {
+                    $gte: numParam(q.winner_min_days, FILTER_DEFAULTS.winner_min_days),
+                    $lte: numParam(q.winner_max_days, FILTER_DEFAULTS.winner_max_days),
+                },
             });
         }
         // preset lạ: bỏ qua trong im lặng (không vỡ request)
@@ -85,14 +121,10 @@ function buildPresetConditions(presets, q) {
     return conds;
 }
 
-// Sort mặc định theo preset khi user không truyền sort_by tường minh.
+// Sort mặc định ưu tiên mới nhất (start_date giảm dần) khi user không truyền sort_by tường minh.
 function resolvePresetSort(presets, hasExplicitSortBy) {
     if (hasExplicitSortBy) return null;
-    const list = String(presets || '').split(',').map(s => s.trim().toLowerCase());
-    if (list.includes('weekly_winner') || list.includes('winner')) return { field: 'trending_score', order: -1 };
-    if (list.includes('ready_to_scale') || list.includes('scale')) return { field: 'scaling_score', order: -1 };
-    if (list.includes('new_ads') || list.includes('new')) return { field: 'start_date', order: -1 };
-    return null;
+    return { field: 'start_date', order: -1 };
 }
 
 /**
@@ -142,6 +174,7 @@ function initSearchServer(dbInstance) {
     }));
     app.use('/static/images', express.static(imageStoragePath));
     app.use(checkSpecialHeader);
+    app.use(rateLimitMiddleware(60, 60 * 1000)); // 🛡️ Rate limit tối đa 60 requests/phút
 
     /**
      * 🟢 API 1: TÌM KIẾM QUẢNG CÁO (Nâng cấp bộ lọc chuẩn )
@@ -171,8 +204,16 @@ function initSearchServer(dbInstance) {
                 filter,        // Preset kiểu : new_ads | ready_to_scale | weekly_winner
             } = req.query;
 
+            const MAX_ALLOWED_PAGE = 50;
             const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-            const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 100);
+            if (page > MAX_ALLOWED_PAGE) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Đã vượt quá giới hạn trang cho phép (Tối đa ${MAX_ALLOWED_PAGE} trang).`
+                });
+            }
+            // 🔒 Bắt buộc giới hạn tối đa 20 items / trang (limit <= 20) để chống crawl
+            const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 20);
             const skip = (page - 1) * limit;
 
             const query = {};
@@ -263,27 +304,40 @@ function initSearchServer(dbInstance) {
             if (presetConds.length) query.$and = presetConds;
 
             const presetSort = resolvePresetSort(filter, req.query.sort_by !== undefined);
-            const requestedSort = presetSort ? presetSort.field : (req.query.sort_by || 'score');
+            const requestedSort = presetSort ? presetSort.field : (req.query.sort_by || 'start_date');
             const requestedOrder = presetSort ? presetSort.order : (Number(req.query.sort_order) === 1 ? 1 : -1);
-            const allowedSortFields = new Set(['score', 'trending_score', 'start_date', 'seen_count', 'analyzed_at', 'first_seen', 'last_seen', 'scaling_score', 'estimated_spend_usd', 'duplicates_count', 'duration_days', 'estimated_spend_max_usd', 'estimated_spend_min_usd', 'estimated_reach']);
-            const safeSortField = allowedSortFields.has(String(requestedSort)) ? String(requestedSort) : 'score';
+            const allowedSortFields = new Set(['start_date', 'seen_count', 'analyzed_at', 'first_seen', 'last_seen', 'scaling_score', 'estimated_spend_usd', 'duplicates_count', 'duration_days', 'estimated_spend_max_usd', 'estimated_spend_min_usd', 'estimated_reach', 'score', 'trending_score']);
+            const safeSortField = allowedSortFields.has(String(requestedSort)) ? String(requestedSort) : 'start_date';
             const sortOptions = { [safeSortField]: requestedOrder };
 
-            // ⚡ Chạy song song count và query find để giảm 50% thời gian xử lý
-            const [total, results] = await Promise.all([
-                Object.keys(query).length === 0 ? adsCol.estimatedDocumentCount() : adsCol.countDocuments(query),
-                adsCol.find(query)
-                    .project({
-                        ad_archive_id: 1, ad_library_url: 1, page_name: 1, page_like_count: 1, text: 1, link: 1, domain: 1,
-                        start_date: 1, seen_count: 1, score: 1, level: 1, trending_score: 1, scaling_score: 1,
-                        estimated_spend_usd: 1, estimated_spend_min_usd: 1, estimated_spend_max_usd: 1,
-                        estimated_spend: 1, estimated_reach: 1, estimated_reach_min: 1, estimated_reach_max: 1,
-                        duplicates_count: 1, duration_days: 1, cpm_used: 1, filter_signals: 1,
-                        scaling_level: 1, funnel: 1, analyzed_at: 1,
-                        thumbnail_local: 1, is_active: 1, images: { $slice: 1 }, videos: { $slice: 1 }
-                    })
-                    .sort(sortOptions).skip(skip).limit(limit).toArray()
-            ]);
+            // ⚡ Tối ưu tốc độ query: Chạy find trước, tránh countDocuments quét toàn bộ bảng nếu không cần
+            const results = await adsCol.find(query)
+                .project({
+                    ad_archive_id: 1, ad_library_url: 1, page_name: 1, page_like_count: 1, text: 1, link: 1, domain: 1,
+                    start_date: 1, seen_count: 1, score: 1, level: 1, trending_score: 1, scaling_score: 1,
+                    estimated_spend_usd: 1, estimated_spend_min_usd: 1, estimated_spend_max_usd: 1,
+                    estimated_spend: 1, estimated_reach: 1, estimated_reach_min: 1, estimated_reach_max: 1,
+                    duplicates_count: 1, duration_days: 1, cpm_used: 1, filter_signals: 1,
+                    scaling_level: 1, funnel: 1, analyzed_at: 1,
+                    thumbnail_local: 1, is_active: 1, images: { $slice: 1 }, videos: { $slice: 1 }
+                })
+                .sort(sortOptions).skip(skip).limit(limit).toArray();
+
+            let total = 0;
+            if (Object.keys(query).length === 0) {
+                total = await adsCol.estimatedDocumentCount();
+            } else if (page === 1 && results.length < limit) {
+                // Trang 1 mà ít hơn limit thì chắc chắn tổng số chính là kết quả trả về, không cần đếm toàn bộ bảng
+                total = results.length;
+            } else {
+                try {
+                    // Giới hạn maxTimeMS 1500ms để không bị treo nghẽn API khi đếm bảng lớn
+                    total = await adsCol.countDocuments(query, { maxTimeMS: 1500 });
+                } catch (cntErr) {
+                    // Fallback nhanh khi count timeout: ước tính dựa trên trang hiện tại
+                    total = skip + results.length + (results.length === limit ? limit * 5 : 0);
+                }
+            }
 
             return res.json({ success: true, applied_presets: presetList, pagination: { total, page, limit, pages: Math.ceil(total / limit) }, data: results });
         } catch (error) {

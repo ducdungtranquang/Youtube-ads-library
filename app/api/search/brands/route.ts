@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseCacheManager, SearchPayload } from '@/lib/supabase-cache'
 import { vidTaoManager } from '@/lib/vidtao/manager'
 import { supabase } from '@/lib/supabase'
+import { serverRateLimiter } from '@/lib/server-rate-limiter'
 
 // Hàm thêm CORS headers
 function withCORS(response: NextResponse) {
@@ -50,6 +51,16 @@ async function requireAuth(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // 🛡️ Rate limit: Giới hạn tối đa 35 requests / phút / IP
+  const rateLimitResult = serverRateLimiter.check(request, {
+    prefix: "brands-search",
+    windowMs: 60 * 1000,
+    maxRequests: 35,
+  });
+  if (!rateLimitResult.allowed) {
+    return withCORS(serverRateLimiter.createTooManyRequestsResponse(rateLimitResult));
+  }
+
   const auth = await requireAuth(request);
   if (auth.error) {
     return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
@@ -57,7 +68,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: BrandsSearchParams = await request.json()
-    const { searchTerm, page = 1, limit = 50, filters = {} } = body
+    const { searchTerm, page = 1, limit = 20, filters = {} } = body
+
+    // 🔒 Chống crawl: Giới hạn tối đa 30 items/trang và 50 trang
+    const safeLimit = Math.min(Math.max(parseInt(String(limit), 10) || 20, 1), 30);
+    const safePage = Math.min(Math.max(parseInt(String(page), 10) || 1, 1), 50);
 
     if (!searchTerm || searchTerm.trim().length === 0) {
       return withCORS(NextResponse.json(
@@ -77,8 +92,8 @@ export async function POST(request: NextRequest) {
     const searchPayload: SearchPayload = {
       type: 'brands',
       searchTerm,
-      page,
-      limit,
+      page: safePage,
+      limit: safeLimit,
       filters
     }
 

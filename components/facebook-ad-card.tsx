@@ -161,14 +161,6 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
             )}
           </div>
 
-          {/* Score Badge on Top Right */}
-          {ad?.score != null && (
-            <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
-              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-600/90 backdrop-blur-md text-white text-[11px] font-black px-2.5 py-1 shadow-md">
-                Score: {ad.score}
-              </span>
-            </div>
-          )}
 
           {/* Video technical note overlay if it is video format without streamable URL */}
           {isVideoFormat && !hasDirectVideoUrl && (
@@ -282,14 +274,6 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
 
           {/* Tags / Badges */}
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {ad?.level && (
-              <Badge
-                variant="secondary"
-                className="text-[10px] font-bold px-2 py-0.5 bg-amber-50 text-amber-800 border-amber-200"
-              >
-                {ad.level}
-              </Badge>
-            )}
             {ad?.scaling_level && (
               <Badge
                 variant="secondary"

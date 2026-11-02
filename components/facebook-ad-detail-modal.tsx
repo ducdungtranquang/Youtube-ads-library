@@ -290,11 +290,6 @@ export function FacebookAdDetailModal({
                   {ad?.is_active ? "Đang chạy (Active)" : "Tạm dừng (Paused)"}
                 </span>
 
-                {ad?.level && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
-                    {ad.level}
-                  </span>
-                )}
 
                 {ad?.scaling_level && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -631,12 +626,9 @@ export function FacebookAdDetailModal({
                         <h4 className="text-sm font-black text-slate-900">
                           Ước tính & Dự đoán hiệu suất
                         </h4>
-                        <p className="text-[10px] text-slate-500"> & FB Analyzer Algorithm</p>
+                        <p className="text-[10px] text-slate-500">Phân tích hiệu suất quảng cáo</p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="font-mono text-[10px] font-bold bg-indigo-100 text-indigo-700">
-                      AI Estimate
-                    </Badge>
                   </div>
 
                   {/* Bento Card 1: Estimated Spend USD */}
@@ -673,11 +665,6 @@ export function FacebookAdDetailModal({
                       </div>
                     )}
 
-                    {ad?.cpm_used != null && (
-                      <p className="text-[11px] text-slate-500 pt-1">
-                        CPM cơ sở tính toán: <strong className="text-slate-700">${ad.cpm_used} / 1k views</strong>
-                      </p>
-                    )}
                   </div>
 
                   {/* Bento Card 2: Estimated Reach */}
