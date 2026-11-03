@@ -223,23 +223,6 @@ export default function FacebookAdsPage() {
   const [pageName, setPageName] = useState<string>("");
   const [domain, setDomain] = useState<string>("");
 
-  // Debounced values for text inputs to auto-trigger search without typing lag
-  const [debouncedPageName, setDebouncedPageName] = useState(pageName);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedPageName(pageName);
-    }, 450);
-    return () => clearTimeout(timer);
-  }, [pageName]);
-
-  const [debouncedDomain, setDebouncedDomain] = useState(domain);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedDomain(domain);
-    }, 450);
-    return () => clearTimeout(timer);
-  }, [domain]);
-
   // Sorting: Default to start_date (Mới nhất) instead of score
   const [sortBy, setSortBy] = useState<string>("start_date");
   const [sortOrder, setSortOrder] = useState<number>(-1);
@@ -258,6 +241,7 @@ export default function FacebookAdsPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const itemsPerPage = 20;
 
   const { searchFacebookAds, loading, error, data } = useFacebookAdsSearch();
@@ -265,6 +249,9 @@ export default function FacebookAdsPage() {
   // Preset stats không còn hiển thị số lượng trên bộ lọc nên không cần fetch để giảm tải database
 
   const handleClearAllFilters = useCallback(() => {
+    if (searchQueryRef.current) {
+      searchQueryRef.current.value = "";
+    }
     setSelectedPreset("");
     setSelectedCountry("");
     setSelectedIndustry("");
@@ -310,13 +297,13 @@ export default function FacebookAdsPage() {
     const chips = [];
     if (selectedPreset) {
       const presetLabels: Record<string, string> = {
-        new_ads: "⚡ Ads mới lên",
+        new_ads: "⚡ Ads mới lên (<= 5 ngày)",
         ready_to_scale: "🚀 Sẵn sàng Scale",
-        weekly_winner: "🏆 Weekly Winner",
+        weekly_winner: "🏆 Quảng cáo bứt phá tuần",
       };
       chips.push({
         id: "preset",
-        label: `: ${presetLabels[selectedPreset] || selectedPreset}`,
+        label: presetLabels[selectedPreset] || selectedPreset,
         onRemove: () => {
           setSelectedPreset("");
           setCurrentPage(1);
@@ -360,6 +347,7 @@ export default function FacebookAdsPage() {
         onRemove: () => {
           setPageName("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { pageName: "", page: 1 });
         },
       });
     }
@@ -370,6 +358,7 @@ export default function FacebookAdsPage() {
         onRemove: () => {
           setDomain("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { domain: "", page: 1 });
         },
       });
     }
@@ -507,6 +496,8 @@ export default function FacebookAdsPage() {
     }
   };
 
+  const executeSearchRef = useRef<(isInitialLoad?: boolean, override?: { pageName?: string; page?: number; domain?: string }) => Promise<void>>(null!);
+
   const handleFilterByPage = useCallback((targetPageName: string) => {
     if (!targetPageName || targetPageName === "Facebook Ad") return;
     setPageName(targetPageName);
@@ -515,6 +506,8 @@ export default function FacebookAdsPage() {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 520, behavior: "smooth" });
     }
+    // Tự động tìm kiếm ngay lập tức với Fanpage vừa chọn
+    executeSearchRef.current?.(false, { pageName: targetPageName, page: 1 });
   }, []);
 
   useEffect(() => {
@@ -522,6 +515,7 @@ export default function FacebookAdsPage() {
       executeSearch(true);
     }
   }, [
+    user,
     currentPage,
     selectedPreset,
     selectedCountry,
@@ -531,8 +525,6 @@ export default function FacebookAdsPage() {
     selectedSpends,
     publicDateFrom,
     publicDateTo,
-    debouncedPageName,
-    debouncedDomain,
     sortBy,
     sortOrder,
   ]);
@@ -546,16 +538,23 @@ export default function FacebookAdsPage() {
     }
   };
 
-  const executeSearch = async (isInitialLoad: boolean = false) => {
+  const executeSearch = async (
+    isInitialLoad: boolean = false,
+    override?: { pageName?: string; page?: number; domain?: string }
+  ) => {
     if (!isInitialLoad && !checkCanSearch()) {
       return;
     }
 
+    const effectivePage = override?.page ?? currentPage;
+    const effectivePageName = override?.pageName !== undefined ? override.pageName : pageName;
+    const effectiveDomain = override?.domain !== undefined ? override.domain : domain;
+
     const params = new URLSearchParams();
-    params.append("page", currentPage.toString());
+    params.append("page", effectivePage.toString());
     params.append("limit", itemsPerPage.toString());
 
-    if (searchQueryRef.current?.value) params.append("text", searchQueryRef.current.value);
+    if (searchQueryRef.current?.value) params.append("text", searchQueryRef.current.value.trim());
     if (selectedPreset) {
       params.append("filter", selectedPreset);
       if (selectedPreset === "new_ads") {
@@ -568,12 +567,12 @@ export default function FacebookAdsPage() {
     if (selectedCountry) params.append("country", selectedCountry);
     if (selectedIndustry) params.append("industry", selectedIndustry);
     if (isActive) params.append("is_active", isActive);
-    if (debouncedPageName) params.append("page_name", debouncedPageName);
-    if (debouncedDomain) params.append("domain", debouncedDomain);
+    if (effectivePageName?.trim()) params.append("page_name", effectivePageName.trim());
+    if (effectiveDomain?.trim()) params.append("domain", effectiveDomain.trim());
     if (publicDateFrom) params.append("date_from", publicDateFrom);
     if (publicDateTo) params.append("date_to", publicDateTo);
     if (selectedSpends.length > 0) params.append("estimated_spend", selectedSpends.join(","));
-    if (scalingLevel) params.append("scaling_level", scalingLevel);
+    if (scalingLevel && scalingLevel !== "ALL") params.append("scaling_level", scalingLevel);
     // Khi có preset được chọn mà người dùng chưa đổi sort thủ công,
     // hãy để backend dùng sort tự nhiên của preset để tối ưu hiệu năng
     if (isSortExplicit || !selectedPreset) {
@@ -591,16 +590,24 @@ export default function FacebookAdsPage() {
         }
         if (result.pagination) {
           setTotalPages(result.pagination.pages || 1);
+          setTotalCount(result.pagination.total ?? null);
+        } else {
+          setTotalCount(null);
         }
       } else {
         setResults([]);
         setTotalPages(1);
+        setTotalCount(null);
       }
     } catch (err) {
       console.error("Lỗi gọi kết nối search API:", err);
       setResults([]);
+      setTotalPages(1);
+      setTotalCount(null);
     }
   };
+
+  executeSearchRef.current = executeSearch;
 
   if (!authLoading && !user) {
     return (
@@ -754,6 +761,10 @@ export default function FacebookAdsPage() {
                 title="Thư viện Facebook Ads"
                 subtitle="Nghiên cứu & Khám phá các chiến dịch quảng cáo Facebook, Instagram bùng nổ doanh số"
                 count={results.length}
+                total={totalCount}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                hideTotalCount={!selectedPreset && activeFilterCount === 0 && !searchQueryRef.current?.value}
                 activeChips={activeChips}
                 onClearAll={handleClearAllFilters}
               >

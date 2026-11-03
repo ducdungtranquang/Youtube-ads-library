@@ -13,6 +13,10 @@ interface AdsSpyResultsToolbarProps {
   title: string;
   subtitle?: string;
   count?: number;
+  total?: number | null;
+  currentPage?: number;
+  totalPages?: number;
+  hideTotalCount?: boolean;
   activeChips?: ActiveFilterChip[];
   onClearAll?: () => void;
   children?: React.ReactNode;
@@ -22,10 +26,37 @@ export function AdsSpyResultsToolbar({
   title,
   subtitle,
   count,
+  total,
+  currentPage,
+  totalPages,
+  hideTotalCount = false,
   activeChips = [],
   onClearAll,
   children,
 }: AdsSpyResultsToolbarProps) {
+  const renderBadgeText = () => {
+    // Ẩn tổng số lượng ở phần Tất cả (tránh lộ số lượng crawl ban đầu chưa đầy đủ)
+    if (hideTotalCount) {
+      if (currentPage && totalPages) {
+        return `Trang ${currentPage} / ${totalPages}`;
+      }
+      return null;
+    }
+
+    if (total === null) {
+      return `Đang đếm...${currentPage && totalPages ? ` (Trang ${currentPage}/${totalPages})` : ""}`;
+    }
+    if (typeof total === "number") {
+      return `Tổng ${total.toLocaleString("vi-VN")} ad${currentPage && totalPages ? ` — trang ${currentPage}/${totalPages}` : ""}`;
+    }
+    if (typeof count === "number") {
+      return `${count.toLocaleString("vi-VN")} kết quả`;
+    }
+    return null;
+  };
+
+  const badgeText = renderBadgeText();
+
   return (
     <div className="space-y-3 mb-5">
       {/* Top Title & Controls Row */}
@@ -33,9 +64,9 @@ export function AdsSpyResultsToolbar({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
-            {typeof count === "number" && (
-              <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-mono text-xs px-2.5 py-0.5 border border-slate-200">
-                {count.toLocaleString("vi-VN")} kết quả
+            {badgeText && (
+              <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium text-xs px-2.5 py-0.5 border border-slate-200">
+                {badgeText}
               </Badge>
             )}
           </div>

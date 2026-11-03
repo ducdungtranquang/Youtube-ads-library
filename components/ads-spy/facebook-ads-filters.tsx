@@ -25,18 +25,17 @@ import { CountrySelect } from "./country-select";
 import { INDUSTRIES } from "@/lib/constants/industries";
 
 const spends = [
-  { value: "VERY_HIGH", label: "Rất cao (Very High)" },
-  { value: "HIGH", label: "Cao (High)" },
-  { value: "MEDIUM", label: "Trung bình (Medium)" },
-  { value: "LOW", label: "Thấp (Low)" },
+  { value: "VERY HIGH", label: "Rất cao (≥ $1.000)" },
+  { value: "HIGH", label: "Cao ($300 – $999)" },
+  { value: "MEDIUM", label: "Trung bình ($50 – $299)" },
+  { value: "LOW", label: "Thấp (< $50)" },
 ];
 
 const scalingOptions = [
   { value: "ALL", label: "Tất cả mức độ" },
-  { value: "🚀 SCALING HARD", label: "🚀 SCALING HARD (Vít siêu mạnh)" },
-  { value: "HIGH", label: "Scaling cao (Vít mạnh)" },
-  { value: "MEDIUM", label: "Scaling trung bình" },
-  { value: "LOW", label: "Scaling thấp" },
+  { value: "SCALING HARD", label: "🚀 SCALING HARD (Vít siêu mạnh)" },
+  { value: "SCALING", label: "Scaling (Vít mạnh)" },
+  { value: "NORMAL", label: "Bình thường (Normal)" },
 ];
 
 export interface FacebookAdsFiltersProps {
@@ -134,7 +133,7 @@ export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
               <span className="text-sm">⚡</span>
               <div>
                 <p className="text-xs font-bold leading-tight">Ads mới lên</p>
-                <p className="text-[10px] text-slate-500">Chạy 3 - 5 ngày</p>
+                <p className="text-[10px] text-slate-500">Mới lên (&lt;= 5 ngày)</p>
               </div>
             </div>
           </button>
@@ -169,7 +168,7 @@ export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
             <div className="flex items-center gap-2">
               <span className="text-sm">🏆</span>
               <div>
-                <p className="text-xs font-bold leading-tight">Weekly Winner</p>
+                <p className="text-xs font-bold leading-tight">Quảng cáo bứt phá tuần</p>
                 <p className="text-[10px] text-slate-500">Chạy 7 - 9 ngày</p>
               </div>
             </div>

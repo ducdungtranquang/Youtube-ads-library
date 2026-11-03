@@ -17,6 +17,8 @@ import {
   Calendar,
   Layers,
   AlertTriangle,
+  Store,
+  Globe,
 } from "lucide-react";
 import { getIndustryLabel } from "@/lib/constants/industries";
 
@@ -69,12 +71,13 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
   const link = ad?.link || ad?.link_url || snapshot?.link_url || "";
   const pageName = ad?.page_name || snapshot?.page_name || "Facebook Ad";
   const pageProfile = ad?.page_profile_image_url || snapshot?.page_profile_picture_url;
-  const pageId = ad?.page_id || snapshot?.page_id;
+  
+  // Tránh lỗi 404 khi mở Fanpage: Không dùng link dạng facebook.com/<pageId> (pageId số nội bộ) vì sẽ bị Not Found
   const fbPageUrl =
     snapshot?.page_profile_uri ||
     ad?.page_profile_uri ||
-    (pageId ? `https://www.facebook.com/${pageId}` : null) ||
     (pageName && pageName !== "Facebook Ad" ? `https://www.facebook.com/search/top?q=${encodeURIComponent(pageName)}` : null);
+
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
 
   // Format Helper for USD
@@ -99,6 +102,9 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
   const reachFormatted = formatCompact(ad?.estimated_reach);
   const duplicates = ad?.duplicates_count ?? ad?.clones_count ?? ad?.filter_signals?.duplicates_count;
   const durationDays = ad?.duration_days ?? ad?.filter_signals?.age_days;
+
+  const pageAdsCount = ad?.page_ads_count;
+  const domainAdsCount = ad?.domain_ads_count;
 
   const favoriteData = {
     id: itemId,
@@ -149,20 +155,21 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
 
             {ad?.is_active != null && (
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-sm ${ad.is_active
-                  ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
-                  : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
-                  }`}
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-sm ${
+                  ad.is_active
+                    ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                    : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
+                }`}
               >
                 <span
-                  className={`size-1.5 rounded-full ${ad.is_active ? "bg-emerald-400 animate-pulse" : "bg-slate-400"
-                    }`}
+                  className={`size-1.5 rounded-full ${
+                    ad.is_active ? "bg-emerald-400 animate-pulse" : "bg-slate-400"
+                  }`}
                 />
                 {ad.is_active ? "Active" : "Paused"}
               </span>
             )}
           </div>
-
 
           {/* Video technical note overlay if it is video format without streamable URL */}
           {isVideoFormat && !hasDirectVideoUrl && (
@@ -218,11 +225,11 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 transition-colors border border-blue-200/60 shrink-0 cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 transition-colors border border-blue-200 shrink-0 cursor-pointer shadow-2xs"
                 title={`Mở Fanpage "${pageName}" trên Facebook`}
               >
                 <span>Fanpage</span>
-                <ExternalLink className="size-2.5" />
+                <ExternalLink className="size-2.5 text-blue-600" />
               </a>
             )}
           </div>
@@ -237,7 +244,7 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
             </p>
           )}
 
-          {/* 📊  ESTIMATED STATS GRID (Ước tính & Dự đoán) */}
+          {/* 📊 ESTIMATED STATS GRID (Ước tính & Dự đoán) */}
           <div className="mt-3.5 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
             {/* Chi tiêu ước tính */}
             <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
@@ -262,7 +269,7 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
             </div>
           </div>
 
-          {/* Secondary Stats Row (Duplicates, Days running, Level) */}
+          {/* Secondary Stats Row (Duplicates, Days running) */}
           <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
             <span className="flex items-center gap-1 font-medium">
               <Layers className="size-3 text-amber-500" />
@@ -273,6 +280,22 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
               {durationDays != null ? `${durationDays} ngày chạy` : "Mới chạy"}
             </span>
           </div>
+
+          {/* 🏢 Fanpage Ads & Domain Ads Counters (Tách riêng biệt, chuyên nghiệp) */}
+          {(pageAdsCount != null || domainAdsCount != null) && (
+            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-600 bg-slate-50/80 px-2.5 py-1.5 rounded-xl border border-slate-200/60">
+              <span className="flex items-center gap-1 font-medium">
+                <Store className="size-3 text-blue-500 shrink-0" />
+                <span className="text-slate-500">Ads Page:</span>
+                <strong className="text-slate-800 font-bold">{pageAdsCount != null ? pageAdsCount : "—"}</strong>
+              </span>
+              <span className="flex items-center gap-1 font-medium">
+                <Globe className="size-3 text-purple-500 shrink-0" />
+                <span className="text-slate-500">Ads Domain:</span>
+                <strong className="text-slate-800 font-bold">{domainAdsCount != null ? domainAdsCount : "—"}</strong>
+              </span>
+            </div>
+          )}
 
           {/* Tags / Badges */}
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -305,8 +328,8 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
                 itemData={favoriteData}
                 size="sm"
                 variant="outline"
-                className="h-8 text-xs rounded-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
-                showText={false}
+                className="h-8 text-[11px] font-semibold px-2.5 rounded-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs"
+                showText={true}
               />
             </div>
 
