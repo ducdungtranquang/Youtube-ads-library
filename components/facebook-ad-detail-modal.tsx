@@ -47,6 +47,42 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getIndustryLabel } from "@/lib/constants/industries";
 
+// Helper map scaling level sang tiếng Việt chuẩn
+const formatScalingLevel = (level: string | null | undefined): string => {
+  if (!level) return "";
+  const norm = level.trim().toUpperCase();
+  if (norm === "SCALING HARD" || norm === "🚀 SCALING HARD") return "🚀 Vít siêu mạnh (Scaling Hard)";
+  if (norm === "SCALING") return "Vít mạnh (Scaling)";
+  if (norm === "NORMAL") return "Bình thường (Normal)";
+  return level;
+};
+
+// Helper map estimated spend sang tiếng Việt chuẩn
+const formatEstimatedSpend = (spend: string | null | undefined): string => {
+  if (!spend) return "";
+  const norm = spend.trim().toUpperCase().replace("_", " ");
+  if (norm === "VERY HIGH") return "Rất cao (≥ $1.000)";
+  if (norm === "HIGH") return "Cao ($300 – $999)";
+  if (norm === "MEDIUM") return "Trung bình ($50 – $299)";
+  if (norm === "LOW") return "Thấp (< $50)";
+  return spend;
+};
+
+// Helper làm sạch text quảng cáo, loại bỏ template chưa render (ví dụ: {{product.brand}}, {{product.title}})
+const cleanAdText = (text: string | null | undefined, fallbackBrand?: string): string => {
+  if (!text) return "";
+  let cleaned = text;
+  if (fallbackBrand && fallbackBrand !== "Facebook Ad") {
+    cleaned = cleaned.replace(/\{\{\s*product\.brand\s*\}\}/gi, fallbackBrand);
+    cleaned = cleaned.replace(/\{\{\s*product\.title\s*\}\}/gi, fallbackBrand);
+  } else {
+    cleaned = cleaned.replace(/\{\{\s*product\.brand\s*\}\}/gi, "");
+    cleaned = cleaned.replace(/\{\{\s*product\.title\s*\}\}/gi, "");
+  }
+  cleaned = cleaned.replace(/\{\{\s*[\w\.]+\s*\}\}/g, "");
+  return cleaned.trim();
+};
+
 interface FacebookAdDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -130,20 +166,22 @@ export function FacebookAdDetailModal({
   const ctaText = ad?.cta || ad?.cta_text || snapshot?.cta_text || "Mua ngay";
   const ctaType = ad?.cta_type || snapshot?.cta_type || "SHOP_NOW";
 
-  const title =
+  const rawTitle =
     ad?.headline ||
     snapshot?.title ||
     ad?.text?.split(/\n/)[0]?.trim() ||
     snapshot?.body?.text?.split(/\n/)[0]?.trim() ||
     pageName;
+  const title = cleanAdText(rawTitle, pageName);
 
-  const description =
+  const rawDescription =
     ad?.description ||
     ad?.text ||
     snapshot?.body?.text ||
     snapshot?.caption ||
     ad?.normalized_text ||
     "";
+  const description = cleanAdText(rawDescription, pageName);
 
   const link = ad?.link || ad?.link_url || snapshot?.link_url || null;
   const adImages = Array.isArray(ad?.images) ? ad.images : [];

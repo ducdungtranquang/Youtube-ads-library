@@ -47,7 +47,7 @@ export const COUNTRIES: CountryItem[] = [
   { code: "DK", name: "Đan Mạch", enName: "Denmark", flag: "🇩🇰" },
   { code: "FI", name: "Phần Lan", enName: "Finland", flag: "🇫🇮" },
   { code: "MX", name: "Mexico", enName: "Mexico", flag: "🇲🇽" },
-  { code: "AE", name: "Các TVQ Ả Rập (UAE)", enName: "United Arab Emirates", flag: "🇦🇪" },
+  { code: "AE", name: "Các Tiểu Vương quốc Ả Rập Thống nhất (UAE)", enName: "United Arab Emirates", flag: "🇦🇪" },
   { code: "SA", name: "Ả Rập Xê Út", enName: "Saudi Arabia", flag: "🇸🇦" },
   { code: "ZA", name: "Nam Phi", enName: "South Africa", flag: "🇿🇦" },
   { code: "NZ", name: "New Zealand", enName: "New Zealand", flag: "🇳🇿" },

@@ -1,20 +1,34 @@
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, Zap, ShieldAlert, ArrowUpRight } from 'lucide-react'
+import { Sparkles, Zap, ShieldAlert, ArrowUpRight, Loader2 } from 'lucide-react'
 import { QuotaStatus } from '@/lib/search-quota'
 
 interface SearchQuotaBadgeProps {
   quota: QuotaStatus
+  loading?: boolean
   onUpgradeClick?: () => void
   className?: string
 }
 
 export function SearchQuotaBadge({
   quota,
+  loading = false,
   onUpgradeClick,
   className = '',
 }: SearchQuotaBadgeProps) {
+  // Tránh mâu thuẫn hiển thị trong lúc đang tải: không hiện "Hết lượt (0/5)" hay đổi trạng thái đột ngột
+  if (loading) {
+    return (
+      <div
+        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-slate-50 border border-slate-200 text-slate-500 shadow-2xs ${className}`}
+      >
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
+        <span>Đang kiểm tra lượt tìm kiếm...</span>
+      </div>
+    )
+  }
+
   const { plan, limit, used, remaining, isUnlimited, feature } = quota
   const featureLabel = feature === 'yt' ? 'YouTube' : 'Facebook'
 
