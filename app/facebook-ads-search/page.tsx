@@ -427,6 +427,7 @@ export default function FacebookAdsPage() {
     const videoItem = videos.length > 0 ? videos[0] : (snapshot?.videos?.[0] || undefined);
 
     const mediaUrl =
+      ad?.thumbnail_r2 ||
       imageItem?.resized_image_url ||
       imageItem?.original_image_url ||
       imageItem?.watermarked_resized_image_url ||
@@ -488,14 +489,14 @@ export default function FacebookAdsPage() {
     }
 
     try {
-      const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}`);
+      const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}?include_similar=true&similar_limit=15`);
       const result = await res.json();
       const detailAd = result?.success
         ? {
-            ...result.data,
-            similar_ads: result.similar_ads || [],
-            similar_pagination: result.similar_pagination || null,
-          }
+          ...result.data,
+          similar_ads: Array.isArray(result.similar_ads) ? result.similar_ads : [],
+          similar_pagination: result.similar_pagination || null,
+        }
         : ad;
       setSelectedAd(normalizeAdForModal(detailAd || ad));
     } catch (err) {

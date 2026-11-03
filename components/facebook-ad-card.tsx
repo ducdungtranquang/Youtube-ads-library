@@ -35,6 +35,7 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
   const videoItem = videos.length > 0 ? videos[0] : (snapshot?.videos?.[0] || undefined);
 
   const mediaUrl =
+    ad?.thumbnail_r2 ||
     imageItem?.resized_image_url ||
     imageItem?.original_image_url ||
     imageItem?.watermarked_resized_image_url ||
@@ -149,8 +150,8 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
             {ad?.is_active != null && (
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-sm ${ad.is_active
-                    ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
-                    : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
+                  ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                  : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
                   }`}
               >
                 <span
