@@ -413,19 +413,41 @@ export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
 
           {/* Date range inputs */}
           <div className="grid grid-cols-2 gap-2 pt-1">
-            <Input
-              type="date"
-              value={props.publicDateFrom}
-              onChange={(e) => props.setPublicDateFrom(e.target.value)}
-              className="h-8 px-2 text-xs bg-white border-slate-200 text-slate-800 shadow-2xs focus-visible:ring-indigo-500 rounded-lg"
-            />
-            <Input
-              type="date"
-              value={props.publicDateTo}
-              onChange={(e) => props.setPublicDateTo(e.target.value)}
-              className="h-8 px-2 text-xs bg-white border-slate-200 text-slate-800 shadow-2xs focus-visible:ring-indigo-500 rounded-lg"
-            />
+            <div className="space-y-1">
+              <span className="text-[10px] text-slate-500 font-medium">Từ ngày:</span>
+              <Input
+                type="date"
+                value={props.publicDateFrom}
+                max={props.publicDateTo || undefined}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  props.setPublicDateFrom(val);
+                }}
+                className="h-8 px-2 text-xs bg-white border-slate-200 text-slate-800 shadow-2xs focus-visible:ring-indigo-500 rounded-lg cursor-pointer"
+              />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] text-slate-500 font-medium">Đến ngày:</span>
+              <Input
+                type="date"
+                value={props.publicDateTo}
+                min={props.publicDateFrom || undefined}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  props.setPublicDateTo(val);
+                }}
+                className="h-8 px-2 text-xs bg-white border-slate-200 text-slate-800 shadow-2xs focus-visible:ring-indigo-500 rounded-lg cursor-pointer"
+              />
+            </div>
           </div>
+
+          {/* Validation warning khi khoảng ngày ngược */}
+          {props.publicDateFrom && props.publicDateTo && props.publicDateFrom > props.publicDateTo && (
+            <div className="mt-1.5 p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800 font-medium flex items-start gap-1.5 animate-in fade-in">
+              <span className="text-amber-600 font-bold">⚠️</span>
+              <span>Ngày bắt đầu phải trước hoặc bằng ngày kết thúc. Vui lòng chọn lại.</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

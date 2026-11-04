@@ -21,7 +21,7 @@ function DashboardPage() {
   };
   const { user } = useAuth()
   const { getFavoritesCounts, loading: countsLoading } = useFavorites()
-  const [counts, setCounts] = useState({ video: 0, offer: 0, affiliate: 0, brand: 0, company: 0 })
+  const [counts, setCounts] = useState({ video: 0, offer: 0, affiliate: 0, brand: 0, company: 0, facebook_ad: 0 })
   const [loading, setLoading] = useState(true)
   const [dbProfile, setDbProfile] = useState<any>(null)
 
@@ -30,7 +30,7 @@ function DashboardPage() {
       if (!user) return setLoading(false)
       setLoading(true)
       const data = await getFavoritesCounts()
-      if (data) setCounts(data);
+      if (data) setCounts(data as any);
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('subscription_plan, subscription_status, daily_search_count, last_search_date')
@@ -53,7 +53,7 @@ function DashboardPage() {
   const lastSearchDate = dbProfile?.last_search_date ? new Date(dbProfile.last_search_date).toISOString().split('T')[0] : null;
   const searchesToday = lastSearchDate === today ? (dbProfile?.daily_search_count || 0) : 0;
   const searchesRemaining = isUnlimited ? -1 : Math.max(0, planLimit - searchesToday);
-  const totalFavorites = counts.video + counts.offer + counts.affiliate + counts.brand + counts.company
+  const totalFavorites = counts.video + counts.offer + counts.affiliate + counts.brand + counts.company + (counts.facebook_ad || 0)
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">

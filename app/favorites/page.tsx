@@ -33,7 +33,7 @@ import {
   LogIn,
   ArrowRight,
 } from "lucide-react";
-import { useFavorites } from "@/hooks/use-favorites";
+import { useFavorites, addFavoriteChangeListener, removeFavoriteChangeListener } from "@/hooks/use-favorites";
 import { VideoDetailModal } from "@/components/video-detail-modal";
 import { BrandDetailModal } from "@/components/brand-detail-modal";
 import { CompanyDetailModal } from "@/components/company-detail-modal";
@@ -84,7 +84,7 @@ export default function FavoritesPage() {
       // Load counts
       const countsData = await getFavoritesCounts();
       if (countsData) {
-        setCounts({ ...countsData, facebook_ad: 0 });
+        setCounts(countsData);
       }
 
       // Load favorites for active tab
@@ -98,6 +98,36 @@ export default function FavoritesPage() {
 
     loadData();
   }, [activeTab, getFavorites, getFavoritesCounts, user]);
+
+  // Lắng nghe sự kiện bỏ yêu thích ngay lập tức để xóa card khỏi danh sách không cần F5
+  useEffect(() => {
+    if (!user) return;
+
+    const handleFavoriteChange = (type: FavoriteType, id: string, isFavorited: boolean) => {
+      if (!isFavorited) {
+        // Cập nhật ngay danh sách hiện tại nếu đang hiển thị tab này
+        setFavorites((prev) =>
+          prev.filter((fav) => !(fav.item_type === type && (fav.item_id === id || fav.id === id)))
+        );
+        // Giảm counter tức thì
+        setCounts((prev) => ({
+          ...prev,
+          [type]: Math.max(0, (prev[type] || 0) - 1),
+        }));
+      } else {
+        // Tăng counter tức thì
+        setCounts((prev) => ({
+          ...prev,
+          [type]: (prev[type] || 0) + 1,
+        }));
+      }
+    };
+
+    addFavoriteChangeListener(handleFavoriteChange);
+    return () => {
+      removeFavoriteChangeListener(handleFavoriteChange);
+    };
+  }, [user]);
 
   const handleClearAll = async (type: FavoriteType) => {
     const success = await clearFavoritesByType(type);

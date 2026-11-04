@@ -99,10 +99,18 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
   const link = ad?.link || ad?.link_url || snapshot?.link_url || "";
   const pageProfile = ad?.page_profile_image_url || snapshot?.page_profile_picture_url;
 
-  // Tránh lỗi 404 khi mở Fanpage: Không dùng link dạng facebook.com/<pageId> (pageId số nội bộ) vì sẽ bị Not Found
+  // Dựng link Page trực tiếp từ Page ID (hoặc view_all_page_id), ưu tiên page_profile_uri nếu có
+  const pageId =
+    ad?.page_id ||
+    snapshot?.page_id ||
+    ad?.view_all_page_id ||
+    snapshot?.view_all_page_id ||
+    (ad?.ad_library_url ? (ad.ad_library_url.match(/view_all_page_id=(\d+)/) || [])[1] : null);
+
   const fbPageUrl =
     snapshot?.page_profile_uri ||
     ad?.page_profile_uri ||
+    (pageId ? `https://www.facebook.com/${pageId}` : null) ||
     (pageName && pageName !== "Facebook Ad" ? `https://www.facebook.com/search/top?q=${encodeURIComponent(pageName)}` : null);
 
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
@@ -306,19 +314,36 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
             </span>
           </div>
 
-          {/* 🏢 Fanpage Ads & Domain Ads Counters (Tách riêng biệt, chuyên nghiệp) */}
+          {/* 🏢 Fanpage Ads & Domain Ads Counters (Tách riêng biệt 2 thẻ nổi bật, chuyên nghiệp) */}
           {(pageAdsCount != null || domainAdsCount != null) && (
-            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-600 bg-slate-50/80 px-2.5 py-1.5 rounded-xl border border-slate-200/60">
-              <span className="flex items-center gap-1 font-medium">
-                <Store className="size-3 text-blue-500 shrink-0" />
-                <span className="text-slate-500">Ads Page:</span>
-                <strong className="text-slate-800 font-bold">{pageAdsCount != null ? pageAdsCount : "—"}</strong>
-              </span>
-              <span className="flex items-center gap-1 font-medium">
-                <Globe className="size-3 text-purple-500 shrink-0" />
-                <span className="text-slate-500">Ads Domain:</span>
-                <strong className="text-slate-800 font-bold">{domainAdsCount != null ? domainAdsCount : "—"}</strong>
-              </span>
+            <div className="mt-2.5 pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+              {/* Thẻ Ads Domain */}
+              <div className="p-2 rounded-xl bg-purple-50/70 border border-purple-100/90 flex flex-col justify-between">
+                <span className="text-[10px] text-purple-700 font-semibold flex items-center gap-1">
+                  <Globe className="size-3 text-purple-600 shrink-0" />
+                  Ads Domain
+                </span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-sm font-black text-purple-950 font-mono">
+                    {domainAdsCount != null ? Number(domainAdsCount).toLocaleString("vi-VN") : "—"}
+                  </span>
+                  <span className="text-[10px] text-purple-600 font-medium">ads</span>
+                </div>
+              </div>
+
+              {/* Thẻ Ads Fanpage */}
+              <div className="p-2 rounded-xl bg-blue-50/70 border border-blue-100/90 flex flex-col justify-between">
+                <span className="text-[10px] text-blue-700 font-semibold flex items-center gap-1">
+                  <Store className="size-3 text-blue-600 shrink-0" />
+                  Ads Fanpage
+                </span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-sm font-black text-blue-950 font-mono">
+                    {pageAdsCount != null ? Number(pageAdsCount).toLocaleString("vi-VN") : "—"}
+                  </span>
+                  <span className="text-[10px] text-blue-600 font-medium">ads</span>
+                </div>
+              </div>
             </div>
           )}
 

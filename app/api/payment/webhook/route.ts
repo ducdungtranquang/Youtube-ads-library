@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { payos } from '@/lib/payos'
+import { notifyPaymentSuccess } from '@/lib/services/payment-notifier'
 
 // Use service role for server-side operations
 const supabaseAdmin = createClient(
@@ -45,6 +46,9 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Check if payment was already processed to avoid duplicated notifications / renewals
+      const isAlreadyCompleted = payment.status === 'completed'
+
       // Calculate subscription end date based on payment amount (1, 3, or 12 months)
       const subscriptionStart = new Date()
       const subscriptionEnd = new Date()
@@ -87,7 +91,7 @@ export async function POST(request: NextRequest) {
         .eq('order_code', orderCode)
 
       // Xử lý tính hoa hồng 20% cho đối tác tiếp thị nếu có mã giới thiệu
-      if (payment.referral_code) {
+      if (payment.referral_code && !isAlreadyCompleted) {
         try {
           const { data: partner } = await supabaseAdmin
             .from('affiliate_partners')
@@ -129,6 +133,20 @@ export async function POST(request: NextRequest) {
         } catch (affErr) {
           console.error('Affiliate commission processing error:', affErr)
         }
+      }
+
+      // Gửi thông báo tức thì về Slack và Email (báo về điện thoại cho admin) nếu đơn hàng mới được hoàn thành
+      if (!isAlreadyCompleted) {
+        notifyPaymentSuccess({
+          orderCode,
+          amount: Number(payment.amount),
+          userEmail: payment.user_email,
+          userId: payment.user_id,
+          planName: 'Gói Unlimited',
+          durationMonths,
+          referralCode: payment.referral_code,
+          paidAt: new Date(),
+        }).catch((err) => console.error('[Webhook] Failed to dispatch payment notification:', err))
       }
 
       console.log(`Payment ${orderCode} completed successfully for user ${payment.user_id}`)

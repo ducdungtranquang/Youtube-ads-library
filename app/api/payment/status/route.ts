@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { payos } from '@/lib/payos'
+import { notifyPaymentSuccess } from '@/lib/services/payment-notifier'
 
 // Use service role for server-side operations
 const supabaseAdmin = createClient(
@@ -63,6 +64,59 @@ export async function GET(request: NextRequest) {
           paid_at: new Date().toISOString()
         })
         .eq('order_code', orderCode)
+
+      // Xử lý tính hoa hồng 20% cho đối tác tiếp thị nếu có mã giới thiệu
+      if (payment.referral_code) {
+        try {
+          const { data: partner } = await supabaseAdmin
+            .from('affiliate_partners')
+            .select('*')
+            .eq('referral_code', payment.referral_code.toString().trim().toUpperCase())
+            .maybeSingle()
+
+          if (partner && partner.id !== payment.user_id) {
+            const commission = Math.round(Number(payment.amount) * 0.20)
+
+            await supabaseAdmin
+              .from('affiliate_commissions')
+              .insert({
+                affiliate_id: partner.id,
+                referred_user_id: payment.user_id,
+                referred_email: payment.user_email,
+                order_code: orderCode,
+                plan_name: 'Gói Unlimited',
+                order_amount: payment.amount,
+                commission_rate: 0.20,
+                commission_amount: commission,
+                status: 'completed',
+              })
+
+            await supabaseAdmin
+              .from('affiliate_partners')
+              .update({
+                balance: Number(partner.balance || 0) + commission,
+                total_earned: Number(partner.total_earned || 0) + commission,
+                total_conversions: Number(partner.total_conversions || 0) + 1,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', partner.id)
+          }
+        } catch (affErr) {
+          console.error('[Status API] Affiliate commission error:', affErr)
+        }
+      }
+
+      // Gửi thông báo tức thì về Slack và Email (báo về điện thoại cho admin)
+      notifyPaymentSuccess({
+        orderCode,
+        amount: Number(payment.amount),
+        userEmail: payment.user_email,
+        userId: payment.user_id,
+        planName: 'Gói Unlimited',
+        durationMonths,
+        referralCode: payment.referral_code,
+        paidAt: new Date(),
+      }).catch((err) => console.error('[Status API] Failed to dispatch payment notification:', err))
 
       return NextResponse.json({
         success: true,

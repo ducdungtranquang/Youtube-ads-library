@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useMemo, memo, useEffect } from "react";
+import { useState, useCallback, useRef, useMemo, memo, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -191,6 +192,24 @@ const HeroSlider = memo(() => {
 HeroSlider.displayName = "HeroSlider";
 
 export default function FacebookAdsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        </div>
+      }
+    >
+      <FacebookAdsSearchContent />
+    </Suspense>
+  );
+}
+
+function FacebookAdsSearchContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const { user, loading: authLoading } = useAuth();
   const {
     quota,
@@ -203,30 +222,78 @@ export default function FacebookAdsPage() {
 
   const searchQueryRef = useRef<HTMLInputElement>(null);
 
-  //  Strategy Preset
-  const [selectedPreset, setSelectedPreset] = useState<string>("");
+  // Initialize filter state from URL SearchParams
+  const [selectedPreset, setSelectedPreset] = useState<string>(() => searchParams.get("filter") || "");
+  const [selectedCountry, setSelectedCountry] = useState<string>(() => searchParams.get("country") || "");
+  const [selectedIndustry, setSelectedIndustry] = useState<string>(() => searchParams.get("industry") || "");
+  const [publicDateFrom, setPublicDateFrom] = useState<string>(() => searchParams.get("date_from") || "");
+  const [publicDateTo, setPublicDateTo] = useState<string>(() => searchParams.get("date_to") || "");
+  const [selectedSpends, setSelectedSpends] = useState<string[]>(() => {
+    const s = searchParams.get("estimated_spend");
+    return s ? s.split(",").filter(Boolean) : [];
+  });
+  const [scalingLevel, setScalingLevel] = useState<string>(() => searchParams.get("scaling_level") || "");
+  const [isActive, setIsActive] = useState<string>(() => searchParams.get("is_active") || "");
+  const [pageName, setPageName] = useState<string>(() => searchParams.get("page_name") || "");
+  const [domain, setDomain] = useState<string>(() => searchParams.get("domain") || "");
+  const [sortBy, setSortBy] = useState<string>(() => searchParams.get("sort_by") || "start_date");
+  const [sortOrder, setSortOrder] = useState<number>(() => {
+    const o = searchParams.get("sort_order");
+    return o ? parseInt(o, 10) : -1;
+  });
+  const [isSortExplicit, setIsSortExplicit] = useState<boolean>(() => Boolean(searchParams.get("sort_by")));
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    const p = searchParams.get("page");
+    return p ? Math.max(1, parseInt(p, 10)) : 1;
+  });
 
-  // Country (Priority: Vietnam)
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  // Track initial query text from URL
+  const initialText = searchParams.get("text") || "";
+  useEffect(() => {
+    if (searchQueryRef.current && initialText) {
+      searchQueryRef.current.value = initialText;
+    }
+  }, [initialText]);
 
-  // Industry / Ngành hàng
-  const [selectedIndustry, setSelectedIndustry] = useState<string>("");
+  // Keep URL updated with state without full reloads
+  const updateUrlParams = useCallback(() => {
+    const params = new URLSearchParams();
+    if (currentPage > 1) params.set("page", String(currentPage));
+    const queryText = searchQueryRef.current?.value?.trim();
+    if (queryText) params.set("text", queryText);
+    if (selectedPreset) params.set("filter", selectedPreset);
+    if (selectedCountry) params.set("country", selectedCountry);
+    if (selectedIndustry) params.set("industry", selectedIndustry);
+    if (isActive) params.set("is_active", isActive);
+    if (pageName) params.set("page_name", pageName);
+    if (domain) params.set("domain", domain);
+    if (publicDateFrom) params.set("date_from", publicDateFrom);
+    if (publicDateTo) params.set("date_to", publicDateTo);
+    if (selectedSpends.length > 0) params.set("estimated_spend", selectedSpends.join(","));
+    if (scalingLevel) params.set("scaling_level", scalingLevel);
+    if (isSortExplicit || sortBy !== "start_date") params.set("sort_by", sortBy);
+    if (isSortExplicit || sortOrder !== -1) params.set("sort_order", String(sortOrder));
 
-  // Dates & Spends
-  const [publicDateFrom, setPublicDateFrom] = useState("");
-  const [publicDateTo, setPublicDateTo] = useState("");
-  const [selectedSpends, setSelectedSpends] = useState<string[]>([]);
-  const [scalingLevel, setScalingLevel] = useState("");
-
-  // New Fields
-  const [isActive, setIsActive] = useState<string>("");
-  const [pageName, setPageName] = useState<string>("");
-  const [domain, setDomain] = useState<string>("");
-
-  // Sorting: Default to start_date (Mới nhất) instead of score
-  const [sortBy, setSortBy] = useState<string>("start_date");
-  const [sortOrder, setSortOrder] = useState<number>(-1);
-  const [isSortExplicit, setIsSortExplicit] = useState<boolean>(false);
+    const newQuery = params.toString();
+    const newUrl = `${pathname}${newQuery ? `?${newQuery}` : ""}`;
+    window.history.replaceState(null, "", newUrl);
+  }, [
+    currentPage,
+    selectedPreset,
+    selectedCountry,
+    selectedIndustry,
+    isActive,
+    pageName,
+    domain,
+    publicDateFrom,
+    publicDateTo,
+    selectedSpends,
+    scalingLevel,
+    sortBy,
+    sortOrder,
+    isSortExplicit,
+    pathname,
+  ]);
 
   // Filter Stats
   const [filterStats, setFilterStats] = useState<{
@@ -239,7 +306,6 @@ export default function FacebookAdsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const itemsPerPage = 20;
@@ -472,6 +538,11 @@ export default function FacebookAdsPage() {
     setModalOpen(true);
     setDetailLoading(Boolean(itemId));
 
+    // Thêm modal state vào history để khi ấn nút Back của trình duyệt, modal tự đóng thay vì bị văng về trang trước
+    if (typeof window !== "undefined") {
+      window.history.pushState({ modalOpen: true, adId: itemId }, "");
+    }
+
     if (!itemId) {
       setDetailLoading(false);
       return;
@@ -495,6 +566,22 @@ export default function FacebookAdsPage() {
       setDetailLoading(false);
     }
   };
+
+  // Lắng nghe nút Back của browser để đóng modal nếu modal đang mở
+  useEffect(() => {
+    const handlePopState = () => {
+      if (modalOpen) {
+        setModalOpen(false);
+        setSelectedAd(null);
+        setDetailLoading(false);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [modalOpen]);
 
   const executeSearchRef = useRef<(isInitialLoad?: boolean, override?: { pageName?: string; page?: number; domain?: string }) => Promise<void>>(null!);
 
@@ -582,6 +669,9 @@ export default function FacebookAdsPage() {
 
     try {
       const result = await searchFacebookAds({ queryString: params.toString() });
+
+      // Đồng bộ URL với các filter hiện tại
+      updateUrlParams();
 
       if (result?.success) {
         setResults(result.data || []);

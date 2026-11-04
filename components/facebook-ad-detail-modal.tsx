@@ -192,7 +192,12 @@ export function FacebookAdDetailModal({
 
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
   const adLibraryUrl = ad?.ad_library_url || (itemId ? `https://www.facebook.com/ads/library/?id=${itemId}` : null);
-  const pageId = ad?.page_id || snapshot?.page_id;
+  const pageId =
+    ad?.page_id ||
+    snapshot?.page_id ||
+    ad?.view_all_page_id ||
+    snapshot?.view_all_page_id ||
+    (ad?.ad_library_url ? (ad.ad_library_url.match(/view_all_page_id=(\d+)/) || [])[1] : null);
   const pageProfileUri = snapshot?.page_profile_uri || ad?.page_profile_uri;
   const fbPageUrl =
     pageProfileUri ||
@@ -747,6 +752,70 @@ export function FacebookAdDetailModal({
                         </Button>
                       )}
                     </div>
+
+                    {/* 📊 STATS HIGHLIGHT CARDS: Đặt ngay dưới Video/Feed Creative để đập vào mắt user */}
+                    <div className="border-t border-slate-200/80 bg-slate-50/70 p-4 rounded-b-3xl space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <Sparkles className="size-3.5 text-indigo-600" />
+                          Mạng lưới quảng cáo liên quan
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">Cập nhật theo thời gian thực</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {/* 1. Thẻ Ads Cùng Domain */}
+                        <div className="relative overflow-hidden rounded-2xl border border-purple-200 bg-white p-3.5 shadow-xs transition-all hover:border-purple-300 hover:shadow-md">
+                          <div className="flex items-center gap-1.5 text-purple-700">
+                            <Globe className="size-3.5 text-purple-600 shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Ads cùng Domain</span>
+                          </div>
+                          <div className="mt-2 flex items-baseline gap-1.5">
+                            <span className="text-2xl font-black tracking-tight text-purple-950 font-mono">
+                              {ad?.domain_ads_count != null ? Number(ad.domain_ads_count).toLocaleString("vi-VN") : "0"}
+                            </span>
+                            <span className="text-xs font-semibold text-purple-600">quảng cáo</span>
+                          </div>
+                          <p className="mt-1 text-[10px] text-slate-500 leading-tight line-clamp-1" title={linkDomain ? `Tên miền: ${linkDomain}` : "Toàn bộ ads trỏ về cùng trang web"}>
+                            {linkDomain ? `Domain: ${linkDomain}` : "Đang chạy cùng tên miền"}
+                          </p>
+                        </div>
+
+                        {/* 2. Thẻ Bản Sao (Duplicates Ads) */}
+                        <div className="relative overflow-hidden rounded-2xl border border-amber-200 bg-white p-3.5 shadow-xs transition-all hover:border-amber-300 hover:shadow-md">
+                          <div className="flex items-center gap-1.5 text-amber-700">
+                            <Layers className="size-3.5 text-amber-600 shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Ads duplicate</span>
+                          </div>
+                          <div className="mt-2 flex items-baseline gap-1.5">
+                            <span className="text-2xl font-black tracking-tight text-amber-950 font-mono">
+                              {Number(ad?.duplicates_count ?? ad?.clones_count ?? 1).toLocaleString("vi-VN")}
+                            </span>
+                            <span className="text-xs font-semibold text-amber-600">bản sao</span>
+                          </div>
+                          <p className="mt-1 text-[10px] text-slate-500 leading-tight">
+                            Chiến dịch sao chép vít ngân sách
+                          </p>
+                        </div>
+
+                        {/* 3. Thẻ Ads Cùng Fanpage */}
+                        <div className="relative overflow-hidden rounded-2xl border border-blue-200 bg-white p-3.5 shadow-xs transition-all hover:border-blue-300 hover:shadow-md">
+                          <div className="flex items-center gap-1.5 text-blue-700">
+                            <Store className="size-3.5 text-blue-600 shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Ads cùng Fanpage</span>
+                          </div>
+                          <div className="mt-2 flex items-baseline gap-1.5">
+                            <span className="text-2xl font-black tracking-tight text-blue-950 font-mono">
+                              {ad?.page_ads_count != null ? Number(ad.page_ads_count).toLocaleString("vi-VN") : "0"}
+                            </span>
+                            <span className="text-xs font-semibold text-blue-600">quảng cáo</span>
+                          </div>
+                          <p className="mt-1 text-[10px] text-slate-500 leading-tight line-clamp-1" title={pageName ? `Trang: ${pageName}` : "Toàn bộ ads phát sóng từ Fanpage này"}>
+                            {pageName && pageName !== "Facebook Ad" ? pageName : "Đang chạy từ Fanpage"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -981,28 +1050,16 @@ export function FacebookAdDetailModal({
                         <span className="text-slate-500">Lần quét gần nhất</span>
                         <span className="font-semibold text-slate-800">{formatTimestamp(ad?.last_seen)}</span>
                       </div>
+                    </div>
 
-                      {ad?.domain_ads_count != null && (
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-slate-500">Số ads cùng Domain</span>
-                          <span className="font-bold text-slate-900">{ad.domain_ads_count} ads</span>
-                        </div>
-                      )}
-
-                      {ad?.page_ads_count != null && (
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-slate-500">Số ads cùng Fanpage</span>
-                          <span className="font-bold text-slate-900">{ad.page_ads_count} ads</span>
-                        </div>
-                      )}
-
-                      {pageDeleted && (
+                    {pageDeleted && (
+                      <div className="divide-y divide-slate-100 text-xs mt-2">
                         <div className="flex items-center justify-between py-2 text-rose-600">
                           <span>Trạng thái Fanpage</span>
                           <span className="font-bold">Đã bị vô hiệu hóa/xóa</span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Direct Link to Facebook Ads Library */}
