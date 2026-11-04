@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Header } from "@/components/header"
+import { SiteFooter } from "@/components/site-footer"
 import { Check, CheckCircle, X, Sparkles, ArrowRight, Zap, Shield, Users, Loader2, CreditCard, Clock } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
@@ -158,11 +159,10 @@ export default function PricingPage() {
             <button
               type="button"
               onClick={() => setBillingCycle('monthly')}
-              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${
-                billingCycle === 'monthly'
+              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${billingCycle === 'monthly'
                   ? 'bg-white text-indigo-600 shadow-md shadow-indigo-100/80 border border-slate-200/60 font-black'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
-              }`}
+                }`}
             >
               <div className="text-xs sm:text-sm">Hàng tháng</div>
               <div className={`text-xs mt-0.5 ${billingCycle === 'monthly' ? 'text-indigo-600 font-extrabold' : 'text-slate-500 font-medium'}`}>
@@ -174,11 +174,10 @@ export default function PricingPage() {
             <button
               type="button"
               onClick={() => setBillingCycle('quarterly')}
-              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${
-                billingCycle === 'quarterly'
+              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${billingCycle === 'quarterly'
                   ? 'bg-white text-indigo-600 shadow-md shadow-indigo-100/80 border border-slate-200/60 font-black'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
-              }`}
+                }`}
             >
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-extrabold shadow-sm whitespace-nowrap">
                 TIẾT KIỆM 10%
@@ -193,11 +192,10 @@ export default function PricingPage() {
             <button
               type="button"
               onClick={() => setBillingCycle('yearly')}
-              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${
-                billingCycle === 'yearly'
+              className={`relative px-3 sm:px-4 py-3 rounded-xl text-center transition-all cursor-pointer ${billingCycle === 'yearly'
                   ? 'bg-white text-indigo-600 shadow-md shadow-indigo-100/80 border border-slate-200/60 font-black ring-2 ring-indigo-500/20'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
-              }`}
+                }`}
             >
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white text-[9px] font-extrabold shadow-md shadow-indigo-500/25 whitespace-nowrap">
                 TIẾT KIỆM 20% • BEST
@@ -638,11 +636,7 @@ export default function PricingPage() {
         </div>
       )}
 
-      <footer className="border-t border-border/40 py-8">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>© 2025 Ads Spy Tool. Được xây dựng cho marketers và affiliate marketers.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

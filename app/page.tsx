@@ -31,6 +31,7 @@ import { FaqSection } from "@/components/home/faq-section";
 import { FAQ_ITEMS } from "@/components/home/faq-data";
 import { ContactForm } from "@/components/home/contact-form";
 import { ScrollObserver } from "@/components/home/scroll-observer";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function HomePage() {
   // Schema.org nâng cao cho SEO & GEO: WebPage + AboutPage + FAQPage
@@ -388,34 +389,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 py-12 bg-white">
-        <div className="container max-w-6xl mx-auto px-4 space-y-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-slate-100">
-            <div className="space-y-2">
-              <div className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span>Ads Spy Tool</span>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Intelligence</span>
-              </div>
-              <p className="text-xs text-slate-500 max-w-md">
-                Nền tảng phân tích dữ liệu quảng cáo số, Nghiên cứu ngân sách Spend, lượt Reach và phát hiện quảng cáo scaling cho Marketer & Doanh nghiệp.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-6 text-sm text-slate-600">
-              <Link href="/quicksearch" className="hover:text-indigo-600 transition-colors">Tìm kiếm nhanh</Link>
-              <Link href="/mkt" className="hover:text-indigo-600 transition-colors">YouTube Ads</Link>
-              <Link href="/facebook-ads-search" className="hover:text-indigo-600 transition-colors">Facebook Ads</Link>
-              <Link href="/blog" className="hover:text-indigo-600 transition-colors">Blog Insights</Link>
-              <Link href="#about-us-section" className="hover:text-indigo-600 transition-colors">Về chúng tôi</Link>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            <p>© 2026 Ads Spy Tool. Phát triển bởi CÔNG TY TNHH CÔNG NGHỆ SỐ QUICKBLACK.</p>
-            <p>Trụ sở: Hà Nội, Việt Nam • Dữ liệu chuẩn hóa EU DSA & Global CPM Models</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
       {/* Observer chạy ở Client */}
       <ScrollObserver />

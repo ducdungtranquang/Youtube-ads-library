@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Header } from "@/components/header";
+import { SiteFooter } from "@/components/site-footer";
 import { ShieldAlert, FileText, CheckCircle2, AlertOctagon, Scale, Lock, UserCheck, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -165,12 +166,7 @@ export default function TermsPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-6 relative z-10 bg-white/80">
-        <div className="container px-4 text-center text-xs text-slate-500">
-          <p>© 2025 - 2026 Ads Spy Tool. All rights reserved.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
