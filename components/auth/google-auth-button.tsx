@@ -11,14 +11,18 @@ interface GoogleAuthButtonProps {
   className?: string
   disabled?: boolean
   prominent?: boolean
+  onBeforeAuth?: () => boolean
 }
 
 // Reusable Google OAuth button for both Login and Register pages
-export function GoogleAuthButton({ mode = 'login', className, disabled, prominent = true }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ mode = 'login', className, disabled, prominent = true, onBeforeAuth }: GoogleAuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { signInWithOAuth } = useAuth()
 
   const handleGoogleAuth = async () => {
+    if (onBeforeAuth && !onBeforeAuth()) {
+      return
+    }
     setIsLoading(true)
     try {
       const { error } = await signInWithOAuth('google')

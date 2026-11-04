@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/header"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthSpyShowcase } from "@/components/auth/auth-spy-showcase"
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [agreeTerms, setAgreeTerms] = useState(false)
   const [loading, setLoading] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const { signIn, user, loading: authLoading } = useAuth()
@@ -55,6 +57,10 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!agreeTerms) {
+      toast.error("Vui lòng tích chọn đồng ý với Điều khoản dịch vụ để tiếp tục.")
+      return
+    }
     setLoading(true)
 
     try {
@@ -130,6 +136,13 @@ export default function LoginPage() {
                   mode="login"
                   disabled={loading || redirecting}
                   prominent={true}
+                  onBeforeAuth={() => {
+                    if (!agreeTerms) {
+                      toast.error("Vui lòng tích chọn đồng ý với Điều khoản dịch vụ trước khi đăng nhập.")
+                      return false
+                    }
+                    return true
+                  }}
                 />
               </div>
 
@@ -197,6 +210,31 @@ export default function LoginPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                </div>
+
+                {/* Terms and Policy Checkbox */}
+                <div className="flex items-start gap-2.5 pt-1">
+                  <Checkbox
+                    id="agree-terms"
+                    checked={agreeTerms}
+                    onCheckedChange={(checked) => setAgreeTerms(Boolean(checked))}
+                    className="mt-0.5 border-slate-300 data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 cursor-pointer"
+                  />
+                  <Label
+                    htmlFor="agree-terms"
+                    className="text-xs text-slate-600 leading-relaxed cursor-pointer font-normal select-none"
+                  >
+                    Tôi đồng ý với{" "}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      className="text-rose-600 font-bold hover:underline underline-offset-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Điều khoản dịch vụ
+                    </Link>{" "}
+                    và cam kết không thu thập/crawl dữ liệu trái phép.
+                  </Label>
                 </div>
 
                 {/* Submit CTA Button */}
