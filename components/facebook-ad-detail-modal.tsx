@@ -83,6 +83,11 @@ const cleanAdText = (text: string | null | undefined, fallbackBrand?: string): s
   return cleaned.trim();
 };
 
+interface GrowthStep {
+  t: number;
+  c: number;
+}
+
 interface FacebookAdDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -192,12 +197,20 @@ export function FacebookAdDetailModal({
 
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
   const adLibraryUrl = ad?.ad_library_url || (itemId ? `https://www.facebook.com/ads/library/?id=${itemId}` : null);
+  let adLibPageId: string | null = null;
+  if (typeof ad?.ad_library_url === "string") {
+    const match = ad.ad_library_url.match(/view_all_page_id=(\d+)/);
+    if (match && match[1]) {
+      adLibPageId = match[1];
+    }
+  }
+
   const pageId =
     ad?.page_id ||
     snapshot?.page_id ||
     ad?.view_all_page_id ||
     snapshot?.view_all_page_id ||
-    (ad?.ad_library_url ? (ad.ad_library_url.match(/view_all_page_id=(\d+)/) || [])[1] : null);
+    adLibPageId;
   const pageProfileUri = snapshot?.page_profile_uri || ad?.page_profile_uri;
   const fbPageUrl =
     pageProfileUri ||
@@ -371,7 +384,7 @@ export function FacebookAdDetailModal({
   };
 
   // Growth history array
-  const growthHistory: Array<{ t: number; c: number }> = Array.isArray(ad?.growth_history)
+  const growthHistory: GrowthStep[] = Array.isArray(ad?.growth_history)
     ? ad.growth_history
     : [];
 
