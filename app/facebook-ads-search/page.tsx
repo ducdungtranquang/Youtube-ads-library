@@ -221,6 +221,7 @@ function FacebookAdsSearchContent() {
   } = useSearchQuota("fb");
 
   const searchQueryRef = useRef<HTMLInputElement>(null);
+  const lastExecutedQueryRef = useRef<string>("");
 
   // Initialize filter state from URL SearchParams
   const [selectedPreset, setSelectedPreset] = useState<string>(() => searchParams.get("filter") || "");
@@ -597,19 +598,22 @@ function FacebookAdsSearchContent() {
     executeSearchRef.current?.(false, { pageName: targetPageName, page: 1 });
   }, []);
 
+  const userId = user?.id;
+  const selectedSpendsKey = selectedSpends.join(",");
+
   useEffect(() => {
-    if (user) {
+    if (userId) {
       executeSearch(true);
     }
   }, [
-    user,
+    userId,
     currentPage,
     selectedPreset,
     selectedCountry,
     selectedIndustry,
     isActive,
     scalingLevel,
-    selectedSpends,
+    selectedSpendsKey,
     publicDateFrom,
     publicDateTo,
     sortBy,
@@ -667,8 +671,16 @@ function FacebookAdsSearchContent() {
       if (sortOrder) params.append("sort_order", sortOrder.toString());
     }
 
+    const currentQueryString = params.toString();
+
+    // Giữ nguyên state và không xoay/re-fetch nếu query parameters không thay đổi khi chuyển qua lại giữa các tab
+    if (isInitialLoad && lastExecutedQueryRef.current === currentQueryString && results.length > 0) {
+      return;
+    }
+
     try {
-      const result = await searchFacebookAds({ queryString: params.toString() });
+      lastExecutedQueryRef.current = currentQueryString;
+      const result = await searchFacebookAds({ queryString: currentQueryString });
 
       // Đồng bộ URL với các filter hiện tại
       updateUrlParams();
@@ -896,12 +908,18 @@ function FacebookAdsSearchContent() {
                 </div>
               </AdsSpyResultsToolbar>
 
-              {loading ? (
+              {loading && results.length === 0 ? (
                 <div className="flex justify-center items-center py-20">
                   <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
                 </div>
               ) : (
-                <div className="mt-4">
+                <div className="mt-4 relative">
+                  {loading && results.length > 0 && (
+                    <div className="absolute top-2 right-2 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-xs px-3.5 py-1.5 rounded-full shadow-md border border-indigo-200 text-xs font-semibold text-indigo-600 animate-pulse">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Đang cập nhật...</span>
+                    </div>
+                  )}
                   {results.length === 0 ? (
                     <Card className="border border-slate-200 bg-white shadow-sm rounded-2xl mt-4">
                       <div className="p-10 sm:p-14 text-center max-w-md mx-auto">

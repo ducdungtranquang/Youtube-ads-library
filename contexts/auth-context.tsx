@@ -50,7 +50,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      setUser(session?.user ?? null)
+      setUser((prevUser) => {
+        const nextUser = session?.user ?? null
+        if (!prevUser && !nextUser) return null
+        if (
+          prevUser &&
+          nextUser &&
+          prevUser.id === nextUser.id &&
+          prevUser.updated_at === nextUser.updated_at &&
+          prevUser.email === nextUser.email
+        ) {
+          return prevUser
+        }
+        return nextUser
+      })
       setLoading(false)
       if (session?.user) {
         syncUserProfile(session.user)
@@ -62,7 +75,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
-      setUser(session?.user ?? null)
+      setUser((prevUser) => {
+        const nextUser = session?.user ?? null
+        if (!prevUser && !nextUser) return null
+        if (
+          prevUser &&
+          nextUser &&
+          prevUser.id === nextUser.id &&
+          prevUser.updated_at === nextUser.updated_at &&
+          prevUser.email === nextUser.email
+        ) {
+          return prevUser
+        }
+        return nextUser
+      })
       setLoading(false)
 
       if (event === 'SIGNED_IN') {

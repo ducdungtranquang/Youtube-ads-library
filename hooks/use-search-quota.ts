@@ -64,7 +64,7 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
     return () => {
       isMounted = false
     }
-  }, [user, feature])
+  }, [user?.id, feature])
 
   // Recalculate quota when user or profile changes
   const refreshQuota = useCallback(() => {
