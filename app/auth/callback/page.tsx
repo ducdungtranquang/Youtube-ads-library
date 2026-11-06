@@ -51,6 +51,7 @@ export default function AuthCallbackPage() {
                 email: exchangeData.user.email,
                 fullName: exchangeData.user.user_metadata?.full_name || exchangeData.user.user_metadata?.name || '',
                 referredBy: exchangeData.user.user_metadata?.referred_by || null,
+                provider: exchangeData.user.app_metadata?.provider || 'google',
               }),
             })
           } catch (e) {

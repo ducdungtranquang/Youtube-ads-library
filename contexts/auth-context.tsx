@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false)
   const router = useRouter()
 
-  const syncUserProfile = async (targetUser: User | null, referredBy?: string) => {
+  const syncUserProfile = async (targetUser: User | null, referredBy?: string, provider?: string) => {
     if (!targetUser?.id) return
     try {
       await fetch('/api/user/sync-profile', {
@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: targetUser.email,
           fullName: targetUser.user_metadata?.full_name || targetUser.user_metadata?.name || '',
           referredBy: referredBy || targetUser.user_metadata?.referred_by || null,
+          provider: provider || (targetUser as any).app_metadata?.provider || (targetUser as any).identities?.[0]?.provider || 'email',
         }),
       })
     } catch (err) {
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           syncUserProfile(session.user)
         }
-        // Redirect về dashboard nếu user đang ở trang login/register
+        // Redirect vß╗ü dashboard nß║┐u user ─æang ß╗ƒ trang login/register
         if (typeof window !== 'undefined') {
           const authPages = ['/login', '/register']
           const isOnAuthPage = authPages.some(page => window.location.pathname.startsWith(page))
@@ -124,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     })
     if (!error && data?.user) {
-      syncUserProfile(data.user, referredBy)
+      syncUserProfile(data.user, referredBy, 'email')
     }
     return { error }
   }
