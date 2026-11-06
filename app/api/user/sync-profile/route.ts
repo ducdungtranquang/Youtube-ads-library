@@ -55,14 +55,14 @@ export async function POST(request: NextRequest) {
       'email'
 
     // Xác định xem user này có phải là tài khoản vừa mới tạo không (trong vòng 5 phút)
-    // Trường hợp Supabase DB trigger tự chèn user_profiles trước khi gọi API này,
-    // hoặc gọi từ Google callback / Email signup:
+    // Và chưa từng được đánh dấu đã thông báo trong authUser metadata (slack_notified_at)
+    const alreadyNotified = Boolean(authUser?.user_metadata?.slack_notified_at)
     const now = Date.now()
     const profileCreatedAt = existing?.created_at ? new Date(existing.created_at).getTime() : 0
     const authCreatedAt = authUser?.created_at ? new Date(authUser.created_at).getTime() : 0
     
-    // Là user mới nếu chưa có profile hoặc vừa được tạo trong 5 phút gần nhất
-    const isNewUser = !existing || (now - profileCreatedAt < 300000) || (now - authCreatedAt < 300000)
+    // Là user mới nếu chưa được thông báo VÀ (chưa có profile hoặc vừa được tạo trong 5 phút gần nhất)
+    const isNewUser = !alreadyNotified && (!existing || (now - profileCreatedAt < 300000) || (now - authCreatedAt < 300000))
 
     if (existing) {
       // If profile exists but email is not populated, fill it in
@@ -75,6 +75,18 @@ export async function POST(request: NextRequest) {
 
       // Nếu tài khoản mới tạo (ví dụ trigger Supabase chèn trước hoặc Google login lần đầu)
       if (isNewUser) {
+        // Đánh dấu ngay lập tức vào user_metadata để chống race-condition / gọi lặp
+        try {
+          await supabaseAdmin.auth.admin.updateUserById(userId, {
+            user_metadata: {
+              ...(authUser?.user_metadata || {}),
+              slack_notified_at: new Date().toISOString(),
+            },
+          })
+        } catch (mErr) {
+          console.warn('Could not update user_metadata slack flag:', mErr)
+        }
+
         await sendSlackNewUserNotification({
           userId,
           email: resolvedEmail,
@@ -92,6 +104,18 @@ export async function POST(request: NextRequest) {
         created: false,
         profile: existing
       })
+    }
+
+    // Đánh dấu vào user_metadata trước khi gửi thông báo
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: {
+          ...(authUser?.user_metadata || {}),
+          slack_notified_at: new Date().toISOString(),
+        },
+      })
+    } catch (mErr) {
+      console.warn('Could not update user_metadata slack flag:', mErr)
     }
 
     // Profile does not exist: create it with default free tier
