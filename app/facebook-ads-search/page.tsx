@@ -378,9 +378,15 @@ function FacebookAdsSearchContent() {
       });
     }
     if (selectedCountry) {
+      const countryLabel =
+        selectedCountry.toUpperCase() === "VN"
+          ? "🇻🇳 Việt Nam (VN)"
+          : selectedCountry.toUpperCase() === "OTHER"
+          ? "🌐 Các nước khác"
+          : selectedCountry;
       chips.push({
         id: "country",
-        label: `Quốc gia: ${selectedCountry === "VN" ? "🇻🇳 Việt Nam (VN)" : selectedCountry}`,
+        label: `Quốc gia: ${countryLabel}`,
         onRemove: () => {
           setSelectedCountry("");
           setCurrentPage(1);
@@ -482,16 +488,16 @@ function FacebookAdsSearchContent() {
     const imageItem = images.length > 0 ? images[0] : (snapshot?.images?.[0] || undefined);
     const videoItem = videos.length > 0 ? videos[0] : (snapshot?.videos?.[0] || undefined);
 
+    // Ưu tiên thumbnail_r2 đã lưu trên Cloudflare R2 để tránh ảnh CDN Facebook bị hết hạn token
     const mediaUrl =
       ad?.thumbnail_r2 ||
+      ad?.thumbnail_local ||
       imageItem?.resized_image_url ||
       imageItem?.original_image_url ||
       imageItem?.watermarked_resized_image_url ||
       videoItem?.video_hd_url ||
       videoItem?.video_sd_url ||
-      snapshot?.page_profile_picture_url ||
-      ad?.thumbnail_r2 ||
-      ad?.thumbnail_local;
+      snapshot?.page_profile_picture_url;
 
     const mediaType = videoItem?.video_hd_url || videoItem?.video_sd_url ? "video" : "image";
     const attachment = mediaUrl
@@ -499,10 +505,10 @@ function FacebookAdsSearchContent() {
         {
           media_url: mediaUrl,
           media_poster_url:
-            imageItem?.resized_image_url ||
-            imageItem?.original_image_url ||
             ad?.thumbnail_r2 ||
             ad?.thumbnail_local ||
+            imageItem?.resized_image_url ||
+            imageItem?.original_image_url ||
             undefined,
           media_url_type: mediaType,
           title: ad?.headline || ad?.text?.split(/\n/)[0]?.trim() || ad?.page_name || "Facebook Ad",

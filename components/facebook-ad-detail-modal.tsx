@@ -142,16 +142,15 @@ export function FacebookAdDetailModal({
   const hasPlayableVideo = Boolean(snapshotVideo?.video_hd_url || snapshotVideo?.video_sd_url);
   const mediaUrl =
     ad?.thumbnail_r2 ||
+    ad?.thumbnail_local ||
     attachment?.media_url ||
     snapshotVideo?.video_hd_url ||
-    snapshotVideo?.video_sd_url ||
-    ad?.thumbnail_r2 ||
-    ad?.thumbnail_local;
+    snapshotVideo?.video_sd_url;
   const mediaPoster =
-    attachment?.media_poster_url ||
-    snapshotVideo?.video_preview_image_url ||
     ad?.thumbnail_r2 ||
-    ad?.thumbnail_local;
+    ad?.thumbnail_local ||
+    attachment?.media_poster_url ||
+    snapshotVideo?.video_preview_image_url;
 
   const pageImage =
     ad?.page_profile_image_url ||
@@ -192,8 +191,15 @@ export function FacebookAdDetailModal({
   const adImages = Array.isArray(ad?.images) ? ad.images : [];
   const snapshotImages = Array.isArray(snapshot?.images) ? snapshot.images : [];
   const imageList = adImages.length > 0 ? adImages : snapshotImages.length > 0 ? snapshotImages : [];
+  
+  // Ưu tiên thumbnail_r2 để tránh ảnh CDN Facebook bị hết hạn token
   const primaryImage =
-    imageList[0]?.resized_image_url || imageList[0]?.original_image_url || mediaUrl || pageImage;
+    ad?.thumbnail_r2 ||
+    ad?.thumbnail_local ||
+    imageList[0]?.resized_image_url ||
+    imageList[0]?.original_image_url ||
+    attachment?.media_url ||
+    pageImage;
 
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
   const adLibraryUrl = ad?.ad_library_url || (itemId ? `https://www.facebook.com/ads/library/?id=${itemId}` : null);
@@ -335,6 +341,17 @@ export function FacebookAdDetailModal({
       month: "short",
       day: "numeric",
     });
+  };
+
+  // Tính số ngày kể từ ngày xuất bản (start_date)
+  const calculateDaysSincePublished = (startDateValue: any) => {
+    if (!startDateValue && startDateValue !== 0) return null;
+    const num = Number(startDateValue);
+    if (!Number.isFinite(num)) return null;
+    const startMs = num > 1e12 ? num : num * 1000;
+    const diffMs = Date.now() - startMs;
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    return days >= 0 ? days : 0;
   };
 
   // Format Helper for Currency
@@ -696,10 +713,12 @@ export function FacebookAdDetailModal({
                       ) : (
                         <div className="relative w-full flex flex-col items-center justify-center bg-slate-900 py-10 px-4 text-center">
                           {primaryImage && primaryImage !== pageImage ? (
-                            <img
+                            <FacebookMediaFallback
                               src={primaryImage}
                               alt={title || pageName}
-                              className="max-h-[380px] w-auto max-w-full object-contain rounded-lg"
+                              className="max-h-[380px] w-auto max-w-full object-contain rounded-lg shadow-md"
+                              fallbackClassName="w-full h-[320px] bg-slate-900 flex items-center justify-center px-4 text-center text-xs text-slate-400"
+                              fallbackText="Ảnh quảng cáo đang được cập nhật"
                             />
                           ) : (
                             <div className="max-w-md p-6 rounded-2xl bg-slate-950/80 border border-slate-800 text-center space-y-3">
@@ -933,7 +952,8 @@ export function FacebookAdDetailModal({
                           <Calendar className="size-3 text-indigo-600" /> Tuổi thọ chiến dịch
                         </span>
                         <p className="text-xl font-black text-slate-900 mt-1">
-                          {ad?.duration_days ?? "—"} <span className="text-xs font-normal text-slate-500">ngày</span>
+                          {ad?.duration_days ?? ad?.filter_signals?.age_days ?? (calculateDaysSincePublished(ad?.start_date) ?? "—")}{" "}
+                          <span className="text-xs font-normal text-slate-500">ngày</span>
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">
                           Vòng đời: {ad?.ad_lifecycle_days ? `${Math.round(ad.ad_lifecycle_days)}d` : "Mới"}
@@ -1044,14 +1064,56 @@ export function FacebookAdDetailModal({
                         </div>
                       </div>
 
+                      {/* Quốc gia nhắm mục tiêu / suy luận */}
+                      {(() => {
+                        const countriesList: string[] = Array.isArray(ad?.countries_lower)
+                          ? ad.countries_lower
+                          : Array.isArray(ad?.countries)
+                          ? ad.countries
+                          : ad?.country
+                          ? [ad.country]
+                          : [];
+                        const isInferred = Boolean(ad?.country_inferred);
+                        if (countriesList.length === 0 && !ad?.country) return null;
+
+                        return (
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-slate-500">Quốc gia</span>
+                            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                              <span className="font-semibold text-slate-800 uppercase">
+                                {countriesList.map((c) => String(c).toUpperCase()).join(", ")}
+                              </span>
+                              {isInferred && (
+                                <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                                  suy luận
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                       <div className="flex items-center justify-between py-2">
                         <span className="text-slate-500">Bắt đầu chạy</span>
-                        <span className="font-semibold text-slate-800">{formatTimestamp(ad?.start_date)}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                          <span className="font-semibold text-slate-800">{formatTimestamp(ad?.start_date)}</span>
+                          {(() => {
+                            const daysAgo = calculateDaysSincePublished(ad?.start_date);
+                            if (daysAgo === null) return null;
+                            return (
+                              <span className="text-[11px] font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                                {daysAgo === 0 ? "Hôm nay" : `${daysAgo} ngày trước`}
+                              </span>
+                            );
+                          })()}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between py-2">
                         <span className="text-slate-500">Kết thúc</span>
-                        <span className="font-semibold text-slate-800">{formatTimestamp(ad?.end_date)}</span>
+                        <span className="font-semibold text-slate-800">
+                          {ad?.is_active ? "—" : formatTimestamp(ad?.end_date)}
+                        </span>
                       </div>
 
                       <div className="flex items-center justify-between py-2">
