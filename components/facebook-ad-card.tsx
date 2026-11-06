@@ -417,3 +417,55 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
     </Card>
   );
 }
+
+export function FacebookAdCardSkeleton() {
+  return (
+    <Card className="h-full overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm flex flex-col pointer-events-none">
+      <CardContent className="flex flex-1 flex-col p-0">
+        {/* Media Thumbnail Skeleton */}
+        <div className="relative aspect-video w-full bg-slate-100 animate-pulse flex items-center justify-center">
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+            <div className="h-5 w-20 bg-slate-200/80 rounded-full" />
+            <div className="h-5 w-14 bg-slate-200/80 rounded-full" />
+          </div>
+        </div>
+
+        {/* Card Body Skeleton */}
+        <div className="flex flex-1 flex-col p-4 space-y-3">
+          {/* Page Info */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-slate-200 animate-pulse" />
+              <div className="h-3.5 w-28 bg-slate-200 rounded animate-pulse" />
+            </div>
+            <div className="h-4 w-16 bg-slate-200 rounded-full animate-pulse" />
+          </div>
+
+          {/* Headline & Description */}
+          <div className="space-y-1.5 pt-1">
+            <div className="h-4 w-5/6 bg-slate-200 rounded animate-pulse" />
+            <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
+            <div className="h-3 w-4/6 bg-slate-100 rounded animate-pulse" />
+          </div>
+
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="h-12 bg-slate-50 border border-slate-100 rounded-xl animate-pulse" />
+            <div className="h-12 bg-slate-50 border border-slate-100 rounded-xl animate-pulse" />
+            <div className="h-12 bg-slate-50 border border-slate-100 rounded-xl animate-pulse" />
+            <div className="h-12 bg-slate-50 border border-slate-100 rounded-xl animate-pulse" />
+          </div>
+
+          {/* Action Footer */}
+          <div className="pt-2 flex items-center justify-between border-t border-slate-100 mt-auto">
+            <div className="h-8 w-24 bg-slate-100 rounded-xl animate-pulse" />
+            <div className="flex gap-1.5">
+              <div className="h-8 w-20 bg-slate-100 rounded-xl animate-pulse" />
+              <div className="h-8 w-24 bg-slate-200 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

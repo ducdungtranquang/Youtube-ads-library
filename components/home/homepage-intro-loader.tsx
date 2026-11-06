@@ -19,12 +19,24 @@ const BRAND_WORDS = [
   { text: "TOOL", gradient: "from-rose-500 via-orange-500 to-amber-500", delay: 280 }
 ];
 
+const INTRO_SEEN_STORAGE_KEY = "homepage_intro_seen";
+
 export function HomepageIntroLoader() {
   const [stage, setStage] = useState<"static" | "welcome" | "transition" | "brand" | "exit" | "hidden">("static");
   const [progress, setProgress] = useState(15);
   const isSkippedRef = useRef(false);
 
   useEffect(() => {
+    // Nếu user đã từng bấm vào trang hoặc đã xem trước đó, không hiển thị lại animation
+    try {
+      if (typeof window !== "undefined" && localStorage.getItem(INTRO_SEEN_STORAGE_KEY) === "true") {
+        setStage("hidden");
+        return;
+      }
+    } catch {
+      // Bỏ qua lỗi trong trường hợp trình duyệt chặn localStorage
+    }
+
     // Tôn trọng prefers-reduced-motion của người dùng
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setStage("hidden");
@@ -79,6 +91,15 @@ export function HomepageIntroLoader() {
   }, []);
 
   const handleSkip = () => {
+    // Lưu cờ vào localStorage để các lần truy cập sau không hiện animation nữa
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(INTRO_SEEN_STORAGE_KEY, "true");
+      }
+    } catch {
+      // Ignored
+    }
+
     isSkippedRef.current = true;
     setStage("exit");
     setTimeout(() => {

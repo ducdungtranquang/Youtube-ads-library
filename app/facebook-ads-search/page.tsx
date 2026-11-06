@@ -10,7 +10,7 @@ import { useFacebookAdsSearch } from "@/hooks/use-facebook-search";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { FacebookAdCard } from "@/components/facebook-ad-card";
+import { FacebookAdCard, FacebookAdCardSkeleton } from "@/components/facebook-ad-card";
 import { FacebookAdDetailModal } from "@/components/facebook-ad-detail-modal";
 import { Input } from "@/components/ui/input";
 import {
@@ -908,18 +908,16 @@ function FacebookAdsSearchContent() {
                 </div>
               </AdsSpyResultsToolbar>
 
-              {loading && results.length === 0 ? (
-                <div className="flex justify-center items-center py-20">
-                  <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+              {loading ? (
+                <div className="mt-4">
+                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                      <FacebookAdCardSkeleton key={idx} />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="mt-4 relative">
-                  {loading && results.length > 0 && (
-                    <div className="absolute top-2 right-2 z-20 flex items-center gap-2 bg-white/95 backdrop-blur-xs px-3.5 py-1.5 rounded-full shadow-md border border-indigo-200 text-xs font-semibold text-indigo-600 animate-pulse">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span>Đang cập nhật...</span>
-                    </div>
-                  )}
                   {results.length === 0 ? (
                     <Card className="border border-slate-200 bg-white shadow-sm rounded-2xl mt-4">
                       <div className="p-10 sm:p-14 text-center max-w-md mx-auto">
@@ -930,7 +928,7 @@ function FacebookAdsSearchContent() {
                           Chưa có kết quả tìm kiếm
                         </h3>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                          Thử chọn chiến lược  (Ads mới lên, Sẵn sàng Scale, Weekly Winner) hoặc thay đổi từ khóa/bộ lọc quốc gia để tìm thêm quảng cáo.
+                          Thử chọn chiến lược (Ads mới lên, Sẵn sàng Scale, Weekly Winner) hoặc thay đổi từ khóa/bộ lọc quốc gia để tìm thêm quảng cáo.
                         </p>
                       </div>
                     </Card>
