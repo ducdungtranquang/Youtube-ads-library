@@ -158,7 +158,7 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
 
   return (
     <Card
-      className="group h-full overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 cursor-pointer flex flex-col"
+      className="group h-full overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm hover:border-slate-300 cursor-pointer flex flex-col"
       onClick={onClick}
     >
       <CardContent className="flex flex-1 flex-col p-0">
@@ -167,7 +167,7 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
           <FacebookMediaFallback
             src={mediaUrl}
             alt={title || pageName}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover"
             fallbackClassName="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-3 text-center text-xs text-slate-400 gap-1.5"
             fallbackText={isVideoFormat ? "Video cần mở Ad Library" : "Ảnh đang được cập nhật"}
             isVideo={hasDirectVideoUrl}
@@ -370,27 +370,28 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
           </div>
 
           {/* Bottom Action Footer */}
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-            <div onClick={(e) => e.stopPropagation()}>
+          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5 min-w-0">
+            <div onClick={(e) => e.stopPropagation()} className="shrink-0">
               <FavoriteButton
                 itemType="facebook_ad"
                 itemId={itemId}
                 itemData={favoriteData}
                 size="sm"
                 variant="outline"
-                className="h-8 text-[11px] font-semibold px-2.5 rounded-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs"
-                showText={true}
+                className="h-8 w-8 p-0 rounded-xl bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-2xs flex items-center justify-center"
+                showText={false}
               />
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0 shrink-0">
               {ad?.ad_library_url && (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 text-[11px] font-semibold px-2.5 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="h-8 text-[11px] font-semibold px-2 sm:px-2.5 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 shrink-0"
                   asChild
                   onClick={(e) => e.stopPropagation()}
+                  title="Mở trong Facebook Ad Library"
                 >
                   <a href={ad.ad_library_url} target="_blank" rel="noopener noreferrer">
                     Ad Library <ExternalLink className="ml-1 size-3 text-slate-400" />
@@ -401,12 +402,13 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
               {link && (
                 <Button
                   size="sm"
-                  className="h-8 text-[11px] font-bold px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs"
+                  className="h-8 text-[11px] font-bold px-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs shrink-0"
                   asChild
                   onClick={(e) => e.stopPropagation()}
+                  title="Mở Landing Page"
                 >
                   <a href={link} target="_blank" rel="noopener noreferrer">
-                    Landing Page <ExternalLink className="ml-1 size-3" />
+                    Landing <ExternalLink className="ml-1 size-3" />
                   </a>
                 </Button>
               )}

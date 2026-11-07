@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
@@ -19,6 +19,31 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Deduplication và tracking in-flight sync profile ở cấp client/session
+const syncedUserIds = new Set<string>()
+const inFlightSyncs = new Map<string, Promise<void>>()
+
+function isUserSyncedInSession(userId: string): boolean {
+  if (syncedUserIds.has(userId)) return true
+  if (typeof window !== 'undefined') {
+    try {
+      return sessionStorage.getItem(`synced_profile_${userId}`) === 'true'
+    } catch {
+      return false
+    }
+  }
+  return false
+}
+
+function markUserSyncedInSession(userId: string): void {
+  syncedUserIds.add(userId)
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem(`synced_profile_${userId}`, 'true')
+    } catch {}
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -28,21 +53,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const syncUserProfile = async (targetUser: User | null, referredBy?: string, provider?: string) => {
     if (!targetUser?.id) return
-    try {
-      await fetch('/api/user/sync-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: targetUser.id,
-          email: targetUser.email,
-          fullName: targetUser.user_metadata?.full_name || targetUser.user_metadata?.name || '',
-          referredBy: referredBy || targetUser.user_metadata?.referred_by || null,
-          provider: provider || (targetUser as any).app_metadata?.provider || (targetUser as any).identities?.[0]?.provider || 'email',
-        }),
-      })
-    } catch (err) {
-      console.warn('Failed to sync user profile:', err)
+
+    // Tránh gọi lặp nhiều lần cho cùng 1 user trong cùng một phiên browser
+    if (!referredBy && isUserSyncedInSession(targetUser.id)) {
+      return
     }
+
+    // Nếu đang có 1 request sync chạy dở cho user này, đợi request đó (tránh race condition)
+    if (inFlightSyncs.has(targetUser.id)) {
+      return await inFlightSyncs.get(targetUser.id)
+    }
+
+    const syncPromise = (async () => {
+      try {
+        await fetch('/api/user/sync-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: targetUser.id,
+            email: targetUser.email,
+            fullName: targetUser.user_metadata?.full_name || targetUser.user_metadata?.name || '',
+            referredBy: referredBy || targetUser.user_metadata?.referred_by || null,
+            provider: provider || (targetUser as any).app_metadata?.provider || (targetUser as any).identities?.[0]?.provider || 'email',
+          }),
+        })
+        markUserSyncedInSession(targetUser.id)
+      } catch (err) {
+        console.warn('Failed to sync user profile:', err)
+      } finally {
+        inFlightSyncs.delete(targetUser.id)
+      }
+    })()
+
+    inFlightSyncs.set(targetUser.id, syncPromise)
+    return await syncPromise
   }
 
   useEffect(() => {
@@ -157,6 +201,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    if (user?.id) {
+      syncedUserIds.delete(user.id)
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.removeItem(`synced_profile_${user.id}`)
+        } catch {}
+      }
+    }
     const { error } = await supabase.auth.signOut()
     return { error }
   }

@@ -111,10 +111,12 @@ export function FacebookAdDetailModal({
   const [activeTab, setActiveTab] = useState("estimates");
 
   // State quản lý danh sách Quảng cáo tương tự (Minea Style Scroll ngang)
-  const [similarAds, setSimilarAds] = useState<any[]>(ad?.similar_ads || []);
+  const [similarAds, setSimilarAds] = useState<any[]>([]);
+  const [similarTotal, setSimilarTotal] = useState<number | null>(null);
   const [similarLoading, setSimilarLoading] = useState(false);
   const similarScrollRef = useRef<HTMLDivElement>(null);
   const modalBodyRef = useRef<HTMLDivElement>(null);
+  const prevPageNameRef = useRef<string | null>(null);
 
   // State quản lý danh sách Ads cùng Page (tối đa 20 size/page theo yêu cầu)
   const [pageAds, setPageAds] = useState<any[]>([]);
@@ -225,6 +227,15 @@ export function FacebookAdDetailModal({
 
   // Tự động tải danh sách quảng cáo của cùng Fanpage (giới hạn tối đa 20 ads/trang)
   useEffect(() => {
+    // Reset page về 1 nếu đổi pageName
+    if (prevPageNameRef.current !== pageName) {
+      prevPageNameRef.current = pageName;
+      if (pageAdsPage !== 1) {
+        setPageAdsPage(1);
+        return;
+      }
+    }
+
     if (!open || !pageName || pageName === "Facebook Ad") {
       setPageAds([]);
       setPageAdsTotal(0);
@@ -236,7 +247,8 @@ export function FacebookAdDetailModal({
     async function loadPageAds() {
       setPageAdsLoading(true);
       try {
-        const res = await fetch(`/api/pages/${encodeURIComponent(pageName)}/ads?page=${pageAdsPage}&limit=20`);
+        const excludeParam = itemId ? `&exclude=${encodeURIComponent(itemId)}` : "";
+        const res = await fetch(`/api/pages/${encodeURIComponent(pageName)}/ads?page=${pageAdsPage}&limit=20${excludeParam}`);
         const json = await res.json();
         if (isMounted && json?.success && Array.isArray(json?.data)) {
           setPageAds(json.data);
@@ -255,23 +267,13 @@ export function FacebookAdDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [open, pageName, pageAdsPage]);
+  }, [open, pageName, pageAdsPage, itemId]);
 
-  // Quản lý Similar Ads: ưu tiên lấy từ ad.similar_ads (kể cả mảng rỗng nếu đã được fetch từ parent)
-  // Chỉ tự fetch khi ad.similar_ads là undefined/null (chưa từng load)
+  // Quản lý Similar Ads: tải riêng biệt từ route /api/ads/[id]/similar
   useEffect(() => {
-    if (Array.isArray(ad?.similar_ads)) {
-      // Parent đã fetch (dù rỗng hay có data) → dùng luôn, không fetch lại
-      // Phải reset similarLoading về false để tránh race condition:
-      // khi similar_ads=undefined → fetch bắt đầu (loading=true) → cleanup isMounted=false
-      // → similar_ads có data → early return nhưng loading chưa được reset
-      setSimilarAds(ad.similar_ads);
-      setSimilarLoading(false);
-      return;
-    }
-
     if (!open || !itemId) {
       setSimilarAds([]);
+      setSimilarTotal(null);
       setSimilarLoading(false);
       return;
     }
@@ -280,10 +282,13 @@ export function FacebookAdDetailModal({
     async function fetchSimilar() {
       setSimilarLoading(true);
       try {
-        const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}?include_similar=true&similar_limit=15`);
+        const res = await fetch(`/api/ads/${encodeURIComponent(itemId)}/similar?page=1&limit=15`);
         const json = await res.json();
-        if (isMounted && json?.success && Array.isArray(json?.similar_ads)) {
-          setSimilarAds(json.similar_ads);
+        if (isMounted && json?.success && Array.isArray(json?.data)) {
+          setSimilarAds(json.data);
+          if (json?.pagination?.total != null) {
+            setSimilarTotal(json.pagination.total);
+          }
         }
       } catch (err) {
         console.warn("Lỗi khi tải similar ads:", err);
@@ -296,7 +301,7 @@ export function FacebookAdDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [open, itemId, ad?.similar_ads]);
+  }, [open, itemId]);
 
   // Tự động cuộn lên đầu modal khi chuyển sang xem ad khác
   useEffect(() => {
@@ -307,6 +312,9 @@ export function FacebookAdDetailModal({
 
   const handleSelectAd = (targetAd: any) => {
     if (!targetAd) return;
+    setPageAdsPage(1);
+    setSimilarAds([]);
+    setSimilarTotal(null);
     // Cuộn ngay lên đầu modal để user thấy ad mới
     modalBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     if (onSelectAd) {
@@ -409,10 +417,10 @@ export function FacebookAdDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[96vw] max-w-6xl h-[92vh] p-0 overflow-hidden flex flex-col rounded-3xl bg-white border border-slate-200 shadow-2xl"
+        className="w-[96vw] max-w-6xl h-[88vh] max-h-[calc(100vh-5rem)] p-0 overflow-hidden flex flex-col rounded-3xl bg-white border border-slate-200 shadow-2xl z-[100]"
       >
         {/* Pinned Sticky Header */}
-        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur-md">
+        <div className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6 py-3.5 sm:py-4">
           <div className="flex items-center gap-3.5 min-w-0 pr-4">
             {pageImage ? (
               <img
@@ -804,7 +812,7 @@ export function FacebookAdDetailModal({
                           </div>
                           <div className="mt-2 flex items-baseline gap-1.5">
                             <span className="text-2xl font-black tracking-tight text-purple-950 font-mono">
-                              {ad?.domain_ads_count != null ? Number(ad.domain_ads_count).toLocaleString("vi-VN") : "0"}
+                              {loading ? "..." : (ad?.domain_ads_count != null ? Number(ad.domain_ads_count).toLocaleString("vi-VN") : "—")}
                             </span>
                             <span className="text-xs font-semibold text-purple-600">quảng cáo</span>
                           </div>
@@ -821,7 +829,7 @@ export function FacebookAdDetailModal({
                           </div>
                           <div className="mt-2 flex items-baseline gap-1.5">
                             <span className="text-2xl font-black tracking-tight text-amber-950 font-mono">
-                              {Number(ad?.duplicates_count ?? ad?.clones_count ?? 1).toLocaleString("vi-VN")}
+                              {loading ? "..." : (ad?.duplicates_count != null ? Number(ad.duplicates_count).toLocaleString("vi-VN") : (ad?.clones_count != null ? Number(ad.clones_count).toLocaleString("vi-VN") : "—"))}
                             </span>
                             <span className="text-xs font-semibold text-amber-600">bản sao</span>
                           </div>
@@ -838,7 +846,7 @@ export function FacebookAdDetailModal({
                           </div>
                           <div className="mt-2 flex items-baseline gap-1.5">
                             <span className="text-2xl font-black tracking-tight text-blue-950 font-mono">
-                              {ad?.page_ads_count != null ? Number(ad.page_ads_count).toLocaleString("vi-VN") : "0"}
+                              {loading ? "..." : (ad?.page_ads_count != null ? Number(ad.page_ads_count).toLocaleString("vi-VN") : "—")}
                             </span>
                             <span className="text-xs font-semibold text-blue-600">quảng cáo</span>
                           </div>
@@ -876,7 +884,7 @@ export function FacebookAdDetailModal({
                           <DollarSign className="size-4 text-emerald-600" />
                           Chi tiêu ước tính (Estimated Spend)
                         </span>
-                        {ad?.estimated_spend && (
+                        {!loading && ad?.estimated_spend && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
                             {ad.estimated_spend}
                           </span>
@@ -885,13 +893,13 @@ export function FacebookAdDetailModal({
 
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-black text-slate-900">
-                          {formatCurrency(ad?.estimated_spend_usd)}
+                          {loading ? "..." : formatCurrency(ad?.estimated_spend_usd)}
                         </span>
                         <span className="text-xs text-slate-500 font-medium">USD (trung bình)</span>
                       </div>
 
                       {/* Spend Range Bar */}
-                      {(ad?.estimated_spend_min_usd != null || ad?.estimated_spend_max_usd != null) && (
+                      {!loading && (ad?.estimated_spend_min_usd != null || ad?.estimated_spend_max_usd != null) && (
                         <div className="pt-2 border-t border-slate-100 space-y-1.5">
                           <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
                             <span>Thấp nhất: <strong className="text-slate-900">{formatCurrency(ad?.estimated_spend_min_usd)}</strong></span>
@@ -916,13 +924,13 @@ export function FacebookAdDetailModal({
 
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-black text-slate-900">
-                          {formatNumber(ad?.estimated_reach)}
+                          {loading ? "..." : formatNumber(ad?.estimated_reach)}
                         </span>
                         <span className="text-xs text-slate-500 font-medium">người xem</span>
                       </div>
 
                       {/* Reach Range */}
-                      {(ad?.estimated_reach_min != null || ad?.estimated_reach_max != null) && (
+                      {!loading && (ad?.estimated_reach_min != null || ad?.estimated_reach_max != null) && (
                         <div className="pt-2 border-t border-slate-100 space-y-1.5">
                           <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
                             <span>Min: <strong className="text-slate-900">{formatNumber(ad?.estimated_reach_min)}</strong></span>
@@ -942,7 +950,7 @@ export function FacebookAdDetailModal({
                           <Layers className="size-3 text-amber-600" /> Bản sao đang chạy
                         </span>
                         <p className="text-xl font-black text-slate-900 mt-1">
-                          {ad?.duplicates_count ?? ad?.clones_count ?? "1"}
+                          {loading ? "..." : (ad?.duplicates_count ?? ad?.clones_count ?? "—")}
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">Ad Sets nhân bản</p>
                       </div>
@@ -952,11 +960,11 @@ export function FacebookAdDetailModal({
                           <Calendar className="size-3 text-indigo-600" /> Tuổi thọ chiến dịch
                         </span>
                         <p className="text-xl font-black text-slate-900 mt-1">
-                          {ad?.duration_days ?? ad?.filter_signals?.age_days ?? (calculateDaysSincePublished(ad?.start_date) ?? "—")}{" "}
+                          {loading ? "..." : (ad?.duration_days ?? ad?.filter_signals?.age_days ?? (calculateDaysSincePublished(ad?.start_date) ?? "—"))}{" "}
                           <span className="text-xs font-normal text-slate-500">ngày</span>
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">
-                          Vòng đời: {ad?.ad_lifecycle_days ? `${Math.round(ad.ad_lifecycle_days)}d` : "Mới"}
+                          Vòng đời: {loading ? "..." : (ad?.ad_lifecycle_days ? `${Math.round(ad.ad_lifecycle_days)}d` : "Mới")}
                         </p>
                       </div>
 
@@ -965,7 +973,7 @@ export function FacebookAdDetailModal({
                           <Zap className="size-3 text-purple-600" /> Tốc độ bùng nổ
                         </span>
                         <p className="text-xl font-black text-slate-900 mt-1">
-                          {ad?.burst ?? "—"}
+                          {loading ? "..." : (ad?.burst ?? "—")}
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">Burst Index</p>
                       </div>
@@ -975,14 +983,14 @@ export function FacebookAdDetailModal({
                           <Flame className="size-3 text-rose-600" /> Điểm Vít (Scaling)
                         </span>
                         <p className="text-xl font-black text-slate-900 mt-1">
-                          {ad?.scaling_score ?? ad?.score ?? "—"}
+                          {loading ? "..." : (ad?.scaling_score ?? ad?.score ?? "—")}
                         </p>
                         <p className="text-[10px] text-slate-500 mt-0.5">Scaling Score</p>
                       </div>
                     </div>
 
                     {/* Growth History Timeline (Lịch sử tăng trưởng bản sao) */}
-                    {growthHistory.length > 0 && (
+                    {!loading && growthHistory.length > 0 && (
                       <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -1184,7 +1192,7 @@ export function FacebookAdDetailModal({
                           </span>
                         )}
                         <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
-                          {similarAds.length} ads liên quan
+                          {similarTotal != null ? `${similarTotal.toLocaleString("vi-VN")} ads liên quan` : `${similarAds.length} ads liên quan`}
                         </span>
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
@@ -1235,11 +1243,36 @@ export function FacebookAdDetailModal({
                     className="flex gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent"
                   >
                     {similarAds.map((simAd, idx) => {
-                      const simImg =
+                      const simImages = Array.isArray(simAd?.images) ? simAd.images : [];
+                      const simVideos = Array.isArray(simAd?.videos) ? simAd.videos : [];
+                      const simSnapshot = simAd?.snapshot || {};
+
+                      const simImageItem = simImages.length > 0 ? simImages[0] : (simSnapshot?.images?.[0] || undefined);
+                      const simVideoItem = simVideos.length > 0 ? simVideos[0] : (simSnapshot?.videos?.[0] || undefined);
+
+                      const simMediaUrl =
                         simAd?.thumbnail_r2 ||
-                        simAd?.images?.[0]?.resized_image_url ||
-                        simAd?.images?.[0]?.original_image_url ||
+                        simImageItem?.resized_image_url ||
+                        simImageItem?.original_image_url ||
+                        simImageItem?.watermarked_resized_image_url ||
+                        simVideoItem?.video_hd_url ||
+                        simVideoItem?.video_sd_url ||
+                        simVideoItem?.thumbnail_url ||
+                        simSnapshot?.page_profile_picture_url ||
                         simAd?.thumbnail_local;
+
+                      const simMediaPoster =
+                        simImageItem?.resized_image_url ||
+                        simImageItem?.original_image_url ||
+                        simVideoItem?.thumbnail_url;
+
+                      const simIsVideoFormat =
+                        simSnapshot?.display_format === "VIDEO" ||
+                        simAd?.display_format === "VIDEO" ||
+                        Boolean(simVideoItem?.video_hd_url || simVideoItem?.video_sd_url);
+
+                      const simHasDirectVideoUrl = Boolean(simVideoItem?.video_hd_url || simVideoItem?.video_sd_url);
+
                       const simSpend = simAd?.estimated_spend_usd != null ? formatCurrency(simAd.estimated_spend_usd) : null;
                       const simId = simAd?.ad_archive_id;
                       const simFbLib = simAd?.ad_library_url || (simId ? `https://www.facebook.com/ads/library/?id=${simId}` : null);
@@ -1259,34 +1292,37 @@ export function FacebookAdDetailModal({
                               handleSelectAd(simAd);
                             }
                           }}
-                          className="snap-start shrink-0 w-[240px] sm:w-[260px] rounded-2xl border border-slate-200 bg-white hover:border-indigo-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between overflow-hidden group/sim cursor-pointer select-none active:scale-[0.98] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+                          className="snap-start shrink-0 w-[240px] sm:w-[260px] rounded-2xl border border-slate-200 bg-white hover:border-indigo-400 flex flex-col justify-between overflow-hidden group/sim cursor-pointer select-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
                           title={`Xem chi tiết quảng cáo của ${simAd?.page_name || "Facebook Ad"}`}
                         >
                           {/* Media Thumbnail */}
-                          <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
-                            {simImg ? (
-                              <img
-                                src={simImg}
-                                alt={simAd?.page_name || "Ad thumbnail"}
-                                className="w-full h-full object-cover group-hover/sim:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 text-[10px] p-2 text-center">
-                                <AlertTriangle className="size-4 text-amber-400 mb-1" />
-                                <span>FB Ads Library</span>
-                              </div>
-                            )}
+                          <div className="relative aspect-video w-full bg-slate-950 overflow-hidden flex items-center justify-center">
+                            <FacebookMediaFallback
+                              src={simMediaUrl}
+                              alt={simAd?.page_name || "Ad thumbnail"}
+                              className="h-full w-full object-cover"
+                              fallbackClassName="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-2 text-center text-[10px] text-slate-400 gap-1"
+                              fallbackText={simIsVideoFormat ? "Video cần mở Ad Library" : "Ảnh đang được cập nhật"}
+                              isVideo={simHasDirectVideoUrl}
+                              poster={simMediaPoster}
+                              videoClassName="h-full w-full object-cover"
+                            />
 
-                            {/* Hover Overlay Hint (Minea style) */}
-                            <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/sim:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white font-bold text-xs backdrop-blur-2xs">
-                              <Eye className="size-4" />
-                              <span>Xem chi tiết Ad</span>
-                            </div>
+                            {/* Badges on Thumbnail */}
+                            <div className="absolute top-2 left-2 flex items-center gap-1 z-10 pointer-events-none">
+                              {simIsVideoFormat ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
+                                  <Play className="size-2.5 fill-current text-indigo-400" />
+                                  Video
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
+                                  Ảnh
+                                </span>
+                              )}
 
-                            {/* Top Left: Active Status */}
-                            <div className="absolute top-2 left-2 z-10">
                               <span
-                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold backdrop-blur-md ${simAd?.is_active
+                                className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold backdrop-blur-md ${simAd?.is_active
                                   ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
                                   : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
                                   }`}
@@ -1298,8 +1334,8 @@ export function FacebookAdDetailModal({
 
                             {/* Top Right: Industry Tag */}
                             {simIndustry && (
-                              <div className="absolute top-2 right-2 z-10">
-                                <span className="rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 border border-white/20">
+                              <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                                <span className="rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-1.5 py-0.5 border border-white/20">
                                   {simIndustry}
                                 </span>
                               </div>
@@ -1432,7 +1468,36 @@ export function FacebookAdDetailModal({
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
                       {pageAds.map((pAd, idx) => {
-                        const pImg = pAd?.images?.[0]?.resized_image_url || pAd?.images?.[0]?.original_image_url || pAd?.thumbnail_local;
+                        const pImages = Array.isArray(pAd?.images) ? pAd.images : [];
+                        const pVideos = Array.isArray(pAd?.videos) ? pAd.videos : [];
+                        const pSnapshot = pAd?.snapshot || {};
+
+                        const pImageItem = pImages.length > 0 ? pImages[0] : (pSnapshot?.images?.[0] || undefined);
+                        const pVideoItem = pVideos.length > 0 ? pVideos[0] : (pSnapshot?.videos?.[0] || undefined);
+
+                        const pMediaUrl =
+                          pAd?.thumbnail_r2 ||
+                          pImageItem?.resized_image_url ||
+                          pImageItem?.original_image_url ||
+                          pImageItem?.watermarked_resized_image_url ||
+                          pVideoItem?.video_hd_url ||
+                          pVideoItem?.video_sd_url ||
+                          pVideoItem?.thumbnail_url ||
+                          pSnapshot?.page_profile_picture_url ||
+                          pAd?.thumbnail_local;
+
+                        const pMediaPoster =
+                          pImageItem?.resized_image_url ||
+                          pImageItem?.original_image_url ||
+                          pVideoItem?.thumbnail_url;
+
+                        const pIsVideoFormat =
+                          pSnapshot?.display_format === "VIDEO" ||
+                          pAd?.display_format === "VIDEO" ||
+                          Boolean(pVideoItem?.video_hd_url || pVideoItem?.video_sd_url);
+
+                        const pHasDirectVideoUrl = Boolean(pVideoItem?.video_hd_url || pVideoItem?.video_sd_url);
+
                         const pSpend = pAd?.estimated_spend_usd != null ? formatCurrency(pAd.estimated_spend_usd) : null;
                         const pScore = pAd?.score;
                         const pId = pAd?.ad_archive_id;
@@ -1450,26 +1515,35 @@ export function FacebookAdDetailModal({
                                 handleSelectAd(pAd);
                               }
                             }}
-                            className="group/item flex flex-col justify-between p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-500 hover:shadow-lg hover:-translate-y-0.5 transition-all text-xs cursor-pointer select-none active:scale-[0.98] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
+                            className="group/item flex flex-col justify-between p-3 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-400 text-xs cursor-pointer select-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
                             title="Click để xem chi tiết quảng cáo này"
                           >
                             <div className="space-y-2">
                               {/* Media Thumbnail */}
                               <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center">
-                                {pImg ? (
-                                  <img
-                                    src={pImg}
-                                    alt="Ad thumbnail"
-                                    className="w-full h-full object-cover transition-transform group-hover/item:scale-105"
-                                  />
-                                ) : (
-                                  <div className="text-[10px] text-slate-400 flex flex-col items-center gap-1 p-2 text-center">
-                                    <AlertTriangle className="size-3.5 text-amber-400" />
-                                    <span>Xem trên Ad Library</span>
-                                  </div>
-                                )}
+                                <FacebookMediaFallback
+                                  src={pMediaUrl}
+                                  alt="Ad thumbnail"
+                                  className="h-full w-full object-cover"
+                                  fallbackClassName="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-2 text-center text-[10px] text-slate-400 gap-1"
+                                  fallbackText={pIsVideoFormat ? "Video cần mở Ad Library" : "Ảnh đang được cập nhật"}
+                                  isVideo={pHasDirectVideoUrl}
+                                  poster={pMediaPoster}
+                                  videoClassName="h-full w-full object-cover"
+                                />
 
-                                <div className="absolute top-1.5 left-1.5">
+                                <div className="absolute top-1.5 left-1.5 flex items-center gap-1 z-10 pointer-events-none">
+                                  {pIsVideoFormat ? (
+                                    <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
+                                      <Play className="size-2.5 fill-current text-indigo-400" />
+                                      Video
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-950/80 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white shadow-xs">
+                                      Ảnh
+                                    </span>
+                                  )}
+
                                   <span
                                     className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${pAd?.is_active
                                       ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
@@ -1482,7 +1556,7 @@ export function FacebookAdDetailModal({
                                 </div>
 
                                 {pScore != null && (
-                                  <div className="absolute top-1.5 right-1.5">
+                                  <div className="absolute top-1.5 right-1.5 pointer-events-none">
                                     <span className="rounded-full bg-indigo-600/90 text-white text-[9px] font-black px-1.5 py-0.5 shadow-xs">
                                       Score: {pScore}
                                     </span>

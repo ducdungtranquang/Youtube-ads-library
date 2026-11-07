@@ -28,6 +28,7 @@ import {
   LogIn,
   ArrowUpDown,
   SlidersHorizontal,
+  Store,
 } from "lucide-react";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
@@ -53,7 +54,6 @@ const SORT_OPTIONS = [
   { value: "duration_days", label: "⏳ Chạy lâu nhất (Duration)" },
   { value: "estimated_spend_usd", label: "💰 Chi tiêu ước tính cao nhất" },
   { value: "estimated_reach", label: "👁️ Lượt tiếp cận ước tính" },
-  { value: "seen_count", label: "🎯 Lượt quét thấy (Seen count)" },
 ];
 
 // 📌 Banners & Slogans
@@ -222,6 +222,7 @@ function FacebookAdsSearchContent() {
 
   const searchQueryRef = useRef<HTMLInputElement>(null);
   const lastExecutedQueryRef = useRef<string>("");
+  const searchSequenceRef = useRef<number>(0);
 
   // Initialize filter state from URL SearchParams
   const [selectedPreset, setSelectedPreset] = useState<string>(() => searchParams.get("filter") || "");
@@ -237,7 +238,10 @@ function FacebookAdsSearchContent() {
   const [isActive, setIsActive] = useState<string>(() => searchParams.get("is_active") || "");
   const [pageName, setPageName] = useState<string>(() => searchParams.get("page_name") || "");
   const [domain, setDomain] = useState<string>(() => searchParams.get("domain") || "");
-  const [sortBy, setSortBy] = useState<string>(() => searchParams.get("sort_by") || "start_date");
+  const [sortBy, setSortBy] = useState<string>(() => {
+    const val = searchParams.get("sort_by");
+    return val && val !== "seen_count" ? val : "start_date";
+  });
   const [sortOrder, setSortOrder] = useState<number>(() => {
     const o = searchParams.get("sort_order");
     return o ? parseInt(o, 10) : -1;
@@ -245,11 +249,13 @@ function FacebookAdsSearchContent() {
   const [isSortExplicit, setIsSortExplicit] = useState<boolean>(() => Boolean(searchParams.get("sort_by")));
   const [currentPage, setCurrentPage] = useState<number>(() => {
     const p = searchParams.get("page");
-    return p ? Math.max(1, parseInt(p, 10)) : 1;
+    const parsed = p ? parseInt(p, 10) : 1;
+    if (isNaN(parsed) || parsed < 1 || parsed > 50) return 1;
+    return parsed;
   });
 
-  // Track initial query text from URL
-  const initialText = searchParams.get("text") || "";
+  // Track initial query text from URL (giới hạn tối đa 100 ký tự)
+  const initialText = (searchParams.get("text") || "").slice(0, 100);
   useEffect(() => {
     if (searchQueryRef.current && initialText) {
       searchQueryRef.current.value = initialText;
@@ -257,21 +263,45 @@ function FacebookAdsSearchContent() {
   }, [initialText]);
 
   // Keep URL updated with state without full reloads
-  const updateUrlParams = useCallback(() => {
+  const updateUrlParams = useCallback((override?: {
+    page?: number;
+    preset?: string;
+    country?: string;
+    industry?: string;
+    isActive?: string;
+    pageName?: string;
+    domain?: string;
+    scalingLevel?: string;
+    spends?: string[];
+    dateFrom?: string;
+    dateTo?: string;
+  }) => {
+    const effPage = override?.page ?? currentPage;
+    const effPreset = override?.preset !== undefined ? override.preset : selectedPreset;
+    const effCountry = override?.country !== undefined ? override.country : selectedCountry;
+    const effIndustry = override?.industry !== undefined ? override.industry : selectedIndustry;
+    const effIsActive = override?.isActive !== undefined ? override.isActive : isActive;
+    const effPageName = override?.pageName !== undefined ? override.pageName : pageName;
+    const effDomain = override?.domain !== undefined ? override.domain : domain;
+    const effDateFrom = override?.dateFrom !== undefined ? override.dateFrom : publicDateFrom;
+    const effDateTo = override?.dateTo !== undefined ? override.dateTo : publicDateTo;
+    const effSpends = override?.spends !== undefined ? override.spends : selectedSpends;
+    const effScaling = override?.scalingLevel !== undefined ? override.scalingLevel : scalingLevel;
+
     const params = new URLSearchParams();
-    if (currentPage > 1) params.set("page", String(currentPage));
+    if (effPage > 1 && effPage <= 50) params.set("page", String(effPage));
     const queryText = searchQueryRef.current?.value?.trim();
-    if (queryText) params.set("text", queryText);
-    if (selectedPreset) params.set("filter", selectedPreset);
-    if (selectedCountry) params.set("country", selectedCountry);
-    if (selectedIndustry) params.set("industry", selectedIndustry);
-    if (isActive) params.set("is_active", isActive);
-    if (pageName) params.set("page_name", pageName);
-    if (domain) params.set("domain", domain);
-    if (publicDateFrom) params.set("date_from", publicDateFrom);
-    if (publicDateTo) params.set("date_to", publicDateTo);
-    if (selectedSpends.length > 0) params.set("estimated_spend", selectedSpends.join(","));
-    if (scalingLevel) params.set("scaling_level", scalingLevel);
+    if (queryText) params.set("text", queryText.slice(0, 100));
+    if (effPreset) params.set("filter", effPreset);
+    if (effCountry) params.set("country", effCountry);
+    if (effIndustry) params.set("industry", effIndustry);
+    if (effIsActive) params.set("is_active", effIsActive);
+    if (effPageName) params.set("page_name", effPageName);
+    if (effDomain) params.set("domain", effDomain);
+    if (effDateFrom) params.set("date_from", effDateFrom);
+    if (effDateTo) params.set("date_to", effDateTo);
+    if (effSpends.length > 0) params.set("estimated_spend", effSpends.join(","));
+    if (effScaling && effScaling !== "ALL") params.set("scaling_level", effScaling);
     if (isSortExplicit || sortBy !== "start_date") params.set("sort_by", sortBy);
     if (isSortExplicit || sortOrder !== -1) params.set("sort_order", String(sortOrder));
 
@@ -374,6 +404,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedPreset("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { preset: "", page: 1 });
         },
       });
     }
@@ -390,6 +421,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedCountry("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { country: "", page: 1 });
         },
       });
     }
@@ -400,6 +432,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedIndustry("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { industry: "", page: 1 });
         },
       });
     }
@@ -410,6 +443,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setIsActive("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { isActive: "", page: 1 });
         },
       });
     }
@@ -442,6 +476,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setScalingLevel("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { scalingLevel: "", page: 1 });
         },
       });
     }
@@ -452,6 +487,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedSpends([]);
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { spends: [], page: 1 });
         },
       });
     }
@@ -463,6 +499,7 @@ function FacebookAdsSearchContent() {
           setPublicDateFrom("");
           setPublicDateTo("");
           setCurrentPage(1);
+          executeSearchRef.current?.(false, { dateFrom: "", dateTo: "", page: 1 });
         },
       });
     }
@@ -556,15 +593,9 @@ function FacebookAdsSearchContent() {
     }
 
     try {
-      const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}?include_similar=true&similar_limit=15`);
+      const res = await fetch(`/api/ads/detail/${encodeURIComponent(itemId)}`);
       const result = await res.json();
-      const detailAd = result?.success
-        ? {
-          ...result.data,
-          similar_ads: Array.isArray(result.similar_ads) ? result.similar_ads : [],
-          similar_pagination: result.similar_pagination || null,
-        }
-        : ad;
+      const detailAd = result?.success ? result.data : ad;
       setSelectedAd(normalizeAdForModal(detailAd || ad));
     } catch (err) {
       console.error("Lỗi gọi API chi tiết Facebook Ad:", err);
@@ -574,13 +605,63 @@ function FacebookAdsSearchContent() {
     }
   };
 
-  // Lắng nghe nút Back của browser để đóng modal nếu modal đang mở
+  // Lắng nghe nút Back của browser để đóng modal hoặc khôi phục bộ lọc khi quay về
   useEffect(() => {
     const handlePopState = () => {
+      // 1. Nếu modal đang mở và người dùng bấm Back trên browser -> Đóng modal
       if (modalOpen) {
         setModalOpen(false);
         setSelectedAd(null);
         setDetailLoading(false);
+        return;
+      }
+
+      // 2. Nếu không mở modal mà bấm Back -> Khôi phục lại trạng thái từ URL trước đó
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        const p = url.searchParams;
+
+        const newPageName = p.get("page_name") || "";
+        const newDomain = p.get("domain") || "";
+        const newFilter = p.get("filter") || "";
+        const newCountry = p.get("country") || "";
+        const newIndustry = p.get("industry") || "";
+        const newIsActive = p.get("is_active") || "";
+        const newScaling = p.get("scaling_level") || "";
+        const newDateFrom = p.get("date_from") || "";
+        const newDateTo = p.get("date_to") || "";
+        const newSpend = p.get("estimated_spend") ? [p.get("estimated_spend")!] : [];
+        const rawSortBy = p.get("sort_by");
+        const newSortBy = rawSortBy && rawSortBy !== "seen_count" ? rawSortBy : "start_date";
+        const newSortOrder = p.get("sort_order") ? Number(p.get("sort_order")) : -1;
+        const rawPage = p.get("page") ? Number(p.get("page")) : 1;
+        const newPage = isNaN(rawPage) || rawPage < 1 || rawPage > 50 ? 1 : rawPage;
+        const newText = (p.get("text") || "").slice(0, 100);
+
+        if (searchQueryRef.current) {
+          searchQueryRef.current.value = newText;
+        }
+
+        setPageName(newPageName);
+        setDomain(newDomain);
+        setSelectedPreset(newFilter);
+        setSelectedCountry(newCountry);
+        setSelectedIndustry(newIndustry);
+        setIsActive(newIsActive);
+        setScalingLevel(newScaling);
+        setPublicDateFrom(newDateFrom);
+        setPublicDateTo(newDateTo);
+        setSelectedSpends(newSpend);
+        setSortBy(newSortBy);
+        setSortOrder(newSortOrder);
+        setCurrentPage(newPage);
+
+        // Kích hoạt tìm kiếm lại ngay lập tức với các tham số khôi phục
+        executeSearchRef.current?.(true, {
+          pageName: newPageName,
+          domain: newDomain,
+          page: newPage,
+        });
       }
     };
 
@@ -590,16 +671,45 @@ function FacebookAdsSearchContent() {
     };
   }, [modalOpen]);
 
-  const executeSearchRef = useRef<(isInitialLoad?: boolean, override?: { pageName?: string; page?: number; domain?: string }) => Promise<void>>(null!);
+  const executeSearchRef = useRef<(isInitialLoad?: boolean, override?: {
+    pageName?: string;
+    page?: number;
+    domain?: string;
+    preset?: string;
+    country?: string;
+    industry?: string;
+    isActive?: string;
+    scalingLevel?: string;
+    spends?: string[];
+    dateFrom?: string;
+    dateTo?: string;
+  }) => Promise<void>>(null!);
 
   const handleFilterByPage = useCallback((targetPageName: string) => {
     if (!targetPageName || targetPageName === "Facebook Ad") return;
     setPageName(targetPageName);
     setCurrentPage(1);
-    toast.success(`Đang lọc quảng cáo của Fanpage: "${targetPageName}" (tối đa 20 ads/trang)`);
+
+    // Xử lý browser history:
+    // Nếu modal đang mở (đã từng pushState), thay thế state của modal thành page_name
+    // Nếu bấm trực tiếp từ list card, pushState entry mới để user có thể bấm Back quay về
     if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("page_name", targetPageName);
+      url.searchParams.delete("page");
+
+      if (window.history.state?.modalOpen) {
+        window.history.replaceState({ pageName: targetPageName }, "", url.toString());
+        setModalOpen(false);
+        setSelectedAd(null);
+        setDetailLoading(false);
+      } else {
+        window.history.pushState({ pageName: targetPageName }, "", url.toString());
+      }
       window.scrollTo({ top: 520, behavior: "smooth" });
     }
+
+    toast.success(`Đang lọc quảng cáo của Fanpage: "${targetPageName}" (tối đa 20 ads/trang)`);
     // Tự động tìm kiếm ngay lập tức với Fanpage vừa chọn
     executeSearchRef.current?.(false, { pageName: targetPageName, page: 1 });
   }, []);
@@ -624,10 +734,19 @@ function FacebookAdsSearchContent() {
     publicDateTo,
     sortBy,
     sortOrder,
+    pageName,
+    domain,
   ]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const rawVal = searchQueryRef.current?.value || "";
+    if (rawVal.length > 100) {
+      if (searchQueryRef.current) {
+        searchQueryRef.current.value = rawVal.slice(0, 100);
+      }
+      toast.warning("Từ khóa tìm kiếm được giới hạn tối đa 100 ký tự");
+    }
     if (currentPage === 1) {
       executeSearch(false);
     } else {
@@ -637,42 +756,66 @@ function FacebookAdsSearchContent() {
 
   const executeSearch = async (
     isInitialLoad: boolean = false,
-    override?: { pageName?: string; page?: number; domain?: string }
+    override?: {
+      pageName?: string;
+      page?: number;
+      domain?: string;
+      preset?: string;
+      country?: string;
+      industry?: string;
+      isActive?: string;
+      scalingLevel?: string;
+      spends?: string[];
+      dateFrom?: string;
+      dateTo?: string;
+    }
   ) => {
     if (!isInitialLoad && !checkCanSearch()) {
       return;
     }
 
     const effectivePage = override?.page ?? currentPage;
+    const safePage = Math.max(1, Math.min(isNaN(effectivePage) ? 1 : effectivePage, 50));
     const effectivePageName = override?.pageName !== undefined ? override.pageName : pageName;
     const effectiveDomain = override?.domain !== undefined ? override.domain : domain;
+    const effectivePreset = override?.preset !== undefined ? override.preset : selectedPreset;
+    const effectiveCountry = override?.country !== undefined ? override.country : selectedCountry;
+    const effectiveIndustry = override?.industry !== undefined ? override.industry : selectedIndustry;
+    const effectiveIsActive = override?.isActive !== undefined ? override.isActive : isActive;
+    const effectiveScaling = override?.scalingLevel !== undefined ? override.scalingLevel : scalingLevel;
+    const effectiveSpends = override?.spends !== undefined ? override.spends : selectedSpends;
+    const effectiveDateFrom = override?.dateFrom !== undefined ? override.dateFrom : publicDateFrom;
+    const effectiveDateTo = override?.dateTo !== undefined ? override.dateTo : publicDateTo;
 
     const params = new URLSearchParams();
-    params.append("page", effectivePage.toString());
+    params.append("page", safePage.toString());
     params.append("limit", itemsPerPage.toString());
 
-    if (searchQueryRef.current?.value) params.append("text", searchQueryRef.current.value.trim());
-    if (selectedPreset) {
-      params.append("filter", selectedPreset);
-      if (selectedPreset === "new_ads") {
+    const rawText = searchQueryRef.current?.value?.trim() || "";
+    const safeText = rawText.slice(0, 100);
+    if (safeText) params.append("text", safeText);
+
+    if (effectivePreset) {
+      params.append("filter", effectivePreset);
+      if (effectivePreset === "new_ads") {
         params.append("new_max_days", "5");
-      } else if (selectedPreset === "weekly_winner") {
+      } else if (effectivePreset === "weekly_winner") {
         params.append("winner_min_days", "7");
         params.append("winner_max_days", "9");
       }
     }
-    if (selectedCountry) params.append("country", selectedCountry);
-    if (selectedIndustry) params.append("industry", selectedIndustry);
-    if (isActive) params.append("is_active", isActive);
+    if (effectiveCountry) params.append("country", effectiveCountry);
+    if (effectiveIndustry) params.append("industry", effectiveIndustry);
+    if (effectiveIsActive) params.append("is_active", effectiveIsActive);
     if (effectivePageName?.trim()) params.append("page_name", effectivePageName.trim());
     if (effectiveDomain?.trim()) params.append("domain", effectiveDomain.trim());
-    if (publicDateFrom) params.append("date_from", publicDateFrom);
-    if (publicDateTo) params.append("date_to", publicDateTo);
-    if (selectedSpends.length > 0) params.append("estimated_spend", selectedSpends.join(","));
-    if (scalingLevel && scalingLevel !== "ALL") params.append("scaling_level", scalingLevel);
+    if (effectiveDateFrom) params.append("date_from", effectiveDateFrom);
+    if (effectiveDateTo) params.append("date_to", effectiveDateTo);
+    if (effectiveSpends.length > 0) params.append("estimated_spend", effectiveSpends.join(","));
+    if (effectiveScaling && effectiveScaling !== "ALL") params.append("scaling_level", effectiveScaling);
     // Khi có preset được chọn mà người dùng chưa đổi sort thủ công,
     // hãy để backend dùng sort tự nhiên của preset để tối ưu hiệu năng
-    if (isSortExplicit || !selectedPreset) {
+    if (isSortExplicit || !effectivePreset) {
       if (sortBy) params.append("sort_by", sortBy);
       if (sortOrder) params.append("sort_order", sortOrder.toString());
     }
@@ -684,34 +827,49 @@ function FacebookAdsSearchContent() {
       return;
     }
 
+    const currentSeq = ++searchSequenceRef.current;
     try {
       lastExecutedQueryRef.current = currentQueryString;
       const result = await searchFacebookAds({ queryString: currentQueryString });
 
+      // Nếu đã có một lượt search mới hơn chạy sau lượt này (ví dụ đổi bộ lọc A -> B), bỏ qua kết quả cũ
+      if (currentSeq !== searchSequenceRef.current) {
+        return;
+      }
+      if (result?.error === "Aborted" || result?.error === "Stale request cancelled") {
+        return;
+      }
+
       // Đồng bộ URL với các filter hiện tại
-      updateUrlParams();
+      updateUrlParams(override);
 
       if (result?.success) {
-        setResults(result.data || []);
-        if (!isInitialLoad) {
+        const adsData = Array.isArray(result.data) ? result.data : [];
+        setResults(adsData);
+        if (!isInitialLoad && adsData.length > 0) {
           consumeSearch();
         }
         if (result.pagination) {
-          setTotalPages(result.pagination.pages || 1);
-          setTotalCount(result.pagination.total ?? null);
+          const total = typeof result.pagination.total === "number" ? result.pagination.total : (adsData.length === 0 ? 0 : null);
+          setTotalCount(total);
+          setTotalPages(total === 0 ? 1 : (result.pagination.pages || 1));
         } else {
-          setTotalCount(null);
+          setTotalCount(adsData.length === 0 ? 0 : null);
+          setTotalPages(1);
         }
       } else {
         setResults([]);
         setTotalPages(1);
-        setTotalCount(null);
+        setTotalCount(0);
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (currentSeq !== searchSequenceRef.current || err?.name === "AbortError") {
+        return;
+      }
       console.error("Lỗi gọi kết nối search API:", err);
       setResults([]);
       setTotalPages(1);
-      setTotalCount(null);
+      setTotalCount(0);
     }
   };
 
@@ -840,6 +998,7 @@ function FacebookAdsSearchContent() {
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
+                  maxLength={100}
                   placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết..."
                   className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
                 />
@@ -864,7 +1023,38 @@ function FacebookAdsSearchContent() {
             </form>
 
             {/* Results Toolbar with  Sorting */}
-            <section>
+            <section className="space-y-4">
+              {pageName && (
+                <div className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-indigo-50/90 border border-indigo-200 text-indigo-950 text-xs shadow-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Store className="size-4 text-indigo-600 shrink-0" />
+                    <span className="font-semibold text-slate-600 shrink-0">Đang lọc theo Fanpage:</span>
+                    <span className="font-black text-indigo-900 bg-white px-2.5 py-1 rounded-xl border border-indigo-200 truncate">
+                      {pageName}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setPageName("");
+                      setCurrentPage(1);
+                      if (typeof window !== "undefined") {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete("page_name");
+                        url.searchParams.delete("page");
+                        window.history.pushState({}, "", url.toString());
+                      }
+                      executeSearchRef.current?.(false, { pageName: "", page: 1 });
+                    }}
+                    className="h-8 text-xs font-bold rounded-xl bg-white hover:bg-indigo-600 hover:text-white text-indigo-700 border-indigo-300 shrink-0 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    ← Quay về tất cả Ads
+                  </Button>
+                </div>
+              )}
+
               <AdsSpyResultsToolbar
                 title="Thư viện Facebook Ads"
                 subtitle="Nghiên cứu & Khám phá các chiến dịch quảng cáo Facebook, Instagram bùng nổ doanh số"
@@ -914,7 +1104,7 @@ function FacebookAdsSearchContent() {
                 </div>
               </AdsSpyResultsToolbar>
 
-              {loading ? (
+              {loading && results.length === 0 && totalCount !== 0 ? (
                 <div className="mt-4">
                   <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, idx) => (
@@ -981,10 +1171,15 @@ function FacebookAdsSearchContent() {
                     <FacebookAdDetailModal
                       open={modalOpen}
                       onOpenChange={(open) => {
-                        setModalOpen(open);
                         if (!open) {
+                          if (typeof window !== "undefined" && window.history.state?.modalOpen) {
+                            window.history.back();
+                          }
+                          setModalOpen(false);
                           setSelectedAd(null);
                           setDetailLoading(false);
+                        } else {
+                          setModalOpen(true);
                         }
                       }}
                       ad={selectedAd}

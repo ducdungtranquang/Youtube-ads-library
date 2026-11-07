@@ -9,6 +9,153 @@ const supabaseAdmin = supabaseUrl && serviceRoleKey
   ? createClient(supabaseUrl, serviceRoleKey)
   : null
 
+// In-flight mutex để serialize và deduplicate các request đồng thời cho cùng 1 userId
+const globalForSync = globalThis as unknown as {
+  activeSyncMap?: Map<string, Promise<{ success: boolean; created: boolean; profile: any }>>
+  notifiedUserIds?: Set<string>
+}
+
+const activeSyncMap =
+  globalForSync.activeSyncMap ||
+  (globalForSync.activeSyncMap = new Map<string, Promise<{ success: boolean; created: boolean; profile: any }>>())
+
+const notifiedUserIds =
+  globalForSync.notifiedUserIds ||
+  (globalForSync.notifiedUserIds = new Set<string>())
+
+async function processUserProfileSync(params: {
+  userId: string
+  email?: string | null
+  fullName?: string | null
+  referredBy?: string | null
+  provider?: string | null
+}) {
+  const { userId, email, fullName, referredBy, provider } = params
+
+  if (!supabaseAdmin) {
+    throw new Error('Supabase admin client unavailable')
+  }
+
+  // 1. Kiểm tra profile hiện tại trong database
+  const { data: existing, error: fetchErr } = await supabaseAdmin
+    .from('user_profiles')
+    .select('id, subscription_plan, subscription_status, subscription_end, email, created_at')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (fetchErr) {
+    console.warn('Error checking existing profile:', fetchErr)
+  }
+
+  // 2. Truy vấn thông tin tài khoản từ auth.admin để lấy metadata và thời điểm đăng ký
+  let authUser: any = null
+  try {
+    const { data: authData } = await supabaseAdmin.auth.admin.getUserById(userId)
+    authUser = authData?.user || null
+  } catch (err) {
+    console.warn('Could not query auth user:', err)
+  }
+
+  const resolvedEmail = email || authUser?.email || null
+  const resolvedFullName =
+    fullName ||
+    authUser?.user_metadata?.full_name ||
+    authUser?.user_metadata?.name ||
+    null
+  const resolvedProvider =
+    provider ||
+    authUser?.app_metadata?.provider ||
+    authUser?.identities?.[0]?.provider ||
+    'email'
+
+  // 3. Kiểm tra xem tài khoản này đã được thông báo Slack chưa
+  const alreadyNotified =
+    notifiedUserIds.has(userId) ||
+    Boolean(authUser?.user_metadata?.slack_notified_at)
+
+  const now = Date.now()
+  const profileCreatedAt = existing?.created_at ? new Date(existing.created_at).getTime() : 0
+  const authCreatedAt = authUser?.created_at ? new Date(authUser.created_at).getTime() : 0
+
+  // Là user mới nếu CHƯA từng được thông báo VÀ (chưa có profile hoặc vừa được tạo trong 5 phút gần nhất)
+  const isNewUser = !alreadyNotified && (!existing || (now - profileCreatedAt < 300000) || (now - authCreatedAt < 300000))
+
+  // 4. Nếu là tài khoản mới, đánh dấu và gửi thông báo Slack duy nhất 1 lần
+  if (isNewUser) {
+    // Đánh dấu ngay vào in-memory set trên server để chặn các request đồng thời khác
+    notifiedUserIds.add(userId)
+
+    // Đánh dấu vào user_metadata trong Supabase Auth để bảo toàn vĩnh viễn
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: {
+          ...(authUser?.user_metadata || {}),
+          slack_notified_at: new Date().toISOString(),
+        },
+      })
+    } catch (mErr) {
+      console.warn('Could not update user_metadata slack flag:', mErr)
+    }
+
+    // Gửi thông báo Slack
+    await sendSlackNewUserNotification({
+      userId,
+      email: resolvedEmail,
+      fullName: resolvedFullName,
+      provider: resolvedProvider || 'google',
+      referredBy: referredBy || authUser?.user_metadata?.referred_by || null,
+      registeredAt: authUser?.created_at ? new Date(authUser.created_at) : new Date(),
+    }).catch((slackErr) => {
+      console.warn('Gửi thông báo Slack user mới thất bại:', slackErr)
+    })
+  }
+
+  // 5. Cập nhật hoặc tạo profile
+  if (existing) {
+    // Nếu profile đã tồn tại nhưng thiếu email thì bổ sung
+    if (!existing.email && resolvedEmail) {
+      await supabaseAdmin
+        .from('user_profiles')
+        .update({ email: resolvedEmail, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+    }
+
+    return {
+      success: true,
+      created: false,
+      profile: existing,
+    }
+  }
+
+  // Profile chưa tồn tại: khởi tạo gói Free mặc định
+  const { data: newProfile, error: insertErr } = await supabaseAdmin
+    .from('user_profiles')
+    .upsert({
+      id: userId,
+      email: resolvedEmail,
+      subscription_plan: 'free',
+      subscription_status: 'free',
+      daily_search_count: 0,
+      last_search_date: new Date().toISOString().split('T')[0],
+      referred_by: referredBy || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' })
+    .select('id, subscription_plan, subscription_status, subscription_end')
+    .single()
+
+  if (insertErr) {
+    console.error('Failed to insert user profile:', insertErr)
+    throw new Error(insertErr.message)
+  }
+
+  return {
+    success: true,
+    created: true,
+    profile: newProfile,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!supabaseAdmin) {
@@ -22,141 +169,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
     }
 
-    // Check if profile already exists
-    const { data: existing, error: fetchErr } = await supabaseAdmin
-      .from('user_profiles')
-      .select('id, subscription_plan, subscription_status, subscription_end, email, created_at')
-      .eq('id', userId)
-      .maybeSingle()
-
-    if (fetchErr) {
-      console.warn('Error checking existing profile:', fetchErr)
+    // Nếu đang có một request sync profile cho cùng userId đang xử lý, dùng chung kết quả (chống race-condition)
+    if (activeSyncMap.has(userId)) {
+      const activeResult = await activeSyncMap.get(userId)
+      return NextResponse.json(activeResult)
     }
 
-    // Truy vấn thông tin tài khoản từ auth.admin để xác định thời điểm đăng ký và metadata
-    let authUser: any = null
-    try {
-      const { data: authData } = await supabaseAdmin.auth.admin.getUserById(userId)
-      authUser = authData?.user || null
-    } catch (err) {
-      console.warn('Could not query auth user:', err)
-    }
-
-    let resolvedEmail = email || authUser?.email || null
-    let resolvedFullName =
-      fullName ||
-      authUser?.user_metadata?.full_name ||
-      authUser?.user_metadata?.name ||
-      null
-    let resolvedProvider =
-      provider ||
-      authUser?.app_metadata?.provider ||
-      authUser?.identities?.[0]?.provider ||
-      'email'
-
-    // Xác định xem user này có phải là tài khoản vừa mới tạo không (trong vòng 5 phút)
-    // Và chưa từng được đánh dấu đã thông báo trong authUser metadata (slack_notified_at)
-    const alreadyNotified = Boolean(authUser?.user_metadata?.slack_notified_at)
-    const now = Date.now()
-    const profileCreatedAt = existing?.created_at ? new Date(existing.created_at).getTime() : 0
-    const authCreatedAt = authUser?.created_at ? new Date(authUser.created_at).getTime() : 0
-    
-    // Là user mới nếu chưa được thông báo VÀ (chưa có profile hoặc vừa được tạo trong 5 phút gần nhất)
-    const isNewUser = !alreadyNotified && (!existing || (now - profileCreatedAt < 300000) || (now - authCreatedAt < 300000))
-
-    if (existing) {
-      // If profile exists but email is not populated, fill it in
-      if (!existing.email && resolvedEmail) {
-        await supabaseAdmin
-          .from('user_profiles')
-          .update({ email: resolvedEmail, updated_at: new Date().toISOString() })
-          .eq('id', userId)
-      }
-
-      // Nếu tài khoản mới tạo (ví dụ trigger Supabase chèn trước hoặc Google login lần đầu)
-      if (isNewUser) {
-        // Đánh dấu ngay lập tức vào user_metadata để chống race-condition / gọi lặp
-        try {
-          await supabaseAdmin.auth.admin.updateUserById(userId, {
-            user_metadata: {
-              ...(authUser?.user_metadata || {}),
-              slack_notified_at: new Date().toISOString(),
-            },
-          })
-        } catch (mErr) {
-          console.warn('Could not update user_metadata slack flag:', mErr)
-        }
-
-        await sendSlackNewUserNotification({
-          userId,
-          email: resolvedEmail,
-          fullName: resolvedFullName,
-          provider: resolvedProvider || 'google',
-          referredBy: referredBy || authUser?.user_metadata?.referred_by || null,
-          registeredAt: authUser?.created_at ? new Date(authUser.created_at) : new Date(),
-        }).catch((slackErr) => {
-          console.warn('Gửi thông báo Slack user mới thất bại:', slackErr)
-        })
-      }
-
-      return NextResponse.json({
-        success: true,
-        created: false,
-        profile: existing
-      })
-    }
-
-    // Đánh dấu vào user_metadata trước khi gửi thông báo
-    try {
-      await supabaseAdmin.auth.admin.updateUserById(userId, {
-        user_metadata: {
-          ...(authUser?.user_metadata || {}),
-          slack_notified_at: new Date().toISOString(),
-        },
-      })
-    } catch (mErr) {
-      console.warn('Could not update user_metadata slack flag:', mErr)
-    }
-
-    // Profile does not exist: create it with default free tier
-    const { data: newProfile, error: insertErr } = await supabaseAdmin
-      .from('user_profiles')
-      .upsert({
-        id: userId,
-        email: resolvedEmail,
-        subscription_plan: 'free',
-        subscription_status: 'free',
-        daily_search_count: 0,
-        last_search_date: new Date().toISOString().split('T')[0],
-        referred_by: referredBy || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' })
-      .select('id, subscription_plan, subscription_status, subscription_end')
-      .single()
-
-    if (insertErr) {
-      console.error('Failed to insert user profile:', insertErr)
-      return NextResponse.json({ error: insertErr.message }, { status: 500 })
-    }
-
-    // Gửi thông báo có thành viên mới về Slack tức thì và await để đảm bảo request hoàn tất
-    await sendSlackNewUserNotification({
-      userId,
-      email: resolvedEmail,
-      fullName: resolvedFullName,
-      provider: resolvedProvider || 'google',
-      referredBy: referredBy || null,
-      registeredAt: new Date(),
-    }).catch((slackErr) => {
-      console.warn('Gửi thông báo Slack user mới thất bại:', slackErr)
+    // Tạo deferred promise để các request đồng thời khác phải chờ
+    let resolveSync!: (value: { success: boolean; created: boolean; profile: any }) => void
+    let rejectSync!: (reason?: any) => void
+    const syncPromise = new Promise<{ success: boolean; created: boolean; profile: any }>((res, rej) => {
+      resolveSync = res
+      rejectSync = rej
     })
+    activeSyncMap.set(userId, syncPromise)
 
-    return NextResponse.json({
-      success: true,
-      created: true,
-      profile: newProfile
-    })
+    try {
+      const result = await processUserProfileSync({ userId, email, fullName, referredBy, provider })
+      resolveSync(result)
+      return NextResponse.json(result)
+    } catch (processErr) {
+      rejectSync(processErr)
+      throw processErr
+    } finally {
+      activeSyncMap.delete(userId)
+    }
   } catch (error: any) {
     console.error('sync-profile API error:', error)
     return NextResponse.json(

@@ -42,20 +42,31 @@ export default function AuthCallbackPage() {
 
         // Đảm bảo user_profiles luôn tồn tại ngay sau khi đăng nhập Google thành công
         if (exchangeData?.user) {
-          try {
-            await fetch('/api/user/sync-profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: exchangeData.user.id,
-                email: exchangeData.user.email,
-                fullName: exchangeData.user.user_metadata?.full_name || exchangeData.user.user_metadata?.name || '',
-                referredBy: exchangeData.user.user_metadata?.referred_by || null,
-                provider: exchangeData.user.app_metadata?.provider || 'google',
-              }),
-            })
-          } catch (e) {
-            console.warn('Sync profile on Google OAuth error:', e)
+          const userId = exchangeData.user.id
+          const sessionKey = `synced_profile_${userId}`
+          const alreadySynced = typeof window !== 'undefined' && sessionStorage.getItem(sessionKey) === 'true'
+
+          if (!alreadySynced) {
+            if (typeof window !== 'undefined') {
+              try {
+                sessionStorage.setItem(sessionKey, 'true')
+              } catch {}
+            }
+            try {
+              await fetch('/api/user/sync-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: exchangeData.user.id,
+                  email: exchangeData.user.email,
+                  fullName: exchangeData.user.user_metadata?.full_name || exchangeData.user.user_metadata?.name || '',
+                  referredBy: exchangeData.user.user_metadata?.referred_by || null,
+                  provider: exchangeData.user.app_metadata?.provider || 'google',
+                }),
+              })
+            } catch (e) {
+              console.warn('Sync profile on Google OAuth error:', e)
+            }
           }
         }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Image as ImageIcon, Film } from "lucide-react";
 
 interface FacebookMediaFallbackProps {
   src?: string | null;
@@ -19,7 +20,7 @@ export function FacebookMediaFallback({
   alt,
   className,
   fallbackClassName,
-  fallbackText = "Ảnh hết hạn",
+  fallbackText = "Ảnh đang được cập nhật",
   isVideo = false,
   poster,
   videoClassName,
@@ -32,11 +33,40 @@ export function FacebookMediaFallback({
   }, [src]);
 
   if (!src || hasError) {
+    const isVideoType = isVideo || (Boolean(fallbackText) && fallbackText.toLowerCase().includes("video"));
+    const displayText = hasError
+      ? fallbackText
+      : isVideoType
+        ? "Video trên FB Ads Library"
+        : "Đang cập nhật ảnh xem trước";
+    const tooltipText = isVideoType
+      ? "Video quảng cáo cần mở xem trực tiếp trên Facebook Ads Library"
+      : "Ảnh quảng cáo đang được cập nhật hoặc cần xem trên Facebook Ads Library";
+
     return (
       <div
-        className={fallbackClassName || containerClassName || "h-full w-full bg-muted flex items-center justify-center px-2 text-center text-[11px] text-muted-foreground"}
+        className={
+          fallbackClassName ||
+          containerClassName ||
+          "h-full w-full bg-slate-900 flex flex-col items-center justify-center p-3 text-center text-xs text-slate-400 gap-2 border border-slate-800/80 select-none"
+        }
+        title={tooltipText}
       >
-        {hasError ? fallbackText : "No image"}
+        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-800/90 border border-slate-700/60 text-slate-400 shadow-inner shrink-0">
+          {isVideoType ? (
+            <Film className="h-4.5 w-4.5 text-indigo-400" />
+          ) : (
+            <ImageIcon className="h-4.5 w-4.5 text-slate-400" />
+          )}
+        </div>
+        <div className="flex flex-col items-center gap-0.5 max-w-[90%]">
+          <span className="text-[11px] font-semibold text-slate-300 leading-tight line-clamp-1">
+            {displayText}
+          </span>
+          <span className="text-[9px] text-slate-500 font-medium leading-tight">
+            {isVideoType ? "Bấm để xem chi tiết →" : "Facebook Ads Library"}
+          </span>
+        </div>
       </div>
     );
   }

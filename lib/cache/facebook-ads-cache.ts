@@ -90,10 +90,19 @@ class FacebookAdsCacheService {
   /**
    * Tạo Cache Key cho truy vấn Ads theo Page Facebook
    */
-  public createPageAdsKey(pageName: string, page: number = 1, limit: number = 20): string {
+  public createPageAdsKey(pageName: string, page: number = 1, limit: number = 20, exclude?: string): string {
     const safeLimit = Math.min(Math.max(limit, 1), 20);
     const cleanName = encodeURIComponent(pageName.trim().toLowerCase());
-    return `fb:page:${cleanName}:p_${page}:l_${safeLimit}`;
+    const excludePart = exclude ? `:exc_${encodeURIComponent(exclude.trim())}` : "";
+    return `fb:page:${cleanName}:p_${page}:l_${safeLimit}${excludePart}`;
+  }
+
+  /**
+   * Tạo Cache Key cho truy vấn Similar Ads của 1 ad
+   */
+  public createSimilarAdsKey(id: string, page: number = 1, limit: number = 15): string {
+    const cleanId = encodeURIComponent(String(id).trim());
+    return `fb:similar:${cleanId}:p_${page}:l_${limit}`;
   }
 
   /**

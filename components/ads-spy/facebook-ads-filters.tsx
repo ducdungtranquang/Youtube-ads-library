@@ -77,10 +77,11 @@ export interface FacebookAdsFiltersProps {
 
 export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
   const toggleSpend = (value: string) => {
+    // Chỉ chọn duy nhất 1 mức chi tiêu tại một thời điểm
     if (props.selectedSpends.includes(value)) {
-      props.setSelectedSpends(props.selectedSpends.filter((item) => item !== value));
+      props.setSelectedSpends([]);
     } else {
-      props.setSelectedSpends([...props.selectedSpends, value]);
+      props.setSelectedSpends([value]);
     }
   };
 

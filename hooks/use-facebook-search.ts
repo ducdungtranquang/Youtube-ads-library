@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
 // Định nghĩa Interface mới khớp với các Query Filters của searchApi (Express + MongoDB)
 interface FacebookSearchFilters {
@@ -56,41 +56,75 @@ export function useFacebookAdsSearch() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
 
+  // Tham chiếu lưu AbortController và ID của request tìm kiếm gần nhất (chống race condition khi đổi filter liên tục)
+  const activeAbortControllerRef = useRef<AbortController | null>(null);
+  const latestRequestIdRef = useRef<number>(0);
+
   /**
    * Hàm gọi API tìm kiếm Ads qua NextJS wrapper route
    */
   const searchFacebookAds = useCallback(
     async ({ queryString }: { queryString: string }): Promise<FacebookSearchResult> => {
+      // 1. Huỷ bỏ request tìm kiếm trước đó nếu vẫn còn đang xử lý dở
+      if (activeAbortControllerRef.current) {
+        activeAbortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      activeAbortControllerRef.current = controller;
+
+      // 2. Tăng số thứ tự request
+      const currentRequestId = ++latestRequestIdRef.current;
+
       setLoading(true);
       setError(null);
-      setData(null);
+
+      // Timeout 25 giây phía client để tránh giao diện bị treo vĩnh viễn khi mạng hoặc backend chậm
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 25000);
 
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         // Nếu không có session hoặc token của user đã hết hạn, chặn ngay lập tức tại Client
         if (sessionError || !session?.access_token) {
+          clearTimeout(timeoutId);
           const authErrMsg = "Yêu cầu đăng nhập. Vui lòng đăng nhập lại để tìm kiếm.";
-          setError(authErrMsg);
-          setLoading(false);
+          if (currentRequestId === latestRequestIdRef.current) {
+            setError(authErrMsg);
+            setLoading(false);
+          }
           return { success: false, error: authErrMsg };
         }
 
         // Gọi route NextJS nội bộ để ẩn endpoint thật và kèm xác thực server-side
         const res = await fetch(`/api/search/facebook-ads?${queryString}`, {
           method: "GET",
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
+
+        // Nếu đã có request mới hơn được gửi trong lúc chờ, bỏ qua request này
+        if (currentRequestId !== latestRequestIdRef.current) {
+          return { success: false, error: "Stale request cancelled" };
+        }
 
         // Xử lý chặn lỗi hệ thống (Ví dụ: 403 Forbidden do thiếu hoặc sai token)
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           const errMsg = errData?.message || `Tìm kiếm thất bại (Status: ${res.status})`;
-          setError(errMsg);
-          setLoading(false);
+          if (currentRequestId === latestRequestIdRef.current) {
+            setError(errMsg);
+            setLoading(false);
+          }
           return { success: false, error: errMsg };
         }
 
         const result = await res.json();
+        if (currentRequestId !== latestRequestIdRef.current) {
+          return { success: false, error: "Stale request cancelled" };
+        }
 
         const normalized = (() => {
           if (Array.isArray(result)) {
@@ -172,18 +206,30 @@ export function useFacebookAdsSearch() {
           };
         })();
 
-        if (!normalized.success) {
-          setError(normalized.error);
+        if (currentRequestId === latestRequestIdRef.current) {
+          if (!normalized.success) {
+            setError(normalized.error);
+          } else {
+            setData(normalized.data);
+          }
           setLoading(false);
-          return normalized;
         }
 
-        setData(normalized.data);
-        setLoading(false);
         return normalized;
 
       } catch (err: any) {
-        const errorString = err?.message || "Không thể kết nối tới API Search Server";
+        clearTimeout(timeoutId);
+
+        // Nếu có request mới hơn đang chạy, bỏ qua request cũ đã huỷ
+        if (currentRequestId !== latestRequestIdRef.current) {
+          return { success: false, error: "Stale request cancelled" };
+        }
+
+        const isTimeout = err?.name === "AbortError" && controller.signal.aborted;
+        const errorString = isTimeout
+          ? "Hết thời gian chờ phản hồi tìm kiếm (timeout). Vui lòng thử lại với từ khóa hoặc bộ lọc ngắn hơn."
+          : err?.message || "Không thể kết nối tới API Search Server";
+
         setError(errorString);
         setLoading(false);
         return { success: false, error: errorString };

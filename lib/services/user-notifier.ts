@@ -13,7 +13,13 @@ export interface UserRegistrationPayload {
 }
 
 // In-memory cache chống duplicate notification khi có nhiều request đồng thời
-const recentlyNotifiedUsers = new Set<string>()
+// Dùng globalThis để tránh bị reset khi Next.js re-evaluate module hoặc reload
+const globalForNotifier = globalThis as unknown as {
+  recentlyNotifiedUsers?: Set<string>
+}
+const recentlyNotifiedUsers =
+  globalForNotifier.recentlyNotifiedUsers ||
+  (globalForNotifier.recentlyNotifiedUsers = new Set<string>())
 
 /**
  * Gửi thông báo có thành viên mới về kênh Slack

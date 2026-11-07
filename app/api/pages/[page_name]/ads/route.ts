@@ -52,8 +52,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const rawLimit = parseInt(searchParams.get("limit") || "20", 10) || 20;
     const limit = Math.min(Math.max(rawLimit, 1), 20);
 
+    const exclude = searchParams.get("exclude")?.trim() || "";
+    const dedupe = searchParams.get("dedupe")?.trim();
+
     // ⚡ Kiểm tra Cache 10 giờ tại tầng Next.js
-    const cacheKey = facebookAdsCache.createPageAdsKey(decodedPageName, page, limit);
+    const cacheKey = facebookAdsCache.createPageAdsKey(decodedPageName, page, limit, exclude);
     const cachedEntry = await facebookAdsCache.get<any>(cacheKey);
 
     if (cachedEntry) {
@@ -78,8 +81,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000;
     const headers = { [INTERNAL_SECRET_HEADER]: INTERNAL_SECRET_VALUE };
 
+    const queryParts = [`page=${page}`, `limit=${limit}`];
+    if (exclude) queryParts.push(`exclude=${encodeURIComponent(exclude)}`);
+    if (dedupe !== null && dedupe !== undefined && dedupe !== "") {
+      queryParts.push(`dedupe=${encodeURIComponent(dedupe)}`);
+    }
+    const queryString = queryParts.join("&");
+
     // 🌐 Bước 1: Thử gọi endpoint chuyên biệt của Page
-    let targetUrl = `${SEARCH_API_URL}/api/pages/${encodeURIComponent(decodedPageName)}/ads?page=${page}&limit=${limit}`;
+    let targetUrl = `${SEARCH_API_URL}/api/pages/${encodeURIComponent(decodedPageName)}/ads?${queryString}`;
     let res = await fetch(targetUrl, {
       method: "GET",
       headers,
@@ -90,7 +100,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // 🔄 Bước 2: Graceful Fallback sang endpoint search theo page_name nếu endpoint trên chưa deploy trên remote
     if (!res || !res.ok || !data?.success) {
-      const fallbackUrl = `${SEARCH_API_URL}/api/ads/search?page_name=${encodeURIComponent(decodedPageName)}&page=${page}&limit=${limit}`;
+      const fallbackUrl = `${SEARCH_API_URL}/api/ads/search?page_name=${encodeURIComponent(decodedPageName)}&${queryString}`;
       const fallbackRes = await fetch(fallbackUrl, {
         method: "GET",
         headers,

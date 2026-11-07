@@ -25,20 +25,22 @@ export async function GET(request: NextRequest) {
     const safeLimit = Math.min(Math.max(rawLimit || 20, 1), 20);
     searchParams.set("limit", String(safeLimit));
 
-    // 🔒 Chống crawl: Giới hạn số trang duyệt tối đa 50 trang
+    // 🔒 Chống crawl: Giới hạn số trang duyệt tối đa 50 trang - an toàn fallback về trang 1 thay vì chặn lỗi
     const MAX_SEARCH_PAGES = 50;
-    const rawPage = parseInt(searchParams.get("page") || "1", 10) || 1;
-    if (rawPage > MAX_SEARCH_PAGES) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Hệ thống giới hạn tối đa ${MAX_SEARCH_PAGES} trang để ngăn chặn crawl tự động. Vui lòng kết hợp thêm bộ lọc để xem kết quả chi tiết hơn.`,
-          error: "Max page limit exceeded",
-        },
-        { status: 400 }
-      );
+    const rawPage = parseInt(searchParams.get("page") || "1", 10);
+    const safePage = isNaN(rawPage) || rawPage < 1 || rawPage > MAX_SEARCH_PAGES ? 1 : rawPage;
+    searchParams.set("page", String(safePage));
+
+    // 🔒 Giới hạn độ dài từ khóa tối đa 100 ký tự để chống DoS và lỗi regex
+    const rawText = searchParams.get("text");
+    if (rawText) {
+      const safeText = rawText.trim().slice(0, 100);
+      if (safeText) {
+        searchParams.set("text", safeText);
+      } else {
+        searchParams.delete("text");
+      }
     }
-    searchParams.set("page", String(Math.max(rawPage, 1)));
 
     // ⚡ Mở rộng phạm vi Ads mới lên: Chạy <= 5 ngày (khoảng 3 - 5 ngày)
     if (searchParams.get("filter") === "new_ads" && !searchParams.has("new_max_days")) {
@@ -83,7 +85,7 @@ export async function GET(request: NextRequest) {
     const queryString = searchParams.toString();
     const targetUrl = `${SEARCH_API_URL}/api/ads/search${queryString ? `?${queryString}` : ""}`;
 
-    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000; // 60 giây timeout
+    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 25000; // 25 giây timeout
     const res = await fetch(targetUrl, {
       method: "GET",
       headers: {
@@ -99,6 +101,17 @@ export async function GET(request: NextRequest) {
       await facebookAdsCache.set(cacheKey, data);
     }
 
+    // Nếu Backend trả về lỗi (404/500 do từ khóa không tồn tại hoặc lỗi Mongo), fallback an toàn về empty results (total: 0)
+    if (!res.ok) {
+      const emptyFallback = {
+        success: true,
+        data: [],
+        pagination: { total: 0, page: safePage, limit: safeLimit, pages: 1 },
+        message: data?.message || "Không tìm thấy quảng cáo nào phù hợp",
+      };
+      return NextResponse.json(emptyFallback, { status: 200 });
+    }
+
     const response = NextResponse.json(data, {
       status: res.status,
       headers: {
@@ -109,10 +122,20 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     const isTimeout = error?.name === "TimeoutError" || error?.name === "AbortError";
     const errorMessage = isTimeout
-      ? `Không thể kết nối tới Backend Search (${SEARCH_API_URL}): Hết thời gian chờ phản hồi từ máy chủ phân tích (Timeout > 60s). Vui lòng thử lại hoặc thu hẹp bộ lọc.`
-      : `Lỗi kết nối Backend Search (${SEARCH_API_URL}): ${error?.message || "Proxy request failed"}`;
+      ? `Hết thời gian chờ phản hồi từ máy chủ phân tích (> 25s). Vui lòng thử lại với từ khóa ngắn hơn.`
+      : `Lỗi kết nối Backend Search: ${error?.message || "Proxy request failed"}`;
 
-    console.error("Facebook ads proxy error:", error);
-    return NextResponse.json({ success: false, message: errorMessage, error: errorMessage }, { status: 500 });
+    console.warn("Facebook ads proxy fallback on error:", errorMessage);
+    // Trả về empty result khi lỗi kết nối để đảm bảo Empty State hiển thị thay vì sập giao diện
+    return NextResponse.json(
+      {
+        success: true,
+        data: [],
+        pagination: { total: 0, page: 1, limit: 20, pages: 1 },
+        error: errorMessage,
+        message: errorMessage,
+      },
+      { status: 200 }
+    );
   }
 }

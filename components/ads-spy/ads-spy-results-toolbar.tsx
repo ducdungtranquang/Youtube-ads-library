@@ -97,11 +97,15 @@ export function AdsSpyResultsToolbar({
               <span>{chip.label}</span>
               <button
                 type="button"
-                onClick={chip.onRemove}
-                className="hover:bg-slate-100 p-0.5 rounded-full text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  chip.onRemove?.();
+                }}
+                className="hover:bg-slate-100 p-0.5 rounded-full text-slate-400 hover:text-rose-600 transition-colors cursor-pointer inline-flex items-center justify-center"
                 aria-label={`Xóa bộ lọc ${chip.label}`}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3 h-3 pointer-events-none" />
               </button>
             </span>
           ))}
