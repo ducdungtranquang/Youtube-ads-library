@@ -957,14 +957,19 @@ export function FacebookAdDetailModal({
 
                       <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
                         <span className="text-[10px] font-bold text-indigo-800 uppercase flex items-center gap-1">
-                          <Calendar className="size-3 text-indigo-600" /> Tuổi thọ chiến dịch
+                          <Clock className="size-3 text-indigo-600" /> Thời gian chạy
                         </span>
                         <p className="text-xl font-black text-slate-900 mt-1">
-                          {loading ? "..." : (ad?.duration_days ?? ad?.filter_signals?.age_days ?? (calculateDaysSincePublished(ad?.start_date) ?? "—"))}{" "}
+                          {loading ? "..." : (ad?.duration_days ?? ad?.filter_signals?.run_days ?? 1)}{" "}
                           <span className="text-xs font-normal text-slate-500">ngày</span>
                         </p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
-                          Vòng đời: {loading ? "..." : (ad?.ad_lifecycle_days ? `${Math.round(ad.ad_lifecycle_days)}d` : "Mới")}
+                        <p className="text-[10px] text-slate-500 mt-0.5" title="Tuổi ad tính từ ngày bắt đầu chạy đến nay">
+                          {loading ? "..." : (() => {
+                            const ageDays = ad?.filter_signals?.age_days ?? calculateDaysSincePublished(ad?.start_date);
+                            return ageDays !== null && ageDays !== undefined
+                              ? `Tuổi: ${ageDays} ngày (từ lúc tạo)`
+                              : (ad?.ad_lifecycle_days ? `Tuổi: ${Math.round(ad.ad_lifecycle_days)}d` : "Mới");
+                          })()}
                         </p>
                       </div>
 
@@ -1126,12 +1131,24 @@ export function FacebookAdDetailModal({
 
                       <div className="flex items-center justify-between py-2">
                         <span className="text-slate-500">Lần đầu phát hiện</span>
-                        <span className="font-semibold text-indigo-600">{formatTimestamp(ad?.first_seen)}</span>
+                        {loading && !ad?.first_seen ? (
+                          <span className="inline-block w-24 h-4 bg-slate-100 animate-pulse rounded" />
+                        ) : (
+                          <span className="font-semibold text-indigo-600">
+                            {formatTimestamp(ad?.first_seen ?? (ad?.start_date ? Number(ad.start_date) * 1000 : null))}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between py-2">
                         <span className="text-slate-500">Lần quét gần nhất</span>
-                        <span className="font-semibold text-slate-800">{formatTimestamp(ad?.last_seen)}</span>
+                        {loading && !ad?.last_seen ? (
+                          <span className="inline-block w-24 h-4 bg-slate-100 animate-pulse rounded" />
+                        ) : (
+                          <span className="font-semibold text-slate-800">
+                            {formatTimestamp(ad?.last_seen)}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -1181,10 +1198,10 @@ export function FacebookAdDetailModal({
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-slate-900 flex items-center gap-2 flex-wrap">
-                        Quảng cáo tương tự (Similar Ads)
+                        Ads cùng Domain
                         {linkDomain ? (
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
-                            Cùng Domain: {linkDomain}
+                            {linkDomain}
                           </span>
                         ) : (
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
@@ -1192,11 +1209,11 @@ export function FacebookAdDetailModal({
                           </span>
                         )}
                         <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
-                          {similarTotal != null ? `${similarTotal.toLocaleString("vi-VN")} ads liên quan` : `${similarAds.length} ads liên quan`}
+                          {similarTotal != null ? `${similarTotal.toLocaleString("vi-VN")} ads` : `${similarAds.length} ads`}
                         </span>
                       </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Khám phá các mẫu creative đang chạy cùng hệ sinh thái đối thủ • Cuộn ngang (Scroll) để xem tiếp
+                        Khám phá các mẫu creative đang chạy cùng Domain đối thủ • Cuộn ngang (Scroll) để xem tiếp
                       </p>
                     </div>
                   </div>
@@ -1229,12 +1246,12 @@ export function FacebookAdDetailModal({
                 {similarLoading ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
                     <Loader2 className="size-7 animate-spin text-indigo-600" />
-                    <p className="text-xs font-medium">Đang tìm kiếm các quảng cáo tương tự...</p>
+                    <p className="text-xs font-medium">Đang tìm kiếm các quảng cáo cùng Domain...</p>
                   </div>
                 ) : similarAds.length === 0 ? (
                   <div className="py-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-dashed border-slate-200 p-6">
                     <Sparkles className="size-6 text-slate-300 mx-auto mb-2" />
-                    Chưa tìm thấy thêm quảng cáo tương tự nào khác cùng Domain hoặc Fanpage trong kho dữ liệu hiện tại.
+                    Chưa tìm thấy thêm quảng cáo nào khác cùng Domain trong kho dữ liệu hiện tại.
                   </div>
                 ) : (
                   /* Thanh cuộn ngang (Horizontal Scroll Track) */

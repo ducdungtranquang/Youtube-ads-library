@@ -42,6 +42,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 📅 Làm sạch date_from và date_to: Chỉ gửi ISO YYYY-MM-DD hợp lệ, loại bỏ triệt để chuỗi rỗng/null
+    const rawDateFrom = searchParams.get("date_from")?.trim();
+    if (rawDateFrom && rawDateFrom !== "" && rawDateFrom !== "null" && rawDateFrom !== "undefined") {
+      searchParams.set("date_from", rawDateFrom);
+    } else {
+      searchParams.delete("date_from");
+    }
+
+    const rawDateTo = searchParams.get("date_to")?.trim();
+    if (rawDateTo && rawDateTo !== "" && rawDateTo !== "null" && rawDateTo !== "undefined") {
+      searchParams.set("date_to", rawDateTo);
+    } else {
+      searchParams.delete("date_to");
+    }
+
     // ⚡ Mở rộng phạm vi Ads mới lên: Chạy <= 5 ngày (khoảng 3 - 5 ngày)
     if (searchParams.get("filter") === "new_ads" && !searchParams.has("new_max_days")) {
       searchParams.set("new_max_days", "5");

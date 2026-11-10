@@ -305,8 +305,8 @@ function FacebookAdsSearchContent() {
     if (effIsActive) params.set("is_active", effIsActive);
     if (effPageName) params.set("page_name", effPageName);
     if (effDomain) params.set("domain", effDomain);
-    if (effDateFrom) params.set("date_from", effDateFrom);
-    if (effDateTo) params.set("date_to", effDateTo);
+    if (effDateFrom?.trim()) params.set("date_from", effDateFrom.trim());
+    if (effDateTo?.trim()) params.set("date_to", effDateTo.trim());
     if (effSpends.length > 0) params.set("estimated_spend", effSpends.join(","));
     if (effScaling && effScaling !== "ALL") params.set("scaling_level", effScaling);
     if (isSortExplicit || sortBy !== "start_date") params.set("sort_by", sortBy);
@@ -829,8 +829,8 @@ function FacebookAdsSearchContent() {
     if (effectiveIsActive) params.append("is_active", effectiveIsActive);
     if (effectivePageName?.trim()) params.append("page_name", effectivePageName.trim());
     if (effectiveDomain?.trim()) params.append("domain", effectiveDomain.trim());
-    if (effectiveDateFrom) params.append("date_from", effectiveDateFrom);
-    if (effectiveDateTo) params.append("date_to", effectiveDateTo);
+    if (effectiveDateFrom?.trim()) params.append("date_from", effectiveDateFrom.trim());
+    if (effectiveDateTo?.trim()) params.append("date_to", effectiveDateTo.trim());
     if (effectiveSpends.length > 0) params.append("estimated_spend", effectiveSpends.join(","));
     if (effectiveScaling && effectiveScaling !== "ALL") params.append("scaling_level", effectiveScaling);
     // Khi có preset được chọn mà người dùng chưa đổi sort thủ công,
