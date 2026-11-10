@@ -263,6 +263,7 @@ function FacebookAdsSearchContent() {
   // Track initial query text from URL (giới hạn tối đa 100 ký tự)
   const initialText = (searchParams.get("text") || "").slice(0, 100);
   useEffect(() => {
+    document.title = "Thư Viện Quảng Cáo Facebook - Facebook Ads Library | Ads Spy Tool";
     if (searchQueryRef.current && initialText) {
       searchQueryRef.current.value = initialText;
     }

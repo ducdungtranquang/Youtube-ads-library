@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from 'sonner'
 import { ReferralTracker } from '@/components/referral-tracker'
+import { SupportChatWidget } from '@/components/support/support-chat-widget'
 import './globals.css'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -220,6 +221,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <Sonner />
+          <SupportChatWidget />
         </AuthProvider>
         <Analytics />
       </body>
