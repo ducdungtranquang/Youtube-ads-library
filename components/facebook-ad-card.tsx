@@ -84,6 +84,8 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
     ad?.display_format === "VIDEO" ||
     Boolean(videoItem?.video_hd_url || videoItem?.video_sd_url);
 
+  const hasDirectVideoUrl = Boolean(videoItem?.video_hd_url || videoItem?.video_sd_url);
+
   // Trên thẻ Card danh sách, luôn hiển thị dạng ảnh thumbnail kèm badge "Video Ad" + icon Play.
   // Chỉ render thẻ <video> khi URL trực tiếp là file video thực sự và không có ảnh thumbnail.
   const isDirectVideoSource = Boolean(

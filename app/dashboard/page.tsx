@@ -25,6 +25,11 @@ function DashboardPage() {
   const [counts, setCounts] = useState({ video: 0, offer: 0, affiliate: 0, brand: 0, company: 0, facebook_ad: 0 })
   const [loading, setLoading] = useState(true)
   const [dbProfile, setDbProfile] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     async function loadCounts() {
@@ -140,7 +145,9 @@ function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Tìm kiếm hôm nay</p>
                   <p className="font-black text-slate-900 text-sm mt-0.5 truncate">
-                    {isUnlimited ? (
+                    {!mounted ? (
+                      <span className="text-slate-400 font-normal">Đang kiểm tra...</span>
+                    ) : isUnlimited ? (
                       <span className="text-purple-600 font-bold">Không giới hạn ∞</span>
                     ) : (
                       <span>

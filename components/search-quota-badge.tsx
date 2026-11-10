@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Sparkles, Zap, ShieldAlert, ArrowUpRight, Loader2 } from 'lucide-react'
 import { QuotaStatus } from '@/lib/search-quota'
@@ -17,8 +18,14 @@ export function SearchQuotaBadge({
   onUpgradeClick,
   className = '',
 }: SearchQuotaBadgeProps) {
-  // Tránh mâu thuẫn hiển thị trong lúc đang tải: không hiện "Hết lượt (0/5)" hay đổi trạng thái đột ngột
-  if (loading) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Tránh mâu thuẫn Hydration (SSR vs Client) hoặc khi đang nạp profile
+  if (!mounted || loading) {
     return (
       <div
         className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-slate-50 border border-slate-200 text-slate-500 shadow-2xs ${className}`}

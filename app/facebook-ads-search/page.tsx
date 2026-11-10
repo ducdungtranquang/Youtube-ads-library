@@ -210,9 +210,15 @@ function FacebookAdsSearchContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { user, loading: authLoading } = useAuth();
   const {
     quota,
+    loading: quotaLoading,
     checkCanSearch,
     consumeSearch,
     isUpgradeModalOpen,
@@ -261,18 +267,6 @@ function FacebookAdsSearchContent() {
       searchQueryRef.current.value = initialText;
     }
   }, [initialText]);
-
-  // Tự động chuẩn hóa query parameters từ URL (an toàn, chống PERMISSION_DENIED và fallback về page=1)
-  useEffect(() => {
-    const rawPage = searchParams.get("page");
-    if (rawPage) {
-      const parsedPage = parseInt(rawPage, 10);
-      if (isNaN(parsedPage) || parsedPage < 1 || parsedPage > 50) {
-        setCurrentPage(1);
-        updateUrlParams({ page: 1 });
-      }
-    }
-  }, [searchParams, updateUrlParams]);
 
   // Keep URL updated with state without full reloads
   const updateUrlParams = useCallback((override?: {
@@ -337,6 +331,18 @@ function FacebookAdsSearchContent() {
     isSortExplicit,
     pathname,
   ]);
+
+  // Tự động chuẩn hóa query parameters từ URL (an toàn, chống PERMISSION_DENIED và fallback về page=1)
+  useEffect(() => {
+    const rawPage = searchParams.get("page");
+    if (rawPage) {
+      const parsedPage = parseInt(rawPage, 10);
+      if (isNaN(parsedPage) || parsedPage < 1 || parsedPage > 50) {
+        setCurrentPage(1);
+        updateUrlParams({ page: 1 });
+      }
+    }
+  }, [searchParams, updateUrlParams]);
 
   // Filter Stats
   const [filterStats, setFilterStats] = useState<{
@@ -888,6 +894,22 @@ function FacebookAdsSearchContent() {
 
   executeSearchRef.current = executeSearch;
 
+  // Tránh lỗi Hydration Mismatch: Render shell ổn định trên SSR trước khi mount Client
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
+        <Header />
+        <HeroSlider />
+        <main className="container px-4 md:px-6 lg:px-8 py-8 relative z-20">
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-3" />
+            <p className="text-sm font-medium text-slate-500">Đang chuẩn bị thư viện quảng cáo...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (!authLoading && !user) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -992,7 +1014,7 @@ function FacebookAdsSearchContent() {
           <div className="min-w-0 space-y-6">
             {/* Search Quota Badge */}
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <SearchQuotaBadge quota={quota} onUpgradeClick={openUpgradeModal} />
+              <SearchQuotaBadge quota={quota} loading={quotaLoading} onUpgradeClick={openUpgradeModal} />
             </div>
 
             {/* 🚀  Preset Quick Bar */}
@@ -1082,7 +1104,7 @@ function FacebookAdsSearchContent() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 isLoading={loading}
-                hideTotalCount={!selectedPreset && activeFilterCount === 0 && !searchQueryRef.current?.value}
+                hideTotalCount={!selectedPreset && activeFilterCount === 0 && !initialText}
                 activeChips={activeChips}
                 onClearAll={handleClearAllFilters}
               >

@@ -124,13 +124,12 @@ export function CountrySelect({ value, onChange, className }: CountrySelectProps
             <div className="flex items-center gap-1 text-slate-400">
               {value && (
                 <span
-                  role="button"
-                  tabIndex={0}
                   onClick={(e) => {
                     e.stopPropagation();
                     onChange("");
                   }}
                   className="hover:text-slate-700 p-0.5 rounded cursor-pointer"
+                  title="Bỏ chọn quốc gia"
                 >
                   <X className="h-3.5 w-3.5" />
                 </span>
