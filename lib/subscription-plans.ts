@@ -62,6 +62,7 @@ export const SUBSCRIPTION_PLANS = {
       'Xem thông tin quảng cáo cơ bản',
       'Lưu tối đa 20 mục yêu thích',
       'Không hỗ trợ Nghiên cứu video Unlisted & tải MP4',
+      'Không có quyền truy cập Kho Sản Phẩm Chiến Thắng (Winning Products)',
     ],
     searchLimit: 5,
     favoriteLimit: 20,
@@ -74,6 +75,8 @@ export const SUBSCRIPTION_PLANS = {
     features: [
       'Tìm kiếm KHÔNG GIỚI HẠN (Unlimited searches)',
       'Tra cứu toàn diện YouTube Ads & Facebook Ads',
+      'Độc quyền: Mở khóa Kho Sản Phẩm Chiến Thắng (Winning Products)',
+      'Phân tích Product Score, Winning Ads & Top Creatives theo Domain',
       'Nghiên cứu video Unlisted & tải video MP4',
       'Xem chi tiết video, kịch bản Hook 3s & Landing Page đối thủ',
       'Không giới hạn mục yêu thích lưu trữ',

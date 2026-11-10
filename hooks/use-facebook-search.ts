@@ -92,7 +92,6 @@ export function useFacebookAdsSearch() {
           const authErrMsg = "Yêu cầu đăng nhập. Vui lòng đăng nhập lại để tìm kiếm.";
           if (currentRequestId === latestRequestIdRef.current) {
             setError(authErrMsg);
-            setLoading(false);
           }
           return { success: false, error: authErrMsg };
         }
@@ -116,7 +115,6 @@ export function useFacebookAdsSearch() {
           const errMsg = errData?.message || `Tìm kiếm thất bại (Status: ${res.status})`;
           if (currentRequestId === latestRequestIdRef.current) {
             setError(errMsg);
-            setLoading(false);
           }
           return { success: false, error: errMsg };
         }
@@ -212,7 +210,6 @@ export function useFacebookAdsSearch() {
           } else {
             setData(normalized.data);
           }
-          setLoading(false);
         }
 
         return normalized;
@@ -231,8 +228,11 @@ export function useFacebookAdsSearch() {
           : err?.message || "Không thể kết nối tới API Search Server";
 
         setError(errorString);
-        setLoading(false);
         return { success: false, error: errorString };
+      } finally {
+        if (currentRequestId === latestRequestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     []

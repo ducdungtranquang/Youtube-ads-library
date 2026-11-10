@@ -61,18 +61,20 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
   const imageItem = images.length > 0 ? images[0] : (snapshot?.images?.[0] || undefined);
   const videoItem = videos.length > 0 ? videos[0] : (snapshot?.videos?.[0] || undefined);
 
+  // Ưu tiên thumbnail hình ảnh để hiển thị ổn định trên thẻ danh sách card (tránh video stream URL bị hết hạn/lỗi codec)
   const mediaUrl =
     ad?.thumbnail_r2 ||
+    videoItem?.thumbnail_url ||
     imageItem?.resized_image_url ||
     imageItem?.original_image_url ||
     imageItem?.watermarked_resized_image_url ||
     videoItem?.video_hd_url ||
     videoItem?.video_sd_url ||
-    videoItem?.thumbnail_url ||
     snapshot?.page_profile_picture_url ||
     ad?.thumbnail_local;
 
   const mediaPoster =
+    ad?.thumbnail_r2 ||
     imageItem?.resized_image_url ||
     imageItem?.original_image_url ||
     videoItem?.thumbnail_url;
@@ -82,7 +84,13 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
     ad?.display_format === "VIDEO" ||
     Boolean(videoItem?.video_hd_url || videoItem?.video_sd_url);
 
-  const hasDirectVideoUrl = Boolean(videoItem?.video_hd_url || videoItem?.video_sd_url);
+  // Trên thẻ Card danh sách, luôn hiển thị dạng ảnh thumbnail kèm badge "Video Ad" + icon Play.
+  // Chỉ render thẻ <video> khi URL trực tiếp là file video thực sự và không có ảnh thumbnail.
+  const isDirectVideoSource = Boolean(
+    !ad?.thumbnail_r2 &&
+    !videoItem?.thumbnail_url &&
+    (mediaUrl?.includes(".mp4") || mediaUrl?.includes(".webm") || videoItem?.video_hd_url || videoItem?.video_sd_url)
+  );
 
   const rawTitle =
     ad?.headline ||
@@ -170,7 +178,7 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
             className="h-full w-full object-cover"
             fallbackClassName="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-3 text-center text-xs text-slate-400 gap-1.5"
             fallbackText={isVideoFormat ? "Video cần mở Ad Library" : "Ảnh đang được cập nhật"}
-            isVideo={hasDirectVideoUrl}
+            isVideo={isDirectVideoSource}
             poster={mediaPoster}
             videoClassName="h-full w-full object-cover"
           />

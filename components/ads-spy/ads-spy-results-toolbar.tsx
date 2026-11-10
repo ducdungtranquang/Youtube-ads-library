@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Sparkles, Filter } from "lucide-react";
+import { X, Sparkles, Filter, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export interface ActiveFilterChip {
@@ -17,6 +17,7 @@ interface AdsSpyResultsToolbarProps {
   currentPage?: number;
   totalPages?: number;
   hideTotalCount?: boolean;
+  isLoading?: boolean;
   activeChips?: ActiveFilterChip[];
   onClearAll?: () => void;
   children?: React.ReactNode;
@@ -30,11 +31,21 @@ export function AdsSpyResultsToolbar({
   currentPage,
   totalPages,
   hideTotalCount = false,
+  isLoading = false,
   activeChips = [],
   onClearAll,
   children,
 }: AdsSpyResultsToolbarProps) {
   const renderBadgeText = () => {
+    if (isLoading) {
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          <Loader2 className="w-3 h-3 animate-spin text-indigo-600" />
+          <span>Đang tải kết quả...</span>
+        </span>
+      );
+    }
+
     // Ẩn tổng số lượng ở phần Tất cả (tránh lộ số lượng crawl ban đầu chưa đầy đủ)
     if (hideTotalCount) {
       if (currentPage && totalPages) {
@@ -92,7 +103,7 @@ export function AdsSpyResultsToolbar({
           {activeChips.map((chip) => (
             <span
               key={chip.id}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-700 shadow-2xs hover:border-slate-300 transition-colors"
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-700 shadow-2xs hover:border-slate-300 transition-colors"
             >
               <span>{chip.label}</span>
               <button
@@ -102,10 +113,10 @@ export function AdsSpyResultsToolbar({
                   e.stopPropagation();
                   chip.onRemove?.();
                 }}
-                className="hover:bg-slate-100 p-0.5 rounded-full text-slate-400 hover:text-rose-600 transition-colors cursor-pointer inline-flex items-center justify-center"
+                className="hover:bg-rose-50 hover:text-rose-600 p-1 rounded-full text-slate-400 transition-colors cursor-pointer inline-flex items-center justify-center"
                 aria-label={`Xóa bộ lọc ${chip.label}`}
               >
-                <X className="w-3 h-3 pointer-events-none" />
+                <X className="w-3.5 h-3.5 pointer-events-none" />
               </button>
             </span>
           ))}

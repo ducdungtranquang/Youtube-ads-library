@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useEffect, useState } from "react"
 import { useFavorites } from '@/hooks/use-favorites'
 import { supabase } from "@/lib/supabase"
+import { SearchQuotaManager } from "@/lib/search-quota"
 
 function DashboardPage() {
   const SUBSCRIPTION_MAP: Record<string, { label: string; color: string; limitText: string }> = {
@@ -45,13 +46,16 @@ function DashboardPage() {
     loadCounts()
   }, [user, getFavoritesCounts])
 
-  const rawPlan = dbProfile?.subscription_plan || user?.user_metadata?.subscription_plan || "free"
-  const planInfo = SUBSCRIPTION_MAP[rawPlan] || SUBSCRIPTION_MAP.free;
-  const isUnlimited = rawPlan === 'unlimited' || rawPlan === 'business' || rawPlan === 'company' || rawPlan === 'personal';
+  const normalizedPlan = SearchQuotaManager.getPlan(user, dbProfile);
+  const planInfo = SUBSCRIPTION_MAP[normalizedPlan] || SUBSCRIPTION_MAP.free;
+  const isUnlimited = normalizedPlan === 'unlimited';
   const planLimit = isUnlimited ? -1 : 5;
   const today = new Date().toISOString().split('T')[0];
   const lastSearchDate = dbProfile?.last_search_date ? new Date(dbProfile.last_search_date).toISOString().split('T')[0] : null;
-  const searchesToday = lastSearchDate === today ? (dbProfile?.daily_search_count || 0) : 0;
+  const localUsage = SearchQuotaManager.getLocalUsage('yt', user?.id);
+  const searchesToday = lastSearchDate === today
+    ? Math.max(dbProfile?.daily_search_count || 0, localUsage.totalUsed)
+    : localUsage.totalUsed;
   const searchesRemaining = isUnlimited ? -1 : Math.max(0, planLimit - searchesToday);
   const totalFavorites = counts.video + counts.offer + counts.affiliate + counts.brand + counts.company + (counts.facebook_ad || 0)
 
@@ -111,11 +115,11 @@ function DashboardPage() {
                       <span className={`font-bold text-sm truncate ${planInfo.color}`}>
                         {planInfo.label}
                       </span>
-                      {rawPlan !== "free" && (
+                      {normalizedPlan !== "free" && (
                         <BadgeCheck className={`h-3.5 w-3.5 ${planInfo.color} flex-shrink-0`} />
                       )}
                     </div>
-                    {rawPlan === "free" && (
+                    {normalizedPlan === "free" && (
                       <Link href="/pricing" className="flex-shrink-0">
                         <span className="inline-flex items-center text-[11px] font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200/80 px-2 py-0.5 rounded-full transition-all duration-200 shadow-2xs whitespace-nowrap">
                           Nâng cấp Unlimited ↑
@@ -271,7 +275,7 @@ function DashboardPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm">Facebook Ads Spy</p>
-                        <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">1/11</span>
+                        {/* <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">1/11</span> */}
                       </div>
                       <p className="text-xs text-slate-500">Xem Spend, Reach, nhân bản và vít nhóm</p>
                     </div>

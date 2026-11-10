@@ -212,6 +212,7 @@ function QuickSearchPage() {
                   <Search className="absolute left-4 h-5 w-5 text-slate-400 pointer-events-none" />
                   <Input
                     ref={searchInputRef}
+                    maxLength={100}
                     placeholder="Nhập từ khóa ngành hàng, sản phẩm, kịch bản hoặc tên kênh..."
                     defaultValue={searchQuery}
                     onKeyDown={(e) => {

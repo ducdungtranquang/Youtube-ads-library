@@ -106,6 +106,47 @@ class FacebookAdsCacheService {
   }
 
   /**
+   * Tạo Cache Key cho tìm kiếm Winning Products
+   */
+  public createProductsSearchKey(searchParams: URLSearchParams | Record<string, any>): string {
+    const paramsObj: Record<string, string> = {};
+    if (searchParams instanceof URLSearchParams) {
+      searchParams.forEach((val, key) => {
+        const trimmed = val.trim();
+        if (trimmed !== "" && trimmed !== "undefined" && trimmed !== "null") {
+          paramsObj[key] = trimmed;
+        }
+      });
+    } else {
+      Object.keys(searchParams).forEach((key) => {
+        const val = searchParams[key];
+        if (val !== undefined && val !== null && String(val).trim() !== "") {
+          paramsObj[key] = String(val).trim();
+        }
+      });
+    }
+    const sortedKeys = Object.keys(paramsObj).sort();
+    const normalizedQuery = sortedKeys.map((k) => `${k}=${paramsObj[k]}`).join("&");
+    const hash = crypto.createHash("sha256").update(normalizedQuery).digest("hex").slice(0, 24);
+    return `fb:products:search:${hash}`;
+  }
+
+  /**
+   * Tạo Cache Key cho chi tiết sản phẩm / domain
+   */
+  public createProductDetailKey(domain: string): string {
+    const cleanDomain = encodeURIComponent(domain.trim().toLowerCase());
+    return `fb:products:detail:${cleanDomain}`;
+  }
+
+  /**
+   * Tạo Cache Key cho Monthly Winners
+   */
+  public createMonthlyWinnersKey(monthOrDay: string, mode: "month" | "day" = "month", page: number = 1, limit: number = 50): string {
+    return `fb:products:winners:${mode}:${monthOrDay.trim()}:p_${page}:l_${limit}`;
+  }
+
+  /**
    * Lấy dữ liệu từ Cache (Kiểm tra L1 Memory -> L2 Upstash Redis nếu có)
    */
   public async get<T>(key: string): Promise<CacheEntry<T> | null> {

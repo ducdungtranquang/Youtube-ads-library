@@ -820,6 +820,13 @@ export default function MKTPage() {
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <Input
                   ref={searchQueryRef}
+                  maxLength={100}
+                  onPaste={(e) => {
+                    const pastedText = e.clipboardData.getData("text") || "";
+                    if (pastedText.length > 100) {
+                      toast.warning("Từ khóa tìm kiếm được giới hạn tối đa 100 ký tự");
+                    }
+                  }}
                   placeholder="Tìm kiếm bằng từ khóa, URL hoặc tên thương hiệu..."
                   className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
                 />

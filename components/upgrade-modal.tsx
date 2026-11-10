@@ -187,6 +187,10 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
                 <Check className="h-4 w-4 text-emerald-600 shrink-0 font-bold" />
                 <span className="font-bold text-slate-900">Tìm kiếm KHÔNG GIỚI HẠN (∞)</span>
               </div>
+              <div className="flex items-center gap-2 sm:col-span-2">
+                <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500 shrink-0" />
+                <span className="font-black text-amber-950">Độc quyền: Mở khóa Kho Sản Phẩm Chiến Thắng (Winning Products)</span>
+              </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0 font-bold" />
                 <span>Nghiên cứu video Unlisted & tải MP4</span>

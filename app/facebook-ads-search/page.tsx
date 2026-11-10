@@ -262,6 +262,18 @@ function FacebookAdsSearchContent() {
     }
   }, [initialText]);
 
+  // Tự động chuẩn hóa query parameters từ URL (an toàn, chống PERMISSION_DENIED và fallback về page=1)
+  useEffect(() => {
+    const rawPage = searchParams.get("page");
+    if (rawPage) {
+      const parsedPage = parseInt(rawPage, 10);
+      if (isNaN(parsedPage) || parsedPage < 1 || parsedPage > 50) {
+        setCurrentPage(1);
+        updateUrlParams({ page: 1 });
+      }
+    }
+  }, [searchParams, updateUrlParams]);
+
   // Keep URL updated with state without full reloads
   const updateUrlParams = useCallback((override?: {
     page?: number;
@@ -404,7 +416,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedPreset("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { preset: "", page: 1 });
+          updateUrlParams({ preset: "", page: 1 });
         },
       });
     }
@@ -421,7 +433,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedCountry("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { country: "", page: 1 });
+          updateUrlParams({ country: "", page: 1 });
         },
       });
     }
@@ -432,7 +444,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedIndustry("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { industry: "", page: 1 });
+          updateUrlParams({ industry: "", page: 1 });
         },
       });
     }
@@ -443,7 +455,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setIsActive("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { isActive: "", page: 1 });
+          updateUrlParams({ isActive: "", page: 1 });
         },
       });
     }
@@ -454,7 +466,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setPageName("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { pageName: "", page: 1 });
+          updateUrlParams({ pageName: "", page: 1 });
         },
       });
     }
@@ -465,7 +477,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setDomain("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { domain: "", page: 1 });
+          updateUrlParams({ domain: "", page: 1 });
         },
       });
     }
@@ -476,7 +488,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setScalingLevel("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { scalingLevel: "", page: 1 });
+          updateUrlParams({ scalingLevel: "", page: 1 });
         },
       });
     }
@@ -487,7 +499,7 @@ function FacebookAdsSearchContent() {
         onRemove: () => {
           setSelectedSpends([]);
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { spends: [], page: 1 });
+          updateUrlParams({ spends: [], page: 1 });
         },
       });
     }
@@ -499,7 +511,7 @@ function FacebookAdsSearchContent() {
           setPublicDateFrom("");
           setPublicDateTo("");
           setCurrentPage(1);
-          executeSearchRef.current?.(false, { dateFrom: "", dateTo: "", page: 1 });
+          updateUrlParams({ dateFrom: "", dateTo: "", page: 1 });
         },
       });
     }
@@ -515,6 +527,7 @@ function FacebookAdsSearchContent() {
     selectedSpends,
     publicDateFrom,
     publicDateTo,
+    updateUrlParams,
   ]);
 
   const normalizeAdForModal = (ad: any) => {
@@ -999,6 +1012,12 @@ function FacebookAdsSearchContent() {
                 <Input
                   ref={searchQueryRef}
                   maxLength={100}
+                  onPaste={(e) => {
+                    const pastedText = e.clipboardData.getData("text") || "";
+                    if (pastedText.length > 100) {
+                      toast.warning("Từ khóa tìm kiếm được giới hạn tối đa 100 ký tự");
+                    }
+                  }}
                   placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết..."
                   className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
                 />
@@ -1062,6 +1081,7 @@ function FacebookAdsSearchContent() {
                 total={totalCount}
                 currentPage={currentPage}
                 totalPages={totalPages}
+                isLoading={loading}
                 hideTotalCount={!selectedPreset && activeFilterCount === 0 && !searchQueryRef.current?.value}
                 activeChips={activeChips}
                 onClearAll={handleClearAllFilters}

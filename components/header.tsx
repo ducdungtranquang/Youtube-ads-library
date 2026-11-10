@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
-import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles, Gift, ChevronDown } from "lucide-react"
+import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles, Gift, ChevronDown, Trophy } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +48,7 @@ export function Header() {
     { href: "/quicksearch", icon: Sparkles, label: "Quick Search" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
+    { href: "/winning-products", icon: Trophy, label: "Winning Products", badge: "Hot" },
     { href: "/affiliate", icon: Gift, label: "Tiếp thị", badge: "20%" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
@@ -384,6 +385,17 @@ export function Header() {
                       <Video className="mr-2 h-4 w-4 text-cyan-400" />
                       Facebook Ads
                     </div>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
+                  <Link href="/winning-products" className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                      <Trophy className="mr-2 h-4 w-4 text-amber-400" />
+                      Winning Products
+                    </div>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                      Hot
+                    </span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
