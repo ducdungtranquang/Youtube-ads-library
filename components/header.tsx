@@ -48,7 +48,7 @@ export function Header() {
     { href: "/quicksearch", icon: Sparkles, label: "Quick Search" },
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
-    { href: "/winning-products", icon: Trophy, label: "Winning Products", badge: "Hot" },
+    { href: "/winning-products", icon: Trophy, label: "Winning Products", badge: "Beta" },
     { href: "/affiliate", icon: Gift, label: "Tiếp thị", badge: "20%" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]

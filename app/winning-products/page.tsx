@@ -28,6 +28,8 @@ import {
   ArrowRight,
   Lock,
   Zap,
+  AlertTriangle,
+  FlaskConical,
 } from "lucide-react";
 import type {
   WinningProduct,
@@ -393,22 +395,28 @@ function WinningProductsContent() {
           <div className="container max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
             <div className="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-400/30 px-3.5 py-1 text-xs font-semibold text-indigo-300 shadow-sm backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 border border-amber-400/40 px-4 py-1.5 text-xs font-bold text-amber-300 shadow-sm backdrop-blur-md">
+                <FlaskConical className="h-4 w-4 text-amber-400 animate-pulse" />
+                <span>Tính Năng Đang Thử Nghiệm (BETA)</span>
+                <span className="text-slate-500">•</span>
                 <Crown className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-                <span>AI Winning Products Engine 2026 • Unlimited Exclusive</span>
+                <span>Gói Không Giới Hạn (Unlimited)</span>
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
-                Kho Sản Phẩm{" "}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight flex items-center justify-center gap-2.5 sm:gap-3.5 flex-wrap">
+                <span>Kho Sản Phẩm</span>
                 <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-rose-400 bg-clip-text text-transparent">
                   Chiến Thắng (Winning)
+                </span>
+                <span className="text-xs sm:text-sm font-black uppercase px-2.5 py-0.5 rounded-xl bg-amber-400 text-slate-950 tracking-wider shadow-lg shadow-amber-400/25">
+                  BETA
                 </span>
               </h1>
 
               {/* Subtitle */}
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
-                Khám phá các sản phẩm và cửa hàng E-commerce đang scale mạnh nhất trên Facebook Ads.
+                Khám phá các sản phẩm và cửa hàng E-commerce đang scale mạnh nhất trên Facebook Ads (Phiên bản thử nghiệm).
                 Phân tích điểm số Product Score, số lượng ads chiến thắng và xem toàn bộ creative mẫu.
               </p>
 
@@ -433,6 +441,42 @@ function WinningProductsContent() {
 
         {/* Main Content Area */}
         <main className="container max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {/* ⚠️ CẢNH BÁO TÍNH NĂNG ĐANG THỬ NGHIỆM */}
+          <div className="mb-6 rounded-2xl border-2 border-amber-400/80 bg-gradient-to-r from-amber-50 via-orange-50/60 to-amber-50/70 p-4 sm:p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-500/25">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-extrabold text-amber-950 text-sm sm:text-base">
+                    Lưu ý: Tính năng Winning Products đang trong giai đoạn thử nghiệm (BETA)
+                  </h3>
+                  <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300">
+                    Thuật toán đang hiệu chỉnh
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-amber-900/90 leading-relaxed">
+                  Kho dữ liệu phân tích sản phẩm và điểm số <strong>Product Score</strong> đang được thử nghiệm thực tế và liên tục tối ưu.
+                  Bạn <strong>vẫn có thể tìm kiếm, lọc theo các tiêu chí và xem chi tiết ads bình thường</strong>.
+                </p>
+                <div className="flex items-center gap-4 pt-1 flex-wrap text-xs text-amber-800 font-medium">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <strong>Tìm kiếm &amp; Lọc sản phẩm:</strong> Đang hoạt động
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                    <strong>Dữ liệu:</strong> Cập nhật liên tục
+                  </span>
+                  <span className="text-amber-700/90">
+                    Mọi ý kiến đóng góp xin gửi qua nút <strong>Hỗ trợ &amp; Góp ý</strong> ở góc dưới bên phải.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Access Checking Skeleton */}
           {isCheckingAccess ? (
             <div className="space-y-6">
