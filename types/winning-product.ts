@@ -8,6 +8,10 @@ export interface WinningProduct {
   created_at?: string;
   updated_at?: string;
   category?: string;
+  thumbnail_r2?: string;
+  landing_url?: string;
+  platform?: string;
+  product_key?: string;
 }
 
 export interface ProductAd {
