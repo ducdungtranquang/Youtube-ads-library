@@ -29,6 +29,8 @@ import {
   ArrowUpDown,
   SlidersHorizontal,
   Store,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
@@ -190,6 +192,20 @@ const HeroSlider = memo(() => {
 });
 HeroSlider.displayName = "HeroSlider";
 
+// Tính danh sách các trang cần hiển thị trên Pagination (rút gọn có dấu ...)
+function getPageNumbers(current: number, total: number): (number | "...")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, "...", total];
+  }
+  if (current >= total - 3) {
+    return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
+  }
+  return [1, "...", current - 1, current, current + 1, "...", total];
+}
+
 export default function FacebookAdsPage() {
   return (
     <Suspense
@@ -226,6 +242,7 @@ function FacebookAdsSearchContent() {
   } = useSearchQuota("fb");
 
   const searchQueryRef = useRef<HTMLInputElement>(null);
+  const searchBarRef = useRef<HTMLDivElement>(null);
   const lastExecutedQueryRef = useRef<string>("");
   const searchSequenceRef = useRef<number>(0);
 
@@ -360,6 +377,36 @@ function FacebookAdsSearchContent() {
   const itemsPerPage = 20;
 
   const { searchFacebookAds, loading, error, data } = useFacebookAdsSearch();
+
+  // Scroll mượt lên đầu khung tìm kiếm khi người dùng chuyển trang
+  const scrollToSearch = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (searchBarRef.current) {
+      // 64px header sticky + 20px padding
+      const headerOffset = 84;
+      const elementPosition = searchBarRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: "smooth",
+      });
+    } else {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, []);
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage === currentPage || newPage < 1 || newPage > totalPages) return;
+      setCurrentPage(newPage);
+      scrollToSearch();
+    },
+    [currentPage, totalPages, scrollToSearch]
+  );
 
   // Preset stats không còn hiển thị số lượng trên bộ lọc nên không cần fetch để giảm tải database
 
@@ -1028,40 +1075,42 @@ function FacebookAdsSearchContent() {
             />
 
             {/* Search Bar - Modern White Card */}
-            <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1 group">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                <Input
-                  ref={searchQueryRef}
-                  maxLength={100}
-                  onPaste={(e) => {
-                    const pastedText = e.clipboardData.getData("text") || "";
-                    if (pastedText.length > 100) {
-                      toast.warning("Từ khóa tìm kiếm được giới hạn tối đa 100 ký tự");
-                    }
-                  }}
-                  placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết..."
-                  className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full sm:w-auto shrink-0 h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all font-bold"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Đang tìm kiếm...
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-5 w-5 mr-2" />
-                    Tìm kiếm
-                  </>
-                )}
-              </Button>
-            </form>
+            <div ref={searchBarRef} className="scroll-mt-24">
+              <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1 group">
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <Input
+                    ref={searchQueryRef}
+                    maxLength={100}
+                    onPaste={(e) => {
+                      const pastedText = e.clipboardData.getData("text") || "";
+                      if (pastedText.length > 100) {
+                        toast.warning("Từ khóa tìm kiếm được giới hạn tối đa 100 ký tự");
+                      }
+                    }}
+                    placeholder="Tìm kiếm bằng từ khóa Ads, tên Page, hoặc nội dung bài viết..."
+                    className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl shadow-xs transition-all text-sm"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-auto shrink-0 h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-200 cursor-pointer transition-all font-bold"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Đang tìm kiếm...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-5 w-5 mr-2" />
+                      Tìm kiếm
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
 
             {/* Results Toolbar with  Sorting */}
             <section className="space-y-4">
@@ -1185,26 +1234,73 @@ function FacebookAdsSearchContent() {
 
                   {/* Server-Side Pagination Controller */}
                   {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-4 mt-10">
-                      <Button
-                        variant="outline"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl"
-                      >
-                        Trang trước
-                      </Button>
-                      <span className="text-sm font-semibold text-slate-600 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-xs">
-                        Trang {currentPage} / {totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        className="cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 rounded-xl"
-                      >
-                        Trang sau
-                      </Button>
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-10 pt-6 border-t border-slate-200/80">
+                      <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === 1 || loading}
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          className="h-10 px-3 sm:px-4 cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                          title="Về trang trước đó"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Trang trước</span>
+                          <span className="sm:hidden">Trước</span>
+                        </Button>
+
+                        {/* Page Numbers for Tablet & Desktop */}
+                        <div className="hidden md:flex items-center gap-1">
+                          {getPageNumbers(currentPage, totalPages).map((p, idx) => {
+                            if (p === "...") {
+                              return (
+                                <span
+                                  key={`ellipsis-${idx}`}
+                                  className="px-2 text-slate-400 select-none text-xs font-bold"
+                                >
+                                  •••
+                                </span>
+                              );
+                            }
+                            const pageNum = p as number;
+                            const isActive = pageNum === currentPage;
+                            return (
+                              <button
+                                key={`page-${pageNum}`}
+                                type="button"
+                                disabled={loading}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`h-10 min-w-10 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                  isActive
+                                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-200 scale-105"
+                                    : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                                } disabled:opacity-60 disabled:cursor-not-allowed`}
+                                aria-current={isActive ? "page" : undefined}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Summary badge on Mobile */}
+                        <span className="md:hidden text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3.5 py-2.5 rounded-xl shadow-2xs">
+                          Trang {currentPage} / {totalPages}
+                        </span>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === totalPages || loading}
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          className="h-10 px-3 sm:px-4 cursor-pointer bg-white border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                          title="Sang trang kế tiếp"
+                        >
+                          <span className="hidden sm:inline">Trang sau</span>
+                          <span className="sm:hidden">Sau</span>
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </div>
                     </div>
                   )}
 
