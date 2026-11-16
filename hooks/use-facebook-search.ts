@@ -78,10 +78,10 @@ export function useFacebookAdsSearch() {
       setLoading(true);
       setError(null);
 
-      // Timeout 25 giây phía client để tránh giao diện bị treo vĩnh viễn khi mạng hoặc backend chậm
+      // Timeout 60 giây phía client để tránh giao diện bị treo vĩnh viễn khi mạng hoặc backend chậm
       const timeoutId = setTimeout(() => {
         controller.abort();
-      }, 25000);
+      }, 60000);
 
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();

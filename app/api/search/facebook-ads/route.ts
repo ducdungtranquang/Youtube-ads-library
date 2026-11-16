@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     const queryString = searchParams.toString();
     const targetUrl = `${SEARCH_API_URL}/api/ads/search${queryString ? `?${queryString}` : ""}`;
 
-    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 25000; // 25 giây timeout
+    const timeoutMs = Number(process.env.BACKEND_TIMEOUT_MS) || 60000; // 60 giây timeout
     const res = await fetch(targetUrl, {
       method: "GET",
       headers: {
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     const isTimeout = error?.name === "TimeoutError" || error?.name === "AbortError";
     const errorMessage = isTimeout
-      ? `Hết thời gian chờ phản hồi từ máy chủ phân tích (> 25s). Vui lòng thử lại với từ khóa ngắn hơn.`
+      ? `Hết thời gian chờ phản hồi từ máy chủ phân tích (> 60s). Vui lòng thử lại với từ khóa ngắn hơn.`
       : `Lỗi kết nối Backend Search: ${error?.message || "Proxy request failed"}`;
 
     console.warn("Facebook ads proxy fallback on error:", errorMessage);
