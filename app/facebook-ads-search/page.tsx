@@ -245,9 +245,26 @@ function FacebookAdsSearchContent() {
   const searchBarRef = useRef<HTMLDivElement>(null);
   const lastExecutedQueryRef = useRef<string>("");
   const searchSequenceRef = useRef<number>(0);
+  const executeSearchRef = useRef<(isInitialLoad?: boolean, override?: {
+    pageName?: string;
+    page?: number;
+    domain?: string;
+    preset?: string;
+    country?: string;
+    industry?: string;
+    isActive?: string;
+    scalingLevel?: string;
+    spends?: string[];
+    dateFrom?: string;
+    dateTo?: string;
+  }) => Promise<void> | void>(null);
 
-  // Initialize filter state from URL SearchParams
-  const [selectedPreset, setSelectedPreset] = useState<string>(() => searchParams.get("filter") || "");
+  // Track initial query text from URL (giới hạn tối đa 100 ký tự, hỗ trợ cả text và q)
+  const initialText = (searchParams.get("text") || searchParams.get("q") || "").slice(0, 100);
+  const [searchText, setSearchText] = useState<string>(initialText);
+
+  // Initialize filter state from URL SearchParams (hỗ trợ cả các alias phổ biến như filter/preset, is_active/status)
+  const [selectedPreset, setSelectedPreset] = useState<string>(() => searchParams.get("filter") || searchParams.get("preset") || "");
   const [selectedCountry, setSelectedCountry] = useState<string>(() => searchParams.get("country") || "");
   const [selectedIndustry, setSelectedIndustry] = useState<string>(() => searchParams.get("industry") || "");
   const [publicDateFrom, setPublicDateFrom] = useState<string>(() => searchParams.get("date_from") || "");
@@ -257,7 +274,7 @@ function FacebookAdsSearchContent() {
     return s ? s.split(",").filter(Boolean) : [];
   });
   const [scalingLevel, setScalingLevel] = useState<string>(() => searchParams.get("scaling_level") || "");
-  const [isActive, setIsActive] = useState<string>(() => searchParams.get("is_active") || "");
+  const [isActive, setIsActive] = useState<string>(() => searchParams.get("is_active") || searchParams.get("status") || "");
   const [pageName, setPageName] = useState<string>(() => searchParams.get("page_name") || "");
   const [domain, setDomain] = useState<string>(() => searchParams.get("domain") || "");
   const [sortBy, setSortBy] = useState<string>(() => {
@@ -276,8 +293,6 @@ function FacebookAdsSearchContent() {
     return parsed;
   });
 
-  // Track initial query text from URL (giới hạn tối đa 100 ký tự)
-  const initialText = (searchParams.get("text") || "").slice(0, 100);
   useEffect(() => {
     document.title = "Thư Viện Quảng Cáo Facebook - Facebook Ads Library | Ads Spy Tool";
     if (searchQueryRef.current && initialText) {
@@ -313,7 +328,7 @@ function FacebookAdsSearchContent() {
 
     const params = new URLSearchParams();
     if (effPage > 1 && effPage <= 50) params.set("page", String(effPage));
-    const queryText = searchQueryRef.current?.value?.trim();
+    const queryText = (searchQueryRef.current?.value !== undefined ? searchQueryRef.current.value : searchText)?.trim();
     if (queryText) params.set("text", queryText.slice(0, 100));
     if (effPreset) params.set("filter", effPreset);
     if (effCountry) params.set("country", effCountry);
@@ -346,6 +361,7 @@ function FacebookAdsSearchContent() {
     sortBy,
     sortOrder,
     isSortExplicit,
+    searchText,
     pathname,
   ]);
 
@@ -414,6 +430,7 @@ function FacebookAdsSearchContent() {
     if (searchQueryRef.current) {
       searchQueryRef.current.value = "";
     }
+    setSearchText("");
     setSelectedPreset("");
     setSelectedCountry("");
     setSelectedIndustry("");
@@ -428,7 +445,32 @@ function FacebookAdsSearchContent() {
     setSortOrder(-1);
     setIsSortExplicit(false);
     setCurrentPage(1);
-  }, []);
+    setResults([]);
+    setTotalCount(null);
+    lastExecutedQueryRef.current = "";
+
+    // Xóa sạch toàn bộ query params trên thanh URL ngay lập tức
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", pathname);
+    }
+
+    scrollToSearch();
+
+    // Kích hoạt tìm kiếm mới với toàn bộ bộ lọc đã được reset sạch sẽ
+    executeSearchRef.current?.(false, {
+      page: 1,
+      preset: "",
+      country: "",
+      industry: "",
+      isActive: "",
+      pageName: "",
+      domain: "",
+      scalingLevel: "",
+      spends: [],
+      dateFrom: "",
+      dateTo: "",
+    });
+  }, [pathname, scrollToSearch]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -737,20 +779,6 @@ function FacebookAdsSearchContent() {
     };
   }, [modalOpen]);
 
-  const executeSearchRef = useRef<(isInitialLoad?: boolean, override?: {
-    pageName?: string;
-    page?: number;
-    domain?: string;
-    preset?: string;
-    country?: string;
-    industry?: string;
-    isActive?: string;
-    scalingLevel?: string;
-    spends?: string[];
-    dateFrom?: string;
-    dateTo?: string;
-  }) => Promise<void>>(null!);
-
   const handleFilterByPage = useCallback((targetPageName: string) => {
     if (!targetPageName || targetPageName === "Facebook Ad") return;
     setPageName(targetPageName);
@@ -857,7 +885,7 @@ function FacebookAdsSearchContent() {
     params.append("page", safePage.toString());
     params.append("limit", itemsPerPage.toString());
 
-    const rawText = searchQueryRef.current?.value?.trim() || "";
+    const rawText = (searchQueryRef.current?.value !== undefined ? searchQueryRef.current.value : searchText)?.trim() || "";
     const safeText = rawText.slice(0, 100);
     if (safeText) params.append("text", safeText);
 
@@ -896,6 +924,10 @@ function FacebookAdsSearchContent() {
     const currentSeq = ++searchSequenceRef.current;
     try {
       lastExecutedQueryRef.current = currentQueryString;
+
+      // Đồng bộ URL ngay lập tức với các filter hiện tại trước khi fetch API
+      updateUrlParams(override);
+
       const result = await searchFacebookAds({ queryString: currentQueryString });
 
       // Nếu đã có một lượt search mới hơn chạy sau lượt này (ví dụ đổi bộ lọc A -> B), bỏ qua kết quả cũ
@@ -905,9 +937,6 @@ function FacebookAdsSearchContent() {
       if (result?.error === "Aborted" || result?.error === "Stale request cancelled") {
         return;
       }
-
-      // Đồng bộ URL với các filter hiện tại
-      updateUrlParams(override);
 
       if (result?.success) {
         const adsData = Array.isArray(result.data) ? result.data : [];
@@ -1081,6 +1110,8 @@ function FacebookAdsSearchContent() {
                   <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <Input
                     ref={searchQueryRef}
+                    defaultValue={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
                     maxLength={100}
                     onPaste={(e) => {
                       const pastedText = e.clipboardData.getData("text") || "";
@@ -1195,7 +1226,7 @@ function FacebookAdsSearchContent() {
                 </div>
               </AdsSpyResultsToolbar>
 
-              {loading && results.length === 0 && totalCount !== 0 ? (
+              {loading ? (
                 <div className="mt-4">
                   <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, idx) => (

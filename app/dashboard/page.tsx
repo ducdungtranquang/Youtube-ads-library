@@ -12,6 +12,13 @@ import { useFavorites } from '@/hooks/use-favorites'
 import { supabase } from "@/lib/supabase"
 import { SearchQuotaManager } from "@/lib/search-quota"
 
+interface UserProfile {
+  subscription_plan?: string | null;
+  subscription_status?: string | null;
+  daily_search_count?: number | null;
+  last_search_date?: string | null;
+}
+
 function DashboardPage() {
   const SUBSCRIPTION_MAP: Record<string, { label: string; color: string; limitText: string }> = {
     free: { label: "Miễn phí", color: "text-slate-700 font-bold", limitText: "5 lượt/ngày" },
@@ -24,7 +31,15 @@ function DashboardPage() {
   const { getFavoritesCounts, loading: countsLoading } = useFavorites()
   const [counts, setCounts] = useState({ video: 0, offer: 0, affiliate: 0, brand: 0, company: 0, facebook_ad: 0 })
   const [loading, setLoading] = useState(true)
-  const [dbProfile, setDbProfile] = useState<any>(null)
+  const [dbProfile, setDbProfile] = useState<UserProfile | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("user_profile_cache");
+        if (cached) return JSON.parse(cached) as UserProfile;
+      } catch {}
+    }
+    return null;
+  });
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -36,7 +51,7 @@ function DashboardPage() {
       if (!user) return setLoading(false)
       setLoading(true)
       const data = await getFavoritesCounts()
-      if (data) setCounts(data as any);
+      if (data) setCounts(data as typeof counts);
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('subscription_plan, subscription_status, daily_search_count, last_search_date')
@@ -45,6 +60,9 @@ function DashboardPage() {
 
       if (profile) {
         setDbProfile(profile)
+        try {
+          localStorage.setItem("user_profile_cache", JSON.stringify(profile));
+        } catch {}
       }
       setLoading(false)
     }
@@ -115,23 +133,27 @@ function DashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Gói dịch vụ</p>
-                  <div className="flex items-center justify-between gap-1.5 mt-0.5">
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className={`font-bold text-sm truncate ${planInfo.color}`}>
-                        {planInfo.label}
-                      </span>
-                      {normalizedPlan !== "free" && (
-                        <BadgeCheck className={`h-3.5 w-3.5 ${planInfo.color} flex-shrink-0`} />
+                  {loading && !dbProfile ? (
+                    <div className="h-5 w-24 bg-slate-200 animate-pulse rounded-md mt-1" />
+                  ) : (
+                    <div className="flex items-center justify-between gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className={`font-bold text-sm truncate ${planInfo.color}`}>
+                          {planInfo.label}
+                        </span>
+                        {normalizedPlan !== "free" && (
+                          <BadgeCheck className={`h-3.5 w-3.5 ${planInfo.color} flex-shrink-0`} />
+                        )}
+                      </div>
+                      {normalizedPlan === "free" && (
+                        <Link href="/pricing" className="flex-shrink-0">
+                          <span className="inline-flex items-center text-[11px] font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200/80 px-2 py-0.5 rounded-full transition-all duration-200 shadow-2xs whitespace-nowrap">
+                            Nâng cấp Unlimited ↑
+                          </span>
+                        </Link>
                       )}
                     </div>
-                    {normalizedPlan === "free" && (
-                      <Link href="/pricing" className="flex-shrink-0">
-                        <span className="inline-flex items-center text-[11px] font-bold text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-200/80 px-2 py-0.5 rounded-full transition-all duration-200 shadow-2xs whitespace-nowrap">
-                          Nâng cấp Unlimited ↑
-                        </span>
-                      </Link>
-                    )}
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -145,8 +167,8 @@ function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">Tìm kiếm hôm nay</p>
                   <p className="font-black text-slate-900 text-sm mt-0.5 truncate">
-                    {!mounted ? (
-                      <span className="text-slate-400 font-normal">Đang kiểm tra...</span>
+                    {!mounted || (loading && !dbProfile) ? (
+                      <span className="inline-block h-5 w-28 bg-slate-200 animate-pulse rounded-md mt-0.5" />
                     ) : isUnlimited ? (
                       <span className="text-purple-600 font-bold">Không giới hạn ∞</span>
                     ) : (

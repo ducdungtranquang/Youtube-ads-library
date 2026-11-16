@@ -21,6 +21,7 @@ import {
   Globe,
 } from "lucide-react";
 import { getIndustryLabel } from "@/lib/constants/industries";
+import { isFacebookAdActive } from "@/lib/facebook-ad-status";
 
 // Helper map scaling level sang nhãn tiếng Việt chuẩn
 const formatScalingLevel = (level: string | null | undefined): string => {
@@ -198,20 +199,23 @@ export function FacebookAdCard({ ad, onClick, onFilterByPage }: FacebookAdCardPr
               </span>
             )}
 
-            {ad?.is_active != null && (
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-sm ${ad.is_active
-                  ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
-                  : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
-                  }`}
-              >
+            {(() => {
+              const isActive = isFacebookAdActive(ad);
+              return (
                 <span
-                  className={`size-1.5 rounded-full ${ad.is_active ? "bg-emerald-400 animate-pulse" : "bg-slate-400"
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-sm ${isActive
+                    ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
+                    : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
                     }`}
-                />
-                {ad.is_active ? "Active" : "Paused"}
-              </span>
-            )}
+                >
+                  <span
+                    className={`size-1.5 rounded-full ${isActive ? "bg-emerald-400 animate-pulse" : "bg-slate-400"
+                      }`}
+                  />
+                  {isActive ? "Active" : "Paused"}
+                </span>
+              );
+            })()}
           </div>
 
           {/* Video technical note overlay if it is video format without streamable URL */}

@@ -46,6 +46,7 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getIndustryLabel } from "@/lib/constants/industries";
+import { isFacebookAdActive } from "@/lib/facebook-ad-status";
 
 // Helper map scaling level sang tiếng Việt chuẩn
 const formatScalingLevel = (level: string | null | undefined): string => {
@@ -439,16 +440,16 @@ export function FacebookAdDetailModal({
                   {pageName}
                 </DialogTitle>
                 <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${ad?.is_active
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isFacebookAdActive(ad)
                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                     : "bg-slate-100 text-slate-600 border border-slate-200"
                     }`}
                 >
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${ad?.is_active ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                    className={`h-1.5 w-1.5 rounded-full ${isFacebookAdActive(ad) ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
                       }`}
                   />
-                  {ad?.is_active ? "Đang chạy (Active)" : "Tạm dừng (Paused)"}
+                  {isFacebookAdActive(ad) ? "Đang chạy (Active)" : "Tạm dừng (Paused)"}
                 </span>
 
                 {ad?.industry && (
@@ -1125,7 +1126,7 @@ export function FacebookAdDetailModal({
                       <div className="flex items-center justify-between py-2">
                         <span className="text-slate-500">Kết thúc</span>
                         <span className="font-semibold text-slate-800">
-                          {ad?.is_active ? "—" : formatTimestamp(ad?.end_date)}
+                          {isFacebookAdActive(ad) ? "— (Đang chạy)" : formatTimestamp(ad?.end_date)}
                         </span>
                       </div>
 
@@ -1339,13 +1340,13 @@ export function FacebookAdDetailModal({
                               )}
 
                               <span
-                                className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold backdrop-blur-md ${simAd?.is_active
+                                className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold backdrop-blur-md ${isFacebookAdActive(simAd)
                                   ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
                                   : "bg-slate-900/80 text-slate-400 border border-slate-700/30"
                                   }`}
                               >
-                                <span className={`size-1 rounded-full ${simAd?.is_active ? "bg-emerald-400 animate-pulse" : "bg-slate-400"}`} />
-                                {simAd?.is_active ? "Active" : "Paused"}
+                                <span className={`size-1 rounded-full ${isFacebookAdActive(simAd) ? "bg-emerald-400 animate-pulse" : "bg-slate-400"}`} />
+                                {isFacebookAdActive(simAd) ? "Active" : "Paused"}
                               </span>
                             </div>
 
@@ -1562,13 +1563,13 @@ export function FacebookAdDetailModal({
                                   )}
 
                                   <span
-                                    className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${pAd?.is_active
+                                    className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${isFacebookAdActive(pAd)
                                       ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
                                       : "bg-slate-900/80 text-slate-400"
                                       }`}
                                   >
-                                    <span className={`size-1 rounded-full ${pAd?.is_active ? "bg-emerald-400" : "bg-slate-400"}`} />
-                                    {pAd?.is_active ? "Active" : "Paused"}
+                                    <span className={`size-1 rounded-full ${isFacebookAdActive(pAd) ? "bg-emerald-400" : "bg-slate-400"}`} />
+                                    {isFacebookAdActive(pAd) ? "Active" : "Paused"}
                                   </span>
                                 </div>
 
