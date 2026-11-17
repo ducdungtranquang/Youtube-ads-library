@@ -219,7 +219,7 @@ export default function PricingPage() {
                 </div>
                 <CardTitle className="text-2xl font-black text-slate-900">Gói Miễn Phí</CardTitle>
                 <CardDescription className="text-sm text-slate-500 mt-1">
-                  Dành cho người mới bắt đầu trải nghiệm công cụ tìm kiếm
+                  Xem Full thông tin quảng cáo, giới hạn lượt tìm kiếm và không xem được Winning Products
                 </CardDescription>
 
                 <div className="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
@@ -235,7 +235,7 @@ export default function PricingPage() {
 
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
                 <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-xs text-amber-900 font-medium leading-relaxed">
-                  ⚡ <strong>5 lượt tìm kiếm/ngày:</strong> Giới hạn 5 lượt tra cứu mỗi ngày cho toàn bộ YouTube Ads & Facebook Ads.
+                  ⚡ <strong>5 lượt tìm kiếm/ngày:</strong> Giới hạn 5 lượt tra cứu mỗi ngày cho toàn bộ YouTube Ads & Facebook Ads. Vẫn xem được Full chi tiết quảng cáo.
                 </div>
 
                 <ul className="space-y-3.5 text-sm text-slate-700">
@@ -247,15 +247,21 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span>Tra cứu QuickSearch YouTube Ads</span>
+                    <span><strong>Xem Full thông tin quảng cáo:</strong> Chi tiết ad, kịch bản, thời gian chạy, domain & fanpage</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span>Xem thông tin quảng cáo cơ bản</span>
+                    <span>Xem video quảng cáo, kịch bản Hook 3s & Landing Page đối thủ</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 font-bold" />
+                    </div>
+                    <span>Tra cứu dữ liệu Spend, Reach, Duplicates & Scaling score</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
@@ -263,23 +269,19 @@ export default function PricingPage() {
                     </div>
                     <span>Lưu tối đa 20 mục yêu thích</span>
                   </li>
-                  <li className="flex items-start gap-3 text-slate-400">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
-                      <X className="h-3.5 w-3.5" />
+                  <li className="flex items-start gap-3 text-rose-600 bg-rose-50/70 p-2.5 rounded-xl border border-rose-200/70">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 text-rose-600 mt-0.5 shrink-0">
+                      <X className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span>Không hỗ trợ video Unlisted & tải MP4</span>
+                    <span className="text-xs leading-relaxed font-semibold">
+                      <strong>Không xem được Winning Products:</strong> Kho sản phẩm chiến thắng bị khóa
+                    </span>
                   </li>
                   <li className="flex items-start gap-3 text-slate-400">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
                       <X className="h-3.5 w-3.5" />
                     </div>
-                    <span>Không có dữ liệu Spend, Reach & Scaling score</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-slate-400">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-400 mt-0.5 shrink-0">
-                      <X className="h-3.5 w-3.5" />
-                    </div>
-                    <span>Không có quyền xem Kho Sản Phẩm Chiến Thắng (Winning Products)</span>
+                    <span className="text-xs leading-relaxed">Không nhận gợi ý 3–5 sản phẩm tiềm năng mỗi tuần</span>
                   </li>
                 </ul>
               </CardContent>
@@ -322,7 +324,7 @@ export default function PricingPage() {
 
                 <CardTitle className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Unlimited Plan</CardTitle>
                 <CardDescription className="text-sm text-slate-600 mt-1">
-                  Mở khóa toàn bộ kho dữ liệu quảng cáo YouTube & Facebook Ads
+                  Tìm kiếm không giới hạn, xem Winning Products & nhận 3–5 sản phẩm tiềm năng mỗi tuần
                 </CardDescription>
 
                 {/* Price Display Box */}
@@ -352,7 +354,7 @@ export default function PricingPage() {
 
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
                 <div className="p-3.5 rounded-xl bg-gradient-to-r from-indigo-50 via-purple-50/50 to-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-medium leading-relaxed">
-                  👑 <strong>Tìm kiếm KHÔNG GIỚI HẠN:</strong> Thỏa sức phân tích đối thủ, Nghiên cứu hàng ngàn video ads mỗi ngày không lo giới hạn.
+                  👑 <strong>Tìm kiếm KHÔNG GIỚI HẠN:</strong> Thỏa sức phân tích đối thủ, mở khóa Winning Products và nhận 3–5 sản phẩm tiềm năng được chọn lọc mỗi tuần.
                 </div>
 
                 <ul className="space-y-3.5 text-sm text-slate-700">
@@ -362,11 +364,17 @@ export default function PricingPage() {
                     </div>
                     <span><strong className="text-indigo-950 font-black">Tìm kiếm KHÔNG GIỚI HẠN (∞)</strong> (YouTube & FB Ads)</span>
                   </li>
-                  <li className="flex items-start gap-3">
+                  <li className="flex items-start gap-3 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-700 mt-0.5 shrink-0 shadow-2xs">
                       <Sparkles className="h-3.5 w-3.5 font-bold text-amber-600 fill-amber-600" />
                     </div>
-                    <span><strong className="text-amber-950 font-black">ĐỘC QUYỀN: Kho Sản Phẩm Chiến Thắng (Winning Products)</strong> & Bảng vàng tháng</span>
+                    <span className="text-xs sm:text-sm"><strong className="text-amber-950 font-black">ĐỘC QUYỀN: Xem Kho Sản Phẩm Chiến Thắng (Winning Products)</strong> & Bảng vàng tháng</span>
+                  </li>
+                  <li className="flex items-start gap-3 bg-gradient-to-r from-indigo-50 via-purple-50/70 to-indigo-50 p-2.5 rounded-xl border border-indigo-200">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0 shadow-2xs">
+                      <Sparkles className="h-3.5 w-3.5 font-bold text-indigo-600 fill-indigo-600" />
+                    </div>
+                    <span className="text-xs sm:text-sm"><strong className="text-indigo-950 font-black">ĐẶC QUYỀN: Giới thiệu 3–5 sản phẩm tiềm năng mỗi tuần</strong> (Tuyển chọn độc quyền)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
@@ -396,13 +404,7 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
                       <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span>Phân tích phễu chuyển đổi TOF / MOF / BOF</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
-                      <Check className="h-3.5 w-3.5 font-bold" />
-                    </div>
-                    <span>Dữ liệu phân bổ thị trường Quốc tế (Geo Tier 1, 2, 3)</span>
+                    <span>Phân tích phễu chuyển đổi TOF / MOF / BOF & Thị trường Quốc tế</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 mt-0.5 shrink-0">
@@ -480,12 +482,12 @@ export default function PricingPage() {
                   <td className="py-4 px-6 text-center font-black text-indigo-600 bg-indigo-50/30">Không giới hạn (∞)</td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm YouTube Ads</td>
-                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
-                  <td className="py-4 px-6 text-center bg-indigo-50/30 font-bold text-indigo-700">Không giới hạn</td>
+                  <td className="py-4 px-6 font-medium text-slate-900">Xem Full thông tin quảng cáo (Chi tiết, Fanpage, Domain, Kịch bản)</td>
+                  <td className="py-4 px-6 text-center font-bold text-emerald-600"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-indigo-50/30 font-bold text-indigo-700"><Check className="h-4 w-4 text-indigo-600 mx-auto" /></td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm Facebook Ads</td>
+                  <td className="py-4 px-6 font-medium text-slate-900">Tìm kiếm YouTube Ads & Facebook Ads</td>
                   <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
                   <td className="py-4 px-6 text-center bg-indigo-50/30 font-bold text-indigo-700">Không giới hạn</td>
                 </tr>
@@ -494,9 +496,25 @@ export default function PricingPage() {
                     <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500 shrink-0" />
                     <span>Kho Sản Phẩm Chiến Thắng (Winning Products)</span>
                   </td>
-                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                      <X className="h-3 w-3" /> Bị khóa
+                    </span>
+                  </td>
                   <td className="py-4 px-6 text-center bg-indigo-50/40 font-black text-amber-700">
-                    Độc quyền (Toàn quyền tra cứu & Bảng vàng tháng)
+                    Mở khóa toàn bộ (Tra cứu & Bảng vàng tháng)
+                  </td>
+                </tr>
+                <tr className="bg-indigo-50/30">
+                  <td className="py-4 px-6 font-bold text-indigo-950 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-indigo-600 fill-indigo-600 shrink-0" />
+                    <span>Giới thiệu 3–5 sản phẩm tiềm năng hàng tuần</span>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <X className="h-4 w-4 text-slate-300 mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center bg-indigo-100/50 font-black text-indigo-700">
+                    Độc quyền (Tuyển chọn gửi định kỳ mỗi tuần)
                   </td>
                 </tr>
                 <tr>
@@ -506,17 +524,17 @@ export default function PricingPage() {
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Nghiên cứu video Unlisted & tải MP4</td>
-                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center text-xs text-slate-500">Xem video</td>
                   <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Xem Hook 3s & Landing Page đối thủ</td>
-                  <td className="py-4 px-6 text-center"><X className="h-4 w-4 text-slate-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center"><Check className="h-4 w-4 text-emerald-600 mx-auto" /></td>
                   <td className="py-4 px-6 text-center bg-indigo-50/30"><Check className="h-4 w-4 text-emerald-600 mx-auto font-bold" /></td>
                 </tr>
                 <tr>
                   <td className="py-4 px-6 font-medium text-slate-900">Ước tính Spend, Reach & Duplicates</td>
-                  <td className="py-4 px-6 text-center text-xs">Cơ bản</td>
+                  <td className="py-4 px-6 text-center text-xs font-semibold text-emerald-700">Đầy đủ</td>
                   <td className="py-4 px-6 text-center text-xs font-bold text-indigo-700 bg-indigo-50/30">Đầy đủ & chuyên sâu</td>
                 </tr>
                 <tr>

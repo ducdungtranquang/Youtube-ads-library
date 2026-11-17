@@ -30,7 +30,9 @@ import {
   Zap,
   AlertTriangle,
   FlaskConical,
+  Play,
 } from "lucide-react";
+import { VideoTutorialModal } from "@/components/tutorials/video-tutorial-modal";
 import type {
   WinningProduct,
   ProductSearchParams,
@@ -42,7 +44,7 @@ function WinningProductsPaywallGate({
   user,
   onUpgrade,
 }: {
-  user: any;
+  user: { id?: string; email?: string } | null | undefined;
   onUpgrade: () => void;
 }) {
   const router = useRouter();
@@ -69,8 +71,8 @@ function WinningProductsPaywallGate({
 
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
             Kho dữ liệu phân tích sản phẩm thương mại điện tử chiến thắng chỉ dành riêng cho thành viên gói{" "}
-            <strong className="text-white">Không Giới Hạn (Unlimited)</strong>. Nâng cấp ngay để theo dõi các sản phẩm
-            vít ads mạnh nhất, điểm Product Score và top creatives của đối thủ.
+            <strong className="text-white">Không Giới Hạn (Unlimited)</strong>. Nâng cấp ngay để mở khóa kho Winning Products, theo dõi sản phẩm vít ads mạnh nhất và{" "}
+            <strong className="text-amber-300 font-bold">nhận 3–5 sản phẩm tiềm năng được giới thiệu mỗi tuần</strong>.
           </p>
 
           {/* 3 Key Benefits */}
@@ -89,9 +91,9 @@ function WinningProductsPaywallGate({
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 mb-2.5">
                 <Trophy className="h-4 w-4 fill-amber-400" />
               </div>
-              <h4 className="text-xs font-bold text-white mb-1">Winning Ads & Scale</h4>
+              <h4 className="text-xs font-bold text-white mb-1">Gợi ý 3–5 SP Tiềm Năng / Tuần</h4>
               <p className="text-[11px] text-slate-400 leading-normal">
-                Phát hiện sản phẩm đang nhân bản ad set và vít mạnh ngân sách.
+                Được tuyển chọn và giới thiệu 3–5 sản phẩm tiềm năng độc quyền mỗi tuần.
               </p>
             </div>
 
@@ -101,7 +103,7 @@ function WinningProductsPaywallGate({
               </div>
               <h4 className="text-xs font-bold text-white mb-1">Bảng Vàng Hàng Tháng</h4>
               <p className="text-[11px] text-slate-400 leading-normal">
-                Bảng xếp hạng domain chiến thắng nhiều nhất tháng và top 1 mỗi ngày.
+                Bảng xếp hạng domain chiến thắng nhiều nhất tháng và top sản phẩm scale mạnh.
               </p>
             </div>
           </div>
@@ -136,6 +138,20 @@ function WinningProductsPaywallGate({
             >
               <span>Xem chi tiết Bảng Giá</span>
             </Button>
+
+            <VideoTutorialModal
+              initialVideoId="_1fQ5PaLzEs"
+              triggerButton={
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto h-12 px-6 rounded-2xl border-indigo-400/40 bg-indigo-950/60 hover:bg-indigo-900 text-indigo-200 text-sm font-bold cursor-pointer transition-all"
+                >
+                  <Play className="h-4 w-4 mr-2 fill-indigo-400 text-indigo-400" />
+                  <span>Xem Video Hướng Dẫn Săn Hàng Win</span>
+                </Button>
+              }
+            />
           </div>
         </div>
       </div>
@@ -350,7 +366,10 @@ function WinningProductsContent() {
     setSelectedProduct(product);
     setModalOpen(true);
     if (typeof window !== "undefined") {
-      window.history.pushState({ modalOpen: true, domain: product.domain }, "");
+      window.history.pushState(
+        { modalOpen: true, domain: product.domain, product_key: product.product_key },
+        ""
+      );
     }
   };
 
@@ -434,6 +453,18 @@ function WinningProductsContent() {
                   <Store className="h-3.5 w-3.5 text-indigo-400" />
                   <span>Domain & Top Creatives</span>
                 </div>
+                <VideoTutorialModal
+                  initialVideoId="_1fQ5PaLzEs"
+                  triggerButton={
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 bg-indigo-600/90 hover:bg-indigo-600 border border-indigo-400/50 px-3.5 py-1.5 rounded-full text-white backdrop-blur-sm cursor-pointer shadow-md hover:scale-105 transition-all text-xs font-bold"
+                    >
+                      <Play className="h-3.5 w-3.5 fill-white text-white" />
+                      <span>Xem Video Hướng Dẫn Săn Hàng Win</span>
+                    </button>
+                  }
+                />
               </div>
             </div>
           </div>

@@ -54,11 +54,12 @@ export function ProductDetailModal({
   const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
 
   const cleanDomain = product?.domain?.replace(/^https?:\/\//i, "").replace(/\/+$/, "") || "";
+  const productKey = product?.product_key || "";
   const websiteUrl = cleanDomain ? `https://${cleanDomain}` : null;
   const faviconUrl = cleanDomain ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=64` : null;
 
   useEffect(() => {
-    if (!open || !cleanDomain) {
+    if (!open || (!cleanDomain && !productKey)) {
       setDetail(null);
       setError(null);
       return;
@@ -69,7 +70,9 @@ export function ProductDetailModal({
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/products/detail/${encodeURIComponent(cleanDomain)}`);
+        const targetPath = encodeURIComponent(cleanDomain || "detail");
+        const queryParam = productKey ? `?product_key=${encodeURIComponent(productKey)}` : "";
+        const res = await fetch(`/api/products/detail/${targetPath}${queryParam}`);
         const json = await res.json();
         if (isMounted) {
           if (json?.success && json?.data) {
@@ -78,9 +81,10 @@ export function ProductDetailModal({
             setError(json?.message || "Không tìm thấy chi tiết sản phẩm.");
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isMounted) {
-          setError(err?.message || "Lỗi kết nối khi tải chi tiết sản phẩm.");
+          const message = err instanceof Error ? err.message : "Lỗi kết nối khi tải chi tiết sản phẩm.";
+          setError(message);
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -91,10 +95,31 @@ export function ProductDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [open, cleanDomain]);
+  }, [open, cleanDomain, productKey]);
 
   const displayProduct = detail || product;
   const topAds = detail?.top_ads || [];
+
+  const formatAdDate = (dateVal?: string | number | null): string => {
+    if (!dateVal) return "";
+    const num = Number(dateVal);
+    if (!isNaN(num) && num > 0) {
+      // Epoch seconds (vd 1760425200 < 10000000000) -> nhân 1000 để thành milliseconds
+      const ms = num < 10000000000 ? num * 1000 : num;
+      return new Date(ms).toLocaleDateString("vi-VN");
+    }
+    const d = new Date(dateVal);
+    if (!isNaN(d.getTime())) {
+      if (d.getFullYear() === 1970) {
+        const parsedNum = Number(dateVal);
+        if (!isNaN(parsedNum) && parsedNum > 0) {
+          return new Date(parsedNum * 1000).toLocaleDateString("vi-VN");
+        }
+      }
+      return d.toLocaleDateString("vi-VN");
+    }
+    return String(dateVal);
+  };
 
   const formatCurrency = (amount?: number) => {
     if (amount == null) return null;
@@ -351,7 +376,7 @@ export function ProductDetailModal({
                         {ad.start_date && (
                           <span className="text-[10px] text-slate-400 flex items-center gap-1 shrink-0">
                             <Calendar className="h-3 w-3" />
-                            {new Date(ad.start_date).toLocaleDateString("vi-VN")}
+                            {formatAdDate(ad.start_date)}
                           </span>
                         )}
                       </div>

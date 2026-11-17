@@ -42,6 +42,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
+  Film,
+  RotateCcw,
+  AlertCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -110,6 +114,8 @@ export function FacebookAdDetailModal({
   const [copiedId, setCopiedId] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [activeTab, setActiveTab] = useState("estimates");
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [videoLoadError, setVideoLoadError] = useState(false);
 
   // State quản lý danh sách Quảng cáo tương tự (Minea Style Scroll ngang)
   const [similarAds, setSimilarAds] = useState<any[]>([]);
@@ -132,33 +138,53 @@ export function FacebookAdDetailModal({
   const attachment =
     attachments.length > 0 ? attachments[0] : snapshotCards.length > 0 ? snapshotCards[0] : undefined;
 
+  const adImages = Array.isArray(ad?.images) ? ad.images : [];
+  const snapshotImages = Array.isArray(snapshot?.images) ? snapshot.images : [];
+  const imageList = adImages.length > 0 ? adImages : snapshotImages.length > 0 ? snapshotImages : [];
+
   const snapshotVideos = Array.isArray(snapshot?.videos) ? snapshot.videos : [];
   const adVideos = Array.isArray(ad?.videos) ? ad.videos : [];
   const videoList = adVideos.length > 0 ? adVideos : snapshotVideos;
   const snapshotVideo = videoList.length > 0 ? videoList[0] : undefined;
 
+  // Video stream URL thực sự (chỉ nhận URL video, loại trừ ảnh)
+  const playableVideoUrl =
+    snapshotVideo?.video_hd_url ||
+    snapshotVideo?.video_sd_url ||
+    (attachment as any)?.video_hd_url ||
+    (attachment as any)?.video_sd_url ||
+    adVideos[0]?.video_hd_url ||
+    adVideos[0]?.video_sd_url ||
+    (typeof ad?.video_url === "string" && !ad.video_url.match(/\.(jpg|jpeg|png|webp|gif)($|\?)/i) ? ad.video_url : null);
+
+  const hasPlayableVideo = Boolean(playableVideoUrl);
+
   const isVideoFormat =
     snapshot?.display_format === "VIDEO" ||
     ad?.display_format === "VIDEO" ||
-    Boolean(snapshotVideo?.video_hd_url || snapshotVideo?.video_sd_url);
-
-  const hasPlayableVideo = Boolean(snapshotVideo?.video_hd_url || snapshotVideo?.video_sd_url);
-  const mediaUrl =
-    ad?.thumbnail_r2 ||
-    ad?.thumbnail_local ||
-    attachment?.media_url ||
-    snapshotVideo?.video_hd_url ||
-    snapshotVideo?.video_sd_url;
-  const mediaPoster =
-    ad?.thumbnail_r2 ||
-    ad?.thumbnail_local ||
-    attachment?.media_poster_url ||
-    snapshotVideo?.video_preview_image_url;
+    hasPlayableVideo ||
+    Boolean(snapshotVideo?.video_preview_image_url);
 
   const pageImage =
     ad?.page_profile_image_url ||
     snapshot?.page_profile_picture_url ||
     ad?.snapshot?.page_profile_picture_url;
+
+  // Thumbnail / Poster hình ảnh: Ưu tiên R2 vĩnh viễn, sau đó local, preview video, snapshot images
+  const mediaPoster =
+    ad?.thumbnail_r2 ||
+    ad?.thumbnail_local ||
+    snapshotVideo?.video_preview_image_url ||
+    (snapshotVideo as any)?.thumbnail_url ||
+    adVideos[0]?.thumbnail_url ||
+    attachment?.media_poster_url ||
+    imageList[0]?.resized_image_url ||
+    imageList[0]?.original_image_url ||
+    (attachment?.media_url && !attachment.media_url.match(/\.(mp4|webm)($|\?)/i) ? attachment.media_url : null) ||
+    pageImage;
+
+  const mediaUrl = mediaPoster;
+  const primaryImage = mediaPoster;
   const pageName = ad?.page_name || snapshot?.page_name || "Facebook Ad";
   const pageDeleted = snapshot?.page_is_deleted ?? ad?.page_is_deleted ?? false;
   const pageLikes = snapshot?.page_like_count ?? ad?.page_like_count;
@@ -191,20 +217,13 @@ export function FacebookAdDetailModal({
   const description = cleanAdText(rawDescription, pageName);
 
   const link = ad?.link || ad?.link_url || snapshot?.link_url || null;
-  const adImages = Array.isArray(ad?.images) ? ad.images : [];
-  const snapshotImages = Array.isArray(snapshot?.images) ? snapshot.images : [];
-  const imageList = adImages.length > 0 ? adImages : snapshotImages.length > 0 ? snapshotImages : [];
-  
-  // Ưu tiên thumbnail_r2 để tránh ảnh CDN Facebook bị hết hạn token
-  const primaryImage =
-    ad?.thumbnail_r2 ||
-    ad?.thumbnail_local ||
-    imageList[0]?.resized_image_url ||
-    imageList[0]?.original_image_url ||
-    attachment?.media_url ||
-    pageImage;
-
   const itemId = ad?.ad_archive_id || ad?._id || ad?.id || ad?.ad_id || ad?.archive_id;
+
+  // Reset video state khi đổi ad hoặc mở/đóng modal
+  useEffect(() => {
+    setIsPlayingVideo(false);
+    setVideoLoadError(false);
+  }, [itemId, open]);
   const adLibraryUrl = ad?.ad_library_url || (itemId ? `https://www.facebook.com/ads/library/?id=${itemId}` : null);
   let adLibPageId: string | null = null;
   if (typeof ad?.ad_library_url === "string") {
@@ -586,50 +605,8 @@ export function FacebookAdDetailModal({
               )}
 
               <div className="grid gap-6 lg:grid-cols-12 items-start">
-                {/* CỘT TRÁI (7 CỘT): CREATIVE FACEBOOK FEED + THÔNG BÁO VIDEO */}
+                {/* CỘT TRÁI (7 CỘT): CREATIVE FACEBOOK FEED */}
                 <div className="lg:col-span-7 space-y-5">
-                  {/* 📌 THÔNG BÁO KỸ THUẬT VỀ VIDEO (NẾU LÀ VIDEO AD) */}
-                  {isVideoFormat && (
-                    <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 p-4 sm:p-5 shadow-sm">
-                      <div className="flex items-start gap-3.5">
-                        <div className="p-2.5 rounded-xl bg-amber-100 text-amber-800 shrink-0 mt-0.5 border border-amber-200">
-                          <AlertTriangle className="size-5 text-amber-700" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm font-black text-amber-950">
-                              Ghi chú kỹ thuật: Video quảng cáo Facebook
-                            </h4>
-                            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-amber-200/80 text-amber-900 font-bold">
-                              Tạm thời chưa xem được trực tiếp
-                            </span>
-                          </div>
-                          <p className="text-xs text-amber-900 leading-relaxed">
-                            Do chính sách xác thực và thời hạn bảo mật token stream từ máy chủ Facebook CDN, video tạm thời chưa thể giải mã phát trực tiếp trên khung xem này. Đội ngũ kỹ thuật đang cập nhật bộ nạp stream mới.
-                          </p>
-                          <p className="text-xs text-amber-950 font-semibold">
-                            👉 Quý khách có thể xem đầy đủ video gốc, đang phát trực tiếp của chiến dịch bằng cách bấm nút bên dưới:
-                          </p>
-                          {adLibraryUrl && (
-                            <div className="pt-1">
-                              <Button
-                                asChild
-                                size="sm"
-                                className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 px-4 shadow-sm shadow-amber-600/30 cursor-pointer"
-                              >
-                                <a href={adLibraryUrl} target="_blank" rel="noopener noreferrer">
-                                  <Play className="mr-1.5 size-3.5 fill-current" />
-                                  Mở xem Video trên Facebook Ads Library
-                                  <ExternalLink className="ml-1.5 size-3" />
-                                </a>
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Facebook Feed Ad Mockup Frame */}
                   <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                     {/* Post Header */}
@@ -707,55 +684,148 @@ export function FacebookAdDetailModal({
                     )}
 
                     {/* Media Showcase */}
-                    <div className="relative w-full bg-slate-950 flex items-center justify-center overflow-hidden border-t border-b border-slate-100 min-h-[260px]">
-                      {hasPlayableVideo ? (
-                        <FacebookMediaFallback
-                          src={mediaUrl}
-                          alt={title || pageName}
-                          className="w-full max-h-[480px] object-contain"
-                          fallbackClassName="w-full h-[320px] bg-slate-900 flex items-center justify-center px-4 text-center text-xs text-slate-400"
-                          fallbackText="Video quảng cáo đang được cập nhật"
-                          isVideo={true}
-                          poster={mediaPoster}
-                          videoClassName="w-full max-h-[480px] object-contain"
-                        />
+                    <div className="relative w-full bg-slate-950 flex items-center justify-center overflow-hidden border-t border-b border-slate-100 min-h-[280px]">
+                      {isPlayingVideo && playableVideoUrl && !videoLoadError ? (
+                        // 1. Trạng thái Đang phát video
+                        <div className="relative w-full bg-black flex items-center justify-center">
+                          <video
+                            key={playableVideoUrl}
+                            src={playableVideoUrl}
+                            poster={mediaPoster || undefined}
+                            controls
+                            autoPlay
+                            playsInline
+                            className="w-full max-h-[500px] object-contain mx-auto"
+                            onError={() => {
+                              setVideoLoadError(true);
+                              setIsPlayingVideo(false);
+                            }}
+                          />
+                          {/* Nút quay lại xem ảnh thumbnail */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsPlayingVideo(false);
+                            }}
+                            className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white backdrop-blur-md text-xs font-semibold flex items-center gap-1.5 transition-all z-20 cursor-pointer shadow-lg border border-white/20"
+                            title="Dừng phát và quay lại xem ảnh bìa"
+                          >
+                            <ImageIcon className="size-3.5" />
+                            <span>Xem ảnh bìa</span>
+                          </button>
+                        </div>
                       ) : (
-                        <div className="relative w-full flex flex-col items-center justify-center bg-slate-900 py-10 px-4 text-center">
-                          {primaryImage && primaryImage !== pageImage ? (
+                        // 2. Trạng thái Ban đầu: Hiển thị Thumbnail poster với Play button overlay (hoặc ảnh nếu là Image ad)
+                        <div
+                          className={`relative w-full flex items-center justify-center group/poster select-none ${
+                            hasPlayableVideo || isVideoFormat || adLibraryUrl ? "cursor-pointer" : ""
+                          }`}
+                          onClick={() => {
+                            if (hasPlayableVideo && !videoLoadError) {
+                              setIsPlayingVideo(true);
+                            } else if (isVideoFormat && adLibraryUrl) {
+                              window.open(adLibraryUrl, "_blank", "noopener,noreferrer");
+                            }
+                          }}
+                        >
+                          {/* Ảnh thumbnail / poster */}
+                          {mediaPoster ? (
                             <FacebookMediaFallback
-                              src={primaryImage}
+                              src={mediaPoster}
                               alt={title || pageName}
-                              className="max-h-[380px] w-auto max-w-full object-contain rounded-lg shadow-md"
+                              className="w-full max-h-[500px] object-contain transition-transform duration-300 group-hover/poster:scale-[1.01]"
                               fallbackClassName="w-full h-[320px] bg-slate-900 flex items-center justify-center px-4 text-center text-xs text-slate-400"
-                              fallbackText="Ảnh quảng cáo đang được cập nhật"
+                              fallbackText={isVideoFormat ? "Video xem trên FB Ads Library" : "Ảnh quảng cáo đang được cập nhật"}
+                              isVideo={false}
                             />
                           ) : (
-                            <div className="max-w-md p-6 rounded-2xl bg-slate-950/80 border border-slate-800 text-center space-y-3">
-                              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
-                                <Play className="size-6 fill-current" />
-                              </div>
-                              <h5 className="font-bold text-white text-sm">
-                                {isVideoFormat ? "Định dạng: Video Quảng cáo (VIDEO)" : "Hình ảnh quảng cáo"}
-                              </h5>
-                              <p className="text-xs text-slate-400">
-                                {isVideoFormat
-                                  ? "Video trực tiếp được lưu trữ trên máy chủ Facebook Ads Library"
-                                  : "Nội dung quảng cáo được bảo lưu thông số phân tích"}
-                              </p>
-                              {adLibraryUrl && (
-                                <Button
-                                  asChild
-                                  size="sm"
-                                  className="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold"
-                                >
-                                  <a href={adLibraryUrl} target="_blank" rel="noopener noreferrer">
-                                    Xem trên Facebook Ad Library
-                                    <ExternalLink className="ml-1.5 size-3" />
-                                  </a>
-                                </Button>
+                            <div className="w-full h-[320px] bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-slate-400 gap-3">
+                              {isVideoFormat ? (
+                                <Film className="size-10 text-indigo-400/80" />
+                              ) : (
+                                <ImageIcon className="size-10 text-slate-500" />
                               )}
+                              <p className="text-xs font-medium text-slate-300">
+                                {isVideoFormat ? "Video quảng cáo Facebook" : "Quảng cáo hình ảnh"}
+                              </p>
                             </div>
                           )}
+
+                          {/* Badge góc trên bên trái: Phân biệt Video / Ảnh */}
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10 pointer-events-none">
+                            {isVideoFormat ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950/85 backdrop-blur-md px-2.5 py-1 text-xs font-bold text-white shadow-lg border border-white/10">
+                                <Film className="size-3.5 text-indigo-400" />
+                                Video Ad
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-slate-950/85 backdrop-blur-md px-2.5 py-1 text-xs font-bold text-white shadow-lg border border-white/10">
+                                <ImageIcon className="size-3.5 text-slate-300" />
+                                Ảnh
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Trạng thái Lỗi / Video CDN hết hạn bảo mật token */}
+                          {videoLoadError ? (
+                            <div
+                              className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-10 space-y-3"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-lg">
+                                <AlertCircle className="size-6 text-amber-400" />
+                              </div>
+                              <div className="max-w-sm space-y-1">
+                                <h5 className="font-bold text-white text-sm">
+                                  Link video trên CDN Facebook đã hết hạn
+                                </h5>
+                                <p className="text-xs text-slate-300 leading-relaxed">
+                                  Meta CDN giới hạn thời gian URL stream trực tiếp. Bạn có thể mở xem trực tiếp video gốc trên Facebook Ads Library:
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1 flex-wrap justify-center">
+                                {adLibraryUrl && (
+                                  <Button
+                                    asChild
+                                    size="sm"
+                                    className="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs h-9 px-4 shadow-md cursor-pointer"
+                                  >
+                                    <a href={adLibraryUrl} target="_blank" rel="noopener noreferrer">
+                                      <Play className="mr-1.5 size-3.5 fill-current" />
+                                      Xem trên Facebook Ad Library
+                                      <ExternalLink className="ml-1.5 size-3" />
+                                    </a>
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setVideoLoadError(false);
+                                    setIsPlayingVideo(true);
+                                  }}
+                                  className="rounded-xl border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-medium h-9 px-3 cursor-pointer"
+                                >
+                                  <RotateCcw className="mr-1.5 size-3" />
+                                  Thử phát lại
+                                </Button>
+                              </div>
+                            </div>
+                          ) : isVideoFormat ? (
+                            // Nút Play to nổi bật trên nền Thumbnail
+                            <div className="absolute inset-0 bg-black/20 hover:bg-black/35 transition-colors flex flex-col items-center justify-center z-10">
+                              <div className="relative flex items-center justify-center">
+                                <span className="absolute inline-flex h-20 w-20 rounded-full bg-indigo-500/30 opacity-75 animate-ping group-hover/poster:opacity-100" />
+                                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-600/95 hover:bg-indigo-600 text-white shadow-2xl backdrop-blur-md flex items-center justify-center border-2 border-white/40 transform transition-transform duration-300 group-hover/poster:scale-110">
+                                  <Play className="size-8 sm:size-9 fill-current ml-1" />
+                                </div>
+                              </div>
+                              <span className="mt-3.5 px-3.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-white text-xs font-bold border border-white/20 shadow-md">
+                                {hasPlayableVideo ? "Bấm để phát video" : "Xem video trên Facebook Ad Library"}
+                              </span>
+                            </div>
+                          ) : null}
                         </div>
                       )}
                     </div>
@@ -1321,7 +1391,7 @@ export function FacebookAdDetailModal({
                               className="h-full w-full object-cover"
                               fallbackClassName="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-2 text-center text-[10px] text-slate-400 gap-1"
                               fallbackText={simIsVideoFormat ? "Video cần mở Ad Library" : "Ảnh đang được cập nhật"}
-                              isVideo={simHasDirectVideoUrl}
+                              isVideo={false}
                               poster={simMediaPoster}
                               videoClassName="h-full w-full object-cover"
                             />
@@ -1545,7 +1615,7 @@ export function FacebookAdDetailModal({
                                   className="h-full w-full object-cover"
                                   fallbackClassName="h-full w-full bg-slate-900 flex flex-col items-center justify-center p-2 text-center text-[10px] text-slate-400 gap-1"
                                   fallbackText={pIsVideoFormat ? "Video cần mở Ad Library" : "Ảnh đang được cập nhật"}
-                                  isVideo={pHasDirectVideoUrl}
+                                  isVideo={false}
                                   poster={pMediaPoster}
                                   videoClassName="h-full w-full object-cover"
                                 />

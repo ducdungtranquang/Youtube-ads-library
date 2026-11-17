@@ -153,6 +153,7 @@ export function MonthlyWinnersView({ onSelectProduct }: MonthlyWinnersViewProps)
                       product_score: item.product_score,
                       winning_ads: 0,
                       total_ads: 0,
+                      product_key: item.product_key,
                     })
                   }
                   className="flex-shrink-0 w-56 snap-start rounded-xl border border-slate-200 bg-white p-3 shadow-2xs hover:border-amber-300 hover:shadow-xs transition-all cursor-pointer group"
@@ -254,6 +255,7 @@ export function MonthlyWinnersView({ onSelectProduct }: MonthlyWinnersViewProps)
                                 product_score: item.latest_score,
                                 winning_ads: item.total_winning_ads,
                                 total_ads: 0,
+                                product_key: item.product_key,
                               })
                             }
                             title={cleanDomain}

@@ -31,6 +31,7 @@ import {
   Store,
   ChevronLeft,
   ChevronRight,
+  Play,
 } from "lucide-react";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
@@ -39,6 +40,7 @@ import { PresetTabs } from "@/components/ads-spy/preset-tabs";
 import { useSearchQuota } from "@/hooks/use-search-quota";
 import { SearchQuotaBadge } from "@/components/search-quota-badge";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { VideoTutorialModal } from "@/components/tutorials/video-tutorial-modal";
 import {
   Carousel,
   CarouselContent,
@@ -1088,9 +1090,20 @@ function FacebookAdsSearchContent() {
           </div>
 
           <div className="min-w-0 space-y-6">
-            {/* Search Quota Badge */}
+            {/* Search Quota Badge & Video Guide Button */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <SearchQuotaBadge quota={quota} loading={quotaLoading} onUpgradeClick={openUpgradeModal} />
+              <VideoTutorialModal
+                triggerButton={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all shadow-2xs hover:scale-105 cursor-pointer"
+                  >
+                    <Play className="h-3 w-3 fill-indigo-600 text-indigo-600" />
+                    <span>Video Hướng Dẫn Tìm Hàng WIN</span>
+                  </button>
+                }
+              />
             </div>
 
             {/* 🚀  Preset Quick Bar */}

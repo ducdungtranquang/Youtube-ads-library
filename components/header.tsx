@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
-import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles, Gift, ChevronDown, Trophy } from "lucide-react"
+import { Search, Video, TrendingUp, Heart, LayoutDashboard, User, LogOut, Menu, X, NotebookText, Sparkles, Gift, ChevronDown, Trophy, MonitorPlay } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +48,7 @@ export function Header() {
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/winning-products", icon: Trophy, label: "Winning Products", badge: "Beta" },
+    { href: "/tutorials", icon: MonitorPlay, label: "Hướng dẫn", badge: "Video" },
     { href: "/affiliate", icon: Gift, label: "Tiếp thị", badge: "20%" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]

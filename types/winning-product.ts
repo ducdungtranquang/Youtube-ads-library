@@ -19,11 +19,12 @@ export interface ProductAd {
   ad_library_url: string;
   text: string;
   score: number;
-  level?: number;
+  level?: number | string;
   estimated_spend_usd?: number;
   thumbnail_r2?: string;
-  start_date?: string;
+  start_date?: string | number;
   last_seen?: string | number;
+  product_key?: string;
   images?: Array<{
     resized_image_url?: string;
     original_image_url?: string;
@@ -40,6 +41,7 @@ export interface ProductDetail extends WinningProduct {
 }
 
 export interface MonthlyWinnerItem {
+  product_key?: string;
   domain: string;
   title: string;
   days_won: number;
@@ -50,6 +52,7 @@ export interface MonthlyWinnerItem {
 }
 
 export interface DailyTopItem {
+  product_key?: string;
   domain: string;
   title: string;
   product_score: number;

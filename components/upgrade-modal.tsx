@@ -107,7 +107,7 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
           </h2>
 
           <p className="mt-2 text-xs md:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-            Tài khoản <span className="font-bold text-amber-400">Miễn phí</span> giới hạn 5 lượt/ngày. Nâng cấp ngay để Nghiên cứu video triệu view, tải MP4 unlisted và nghiên cứu đối thủ không giới hạn!
+            Tài khoản <span className="font-bold text-amber-400">Miễn phí</span> vẫn xem được Full thông tin quảng cáo nhưng giới hạn 5 lượt tìm kiếm/ngày và không xem được Winning Products. Nâng cấp ngay để tìm kiếm không giới hạn, xem Winning Products và nhận 3–5 sản phẩm tiềm năng mỗi tuần!
           </p>
         </div>
 
@@ -191,13 +191,17 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
                 <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500 shrink-0" />
                 <span className="font-black text-amber-950">Độc quyền: Mở khóa Kho Sản Phẩm Chiến Thắng (Winning Products)</span>
               </div>
+              <div className="flex items-center gap-2 sm:col-span-2">
+                <Sparkles className="h-4 w-4 text-indigo-600 fill-indigo-600 shrink-0" />
+                <span className="font-bold text-indigo-950">ĐẶC QUYỀN: Được giới thiệu 3–5 sản phẩm tiềm năng mỗi tuần</span>
+              </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0 font-bold" />
                 <span>Nghiên cứu video Unlisted & tải MP4</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0 font-bold" />
-                <span>Xem kịch bản Hook 3s & Landing Page</span>
+                <span>Xem Full kịch bản Hook 3s & Landing Page</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0 font-bold" />

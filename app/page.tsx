@@ -29,6 +29,7 @@ import { LiveSpyDemo } from "@/components/home/live-spy-demo";
 import { AboutUsSection } from "@/components/home/about-us-section";
 import { FaqSection } from "@/components/home/faq-section";
 import { FAQ_ITEMS } from "@/components/home/faq-data";
+import { VideoTutorialsSection } from "@/components/home/video-tutorials-section";
 import { ContactForm } from "@/components/home/contact-form";
 import { ScrollObserver } from "@/components/home/scroll-observer";
 import { SiteFooter } from "@/components/site-footer";
@@ -241,6 +242,9 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* Video Tutorials & Win Hunting Masterclass Section */}
+        <VideoTutorialsSection />
 
         {/* 3-Step Practical Workflow */}
         <section className="container py-16 scroll-fade-section transition-all duration-700">
