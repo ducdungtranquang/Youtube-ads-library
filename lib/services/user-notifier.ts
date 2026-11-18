@@ -1,6 +1,6 @@
 /**
  * Service gửi thông báo khi có người dùng mới đăng ký hoặc đăng nhập Google lần đầu.
- * Tích hợp gửi Slack Incoming Webhook (báo tức thì về điện thoại).
+ * Tích hợp gửi Slack Incoming Webhook (SLACK_USER_WEBHOOK_URL trong .env.local).
  */
 
 export interface UserRegistrationPayload {
@@ -25,9 +25,9 @@ const recentlyNotifiedUsers =
  * Gửi thông báo có thành viên mới về kênh Slack
  */
 export async function sendSlackNewUserNotification(payload: UserRegistrationPayload): Promise<boolean> {
-  const webhookUrl = process.env.SLACK_WEBHOOK_URL
+  const webhookUrl = process.env.SLACK_USER_WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL
   if (!webhookUrl) {
-    console.warn('[UserNotifier] SLACK_WEBHOOK_URL chưa được cấu hình.')
+    console.warn('[UserNotifier] SLACK_USER_WEBHOOK_URL (hoặc SLACK_WEBHOOK_URL) chưa được cấu hình.')
     return false
   }
 
