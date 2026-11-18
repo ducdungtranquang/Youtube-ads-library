@@ -895,9 +895,6 @@ function FacebookAdsSearchContent() {
       params.append("filter", effectivePreset);
       if (effectivePreset === "new_ads") {
         params.append("new_max_days", "5");
-      } else if (effectivePreset === "weekly_winner") {
-        params.append("winner_min_days", "7");
-        params.append("winner_max_days", "9");
       }
     }
     if (effectiveCountry) params.append("country", effectiveCountry);

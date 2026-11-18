@@ -62,12 +62,6 @@ export async function GET(request: NextRequest) {
       searchParams.set("new_max_days", "5");
     }
 
-    // ⚡ Weekly Winner: Chỉ ads chạy 7 - 9 ngày
-    if (searchParams.get("filter") === "weekly_winner") {
-      if (!searchParams.has("winner_min_days")) searchParams.set("winner_min_days", "7");
-      if (!searchParams.has("winner_max_days")) searchParams.set("winner_max_days", "9");
-    }
-
     // ⚡ Ưu tiên sắp xếp theo mới nhất thay vì score
     if (!searchParams.has("sort_by") || searchParams.get("sort_by") === "score") {
       searchParams.set("sort_by", "start_date");

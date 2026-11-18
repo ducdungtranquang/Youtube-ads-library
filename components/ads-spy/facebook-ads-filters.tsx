@@ -170,7 +170,7 @@ export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
               <span className="text-sm">🏆</span>
               <div>
                 <p className="text-xs font-bold leading-tight">Quảng cáo bứt phá tuần</p>
-                <p className="text-[10px] text-slate-500">Chạy 7 - 9 ngày</p>
+                <p className="text-[10px] text-slate-500">Chiến dịch bứt phá trong tuần</p>
               </div>
             </div>
           </button>

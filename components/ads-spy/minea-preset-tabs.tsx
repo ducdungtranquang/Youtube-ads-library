@@ -56,7 +56,7 @@ export function PresetTabs({
     {
       id: "weekly_winner",
       label: "Quảng cáo bứt phá tuần",
-      sublabel: "Chạy 7 - 9 ngày",
+      sublabel: "Bứt phá trong tuần",
       icon: Trophy,
       count: stats?.presets?.weekly_winner,
       badgeColor: "bg-rose-100 text-rose-800",

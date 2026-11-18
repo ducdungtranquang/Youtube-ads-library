@@ -48,8 +48,8 @@ export function Header() {
     { href: "/mkt", icon: TrendingUp, label: "Youtube Ads" },
     { href: "/facebook-ads-search", icon: Video, label: "Facebook Ads" },
     { href: "/winning-products", icon: Trophy, label: "Winning Products", badge: "Beta" },
-    { href: "/tutorials", icon: MonitorPlay, label: "Hướng dẫn", badge: "Video" },
-    { href: "/affiliate", icon: Gift, label: "Tiếp thị", badge: "20%" },
+    { href: "/tutorials", icon: MonitorPlay, label: "Hướng dẫn" },
+    { href: "/affiliate", icon: Gift, label: "Tiếp thị" },
     { href: "/favorites", icon: Heart, label: "Yêu thích" },
   ]
   return (
@@ -399,14 +399,9 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="focus:bg-slate-800 focus:text-white cursor-pointer">
-                  <Link href="/affiliate" className="flex items-center justify-between w-full">
-                    <div className="flex items-center">
-                      <Gift className="mr-2 h-4 w-4 text-emerald-400" />
-                      Tiếp thị (Affiliate)
-                    </div>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-400 border border-emerald-400/30">
-                      20%
-                    </span>
+                  <Link href="/affiliate">
+                    <Gift className="mr-2 h-4 w-4 text-emerald-400" />
+                    Tiếp thị (Affiliate)
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-800" />

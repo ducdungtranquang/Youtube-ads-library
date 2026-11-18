@@ -192,10 +192,10 @@ export function VideoTutorialsPlayer({
         <div className="lg:col-span-4 space-y-3">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-              Danh sách 3 bài học
+              Danh sách {TUTORIAL_VIDEOS.length} bài học
             </span>
             <span className="text-[11px] font-semibold text-indigo-600">
-              {TUTORIAL_VIDEOS.findIndex((v) => v.id === selectedId) + 1}/3
+              {TUTORIAL_VIDEOS.findIndex((v) => v.id === selectedId) + 1}/{TUTORIAL_VIDEOS.length}
             </span>
           </div>
 

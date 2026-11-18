@@ -56,7 +56,7 @@ export function VideoTutorialModal({
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-slate-500">
-            Xem trực tiếp 3 bài học thực chiến để tìm sản phẩm tiềm năng và tải creative về máy.
+            Xem trực tiếp chuỗi bài học thực chiến để tìm sản phẩm tiềm năng và tải creative về máy.
           </DialogDescription>
         </DialogHeader>
 
