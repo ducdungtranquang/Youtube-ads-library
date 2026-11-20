@@ -147,5 +147,27 @@ export const TUTORIAL_VIDEOS: VideoTutorial[] = [
     ],
     actionLabel: "Khám phá Winning Products Quốc Tế",
     actionHref: "/winning-products"
+  },
+  {
+    id: "tu-duy-spy-hang-win-hieu-qua",
+    youtubeId: "Eamyy6u2dNs",
+    step: 7,
+    badge: "Bài 7 • Thẩm Định Chuyên Sâu",
+    badgeColor: "bg-teal-500/10 text-teal-700 border-teal-300/60 dark:text-teal-300",
+    title: "Tư Duy SPY Hàng WIN Hiệu Quả, cách đánh giá chính xác",
+    subtitle: "Phương pháp định lượng sản phẩm win, tránh bẫy camp ảo và ra quyết định nhập hàng chuẩn xác",
+    category: "Tư duy Tìm Hàng Win",
+    duration: "Bài học chuyên sâu",
+    author: "QUICKBLACK DIGITAL",
+    description:
+      "Hướng dẫn tư duy cốt lõi để spy và thẩm định hàng win chính xác: Cách phân biệt sản phẩm thực sự ra đơn với các chiến dịch chạy thử nghiệm, phương pháp tính toán điểm bão hòa thị trường và bộ tiêu chí đánh giá tiềm năng sản phẩm trước khi quyết định test ngân sách lớn.",
+    keyTakeaways: [
+      "Quy tắc 3 điểm chạm: Kết hợp số lượng clone, thời gian chạy và mức độ tương tác thực tế.",
+      "Cách nhận biết và loại trừ các camp ảo, ad set vít giả hoặc hàng bão hòa sắp thoái trào.",
+      "Đánh giá biên độ giá bán, dung lượng thị trường và khả năng mở rộng (Scalability) của sản phẩm.",
+      "Xây dựng checklist 5 bước thẩm định trước khi nhập hàng hoặc setup chiến dịch mới."
+    ],
+    actionLabel: "Thực hành săn Hàng Win ngay",
+    actionHref: "/winning-products"
   }
 ];
