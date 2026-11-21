@@ -19,47 +19,47 @@ import {
   ExternalLink,
   Flame,
   Trophy,
-  Layers,
   Globe,
   Calendar,
-  DollarSign,
-  Search,
+  Clock,
   Sparkles,
-  ArrowUpRight,
-  Film,
-  X,
   Copy,
   Check,
   Store,
-  Share2,
+  Tag,
+  ShoppingBag,
+  X,
+  Lock,
 } from "lucide-react";
-import type { WinningProduct, ProductDetail, ProductAd } from "@/types/winning-product";
+import type { WinningProduct } from "@/types/winning-product";
 
 interface ProductDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: WinningProduct | null;
+  isUnlimited?: boolean;
+  onUpgrade?: () => void;
 }
 
 export function ProductDetailModal({
   open,
   onOpenChange,
   product,
+  isUnlimited = true,
+  onUpgrade,
 }: ProductDetailModalProps) {
-  const [detail, setDetail] = useState<ProductDetail | null>(null);
+  const [detail, setDetail] = useState<WinningProduct | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copiedDomain, setCopiedDomain] = useState(false);
-  const [copiedAdId, setCopiedAdId] = useState<string | null>(null);
-  const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
+  const [copiedTitle, setCopiedTitle] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [flagError, setFlagError] = useState(false);
 
-  const cleanDomain = product?.domain?.replace(/^https?:\/\//i, "").replace(/\/+$/, "") || "";
-  const productKey = product?.product_key || "";
-  const websiteUrl = cleanDomain ? `https://${cleanDomain}` : null;
-  const faviconUrl = cleanDomain ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=64` : null;
+  const productId = product?.id || "";
 
   useEffect(() => {
-    if (!open || (!cleanDomain && !productKey)) {
+    if (!open || !productId) {
       setDetail(null);
       setError(null);
       return;
@@ -70,9 +70,7 @@ export function ProductDetailModal({
       setLoading(true);
       setError(null);
       try {
-        const targetPath = encodeURIComponent(cleanDomain || "detail");
-        const queryParam = productKey ? `?product_key=${encodeURIComponent(productKey)}` : "";
-        const res = await fetch(`/api/products/detail/${targetPath}${queryParam}`);
+        const res = await fetch(`/api/products/detail/${encodeURIComponent(productId)}`);
         const json = await res.json();
         if (isMounted) {
           if (json?.success && json?.data) {
@@ -95,374 +93,325 @@ export function ProductDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [open, cleanDomain, productKey]);
+  }, [open, productId]);
 
-  const displayProduct = detail || product;
-  const topAds = detail?.top_ads || [];
+  const display = detail || product;
+  if (!display) return null;
 
-  const formatAdDate = (dateVal?: string | number | null): string => {
-    if (!dateVal) return "";
-    const num = Number(dateVal);
-    if (!isNaN(num) && num > 0) {
-      // Epoch seconds (vd 1760425200 < 10000000000) -> nhân 1000 để thành milliseconds
-      const ms = num < 10000000000 ? num * 1000 : num;
-      return new Date(ms).toLocaleDateString("vi-VN");
-    }
-    const d = new Date(dateVal);
-    if (!isNaN(d.getTime())) {
-      if (d.getFullYear() === 1970) {
-        const parsedNum = Number(dateVal);
-        if (!isNaN(parsedNum) && parsedNum > 0) {
-          return new Date(parsedNum * 1000).toLocaleDateString("vi-VN");
-        }
-      }
-      return d.toLocaleDateString("vi-VN");
-    }
-    return String(dateVal);
-  };
+  const thumbnail = (display.thumbnail || display.thumbnail_r2) && !imageError
+    ? (display.thumbnail || display.thumbnail_r2)
+    : null;
 
-  const formatCurrency = (amount?: number) => {
-    if (amount == null) return null;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const countryCode = display.country_code;
+  const hasCountryFlag = Boolean(countryCode && !flagError);
 
-  const handleCopyDomain = () => {
-    if (cleanDomain) {
-      navigator.clipboard.writeText(cleanDomain);
-      setCopiedDomain(true);
-      toast.success(`Đã sao chép domain "${cleanDomain}"!`);
-      setTimeout(() => setCopiedDomain(false), 2000);
+  const handleCopyTitle = () => {
+    if (display.title) {
+      navigator.clipboard.writeText(display.title);
+      setCopiedTitle(true);
+      toast.success("Đã sao chép tên sản phẩm!");
+      setTimeout(() => setCopiedTitle(false), 2000);
     }
   };
 
-  const handleCopyAdId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedAdId(id);
-    toast.success(`Đã sao chép Ad ID: ${id}`);
-    setTimeout(() => setCopiedAdId(null), 2000);
-  };
-
-  const handleCopyText = (id: string, text: string) => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    setCopiedTextId(id);
-    toast.success("Đã sao chép nội dung quảng cáo!");
-    setTimeout(() => setCopiedTextId(null), 2000);
+  const handleCopyLink = () => {
+    const targetUrl = display.library_url || display.landing_url || window.location.href;
+    navigator.clipboard.writeText(targetUrl);
+    setCopiedLink(true);
+    toast.success("Đã sao chép liên kết sản phẩm!");
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-4xl max-h-[88vh] overflow-y-auto p-0 rounded-2xl bg-slate-50 border-slate-200 shadow-2xl focus:outline-none"
+        className="w-[96vw] max-w-4xl h-[90vh] max-h-[calc(100vh-3.5rem)] p-0 overflow-hidden flex flex-col rounded-3xl bg-white border border-slate-200 shadow-2xl z-[100]"
       >
-        {/* Sticky Header Section with Explicit Close X Button */}
-        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 p-4 sm:p-6 shadow-xs">
-          <DialogHeader className="space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              {/* Left: Favicon + Domain Title */}
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 border border-slate-200 shadow-xs overflow-hidden">
-                  {faviconUrl ? (
-                    <Image
-                      src={faviconUrl}
-                      alt={cleanDomain}
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 object-contain"
-                      unoptimized
-                    />
-                  ) : (
-                    <Globe className="h-6 w-6 text-slate-400" />
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <DialogTitle className="text-lg sm:text-xl font-black text-slate-900 truncate">
-                      {cleanDomain || "Chi tiết sản phẩm"}
-                    </DialogTitle>
-
-                    {websiteUrl && (
-                      <a
-                        href={websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors shrink-0"
-                        title="Mở website cửa hàng"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        <span>Mở Website</span>
-                      </a>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={handleCopyDomain}
-                      className="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
-                      title="Sao chép tên miền"
-                    >
-                      {copiedDomain ? (
-                        <Check className="h-3.5 w-3.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </div>
-
-                  <DialogDescription className="text-xs text-slate-500 line-clamp-1 mt-0.5">
-                    {displayProduct?.title || "Phân tích sản phẩm E-commerce & Top Winning Ads"}
-                  </DialogDescription>
-                </div>
-              </div>
-
-              {/* Right: Quick Action Controls & Prominent Close (X) Button */}
-              <div className="flex items-center gap-2 shrink-0">
-                <Link
-                  href={`/facebook-ads-search?text=${encodeURIComponent(cleanDomain)}`}
-                  className="hidden sm:inline-flex"
+        {/* Pinned Sticky Header (Always fixed at top, never scrolls away) */}
+        <div className="sticky top-0 z-30 flex items-start justify-between border-b border-slate-100 bg-white/95 backdrop-blur-md px-5 sm:px-7 py-4 shrink-0">
+          <div className="space-y-2 pr-4 min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Country Flag Badge - CHỈ hiển thị nếu có country_code rõ ràng */}
+              {hasCountryFlag && (
+                <Badge
+                  variant="outline"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 text-white border-slate-800 shadow-xs"
                 >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-3 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-semibold cursor-pointer shadow-2xs"
-                  >
-                    <Search className="h-3.5 w-3.5 mr-1 text-indigo-600" />
-                    <span>Soi trên FB Spy</span>
-                  </Button>
-                </Link>
+                  <img
+                    src={`https://flagcdn.com/24x18/${countryCode}.png`}
+                    alt={display.country_name || display.market || "Flag"}
+                    className="h-3.5 w-5 object-cover rounded-xs"
+                    onError={() => setFlagError(true)}
+                  />
+                  <span className="text-xs font-bold">{display.country_name || display.market}</span>
+                </Badge>
+              )}
 
-                {/* ❌ Clear, Accessible Close Button */}
-                <DialogClose asChild>
-                  <button
-                    type="button"
-                    className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer border border-slate-200 shadow-2xs focus-visible:ring-2 focus-visible:ring-indigo-500 focus:outline-none"
-                    aria-label="Đóng cửa sổ"
-                    title="Đóng (Esc)"
-                  >
-                    <X className="h-4.5 w-4.5" />
-                  </button>
-                </DialogClose>
-              </div>
+              <Badge
+                variant="outline"
+                className={`text-xs font-bold px-2.5 py-1 rounded-full ${display.market_type === "VN"
+                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                    : "bg-sky-50 text-sky-700 border-sky-200"
+                  }`}
+              >
+                {display.market_type === "VN" ? "Thị trường Việt Nam" : "Thị trường Quốc tế"}
+              </Badge>
+
+              {display.scan_date && (
+                <span className="text-xs text-slate-400 flex items-center gap-1 sm:ml-auto">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Quét ngày: {display.scan_date}</span>
+                </span>
+              )}
             </div>
 
-            {/* Metrics Overview Bar */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 pt-1">
-              <div className="rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/60 border border-rose-200/80 p-3 flex items-center gap-3 shadow-2xs">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500 text-white shrink-0 shadow-xs">
-                  <Flame className="h-5 w-5 fill-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700">Product Score</p>
-                  <p className="text-base sm:text-lg font-black text-rose-950">
-                    {(displayProduct?.product_score || 0).toFixed(1)}
-                  </p>
-                </div>
-              </div>
+            <DialogTitle className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
+              {display.title}
+            </DialogTitle>
 
-              <div className="rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200/80 p-3 flex items-center gap-3 shadow-2xs">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shrink-0 shadow-xs">
-                  <Trophy className="h-5 w-5 fill-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Winning Ads</p>
-                  <p className="text-base sm:text-lg font-black text-amber-950">
-                    {displayProduct?.winning_ads || 0}
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100/60 border border-indigo-200/80 p-3 flex items-center gap-3 shadow-2xs">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shrink-0 shadow-xs">
-                  <Layers className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Total Ads</p>
-                  <p className="text-base sm:text-lg font-black text-indigo-950">
-                    {displayProduct?.total_ads || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </DialogHeader>
-        </div>
-
-        {/* Content Section: Top Winning Ads */}
-        <div className="p-4 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-indigo-600" />
-              <span>Top Quảng cáo hiệu quả nhất ({loading ? "..." : topAds.length} ads)</span>
-            </h4>
-            <span className="text-xs text-slate-400">
-              Sắp xếp theo Ad Score cao nhất
-            </span>
+            <DialogDescription className="text-xs text-slate-500 flex items-center gap-1.5">
+              <Store className="h-3.5 w-3.5 text-indigo-500" />
+              <span>Fanpage chạy ads: </span>
+              <strong className="text-slate-800 font-bold">{display.page_name || "Chưa rõ"}</strong>
+            </DialogDescription>
           </div>
 
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-20 rounded-md" />
-                    <Skeleton className="h-4 w-24 rounded-md" />
+          {/* Pinned Large Close Button with Clear Hover and Cursor Pointer */}
+          <DialogClose asChild>
+            <button
+              type="button"
+              className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer border border-slate-200/80 shadow-2xs hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              aria-label="Đóng chi tiết sản phẩm"
+            >
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+          </DialogClose>
+        </div>
+
+        {/* Scrollable Modal Body */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+            {/* Cột trái (5 cột): Ảnh Sản Phẩm */}
+            <div className="md:col-span-5 space-y-3">
+              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 shadow-inner">
+                {thumbnail ? (
+                  <Image
+                    src={thumbnail}
+                    alt={display.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    className="object-contain"
+                    onError={() => setImageError(true)}
+                    unoptimized
+                  />
+                ) : (
+                  <div className="h-full w-full flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-900">
+                    <ShoppingBag className="h-10 w-10 text-indigo-400 mb-2" />
+                    <span className="text-xs font-semibold">Ảnh sản phẩm đang cập nhật</span>
                   </div>
-                  <div className="flex gap-3">
-                    <Skeleton className="h-20 w-20 rounded-lg shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-3.5 w-full rounded-md" />
-                      <Skeleton className="h-3.5 w-4/5 rounded-md" />
-                      <Skeleton className="h-3 w-1/2 rounded-md" />
-                    </div>
+                )}
+
+                {/* Country Flag Overlay */}
+                {hasCountryFlag && (
+                  <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/20 text-white shadow-md">
+                    <img
+                      src={`https://flagcdn.com/24x18/${countryCode}.png`}
+                      alt={display.country_name || "Flag"}
+                      className="h-3.5 w-5 object-cover rounded-xs shrink-0"
+                    />
+                    <span className="text-[11px] font-bold">{display.country_name || display.market}</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-100 flex justify-between">
-                    <Skeleton className="h-3 w-24 rounded-md" />
-                    <Skeleton className="h-3 w-20 rounded-md" />
+                )}
+              </div>
+
+              {/* Copy Actions Bar */}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyTitle}
+                  className="flex-1 h-9 rounded-xl border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer"
+                >
+                  {copiedTitle ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 mr-1 text-emerald-600" />
+                      <span className="text-emerald-700">Đã chép tên</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5 mr-1 text-slate-400" />
+                      <span>Sao chép tên hàng</span>
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyLink}
+                  className="h-9 px-3 rounded-xl border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer"
+                  title="Sao chép liên kết"
+                >
+                  {copiedLink ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 text-slate-400" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Cột phải (7 cột): Thông Số & Lý do WIN */}
+            <div className="md:col-span-7 space-y-4">
+              {/* Quick Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70">
+                  <div className="flex items-center gap-1.5 text-amber-700 mb-1">
+                    <Flame className="h-4 w-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Ads Chạy</span>
+                  </div>
+                  <p className="text-base font-black text-amber-950">
+                    {display.ads_running_count ? `${display.ads_running_count} ads` : "Đang vít"}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-indigo-50/80 border border-indigo-200/70">
+                  <div className="flex items-center gap-1.5 text-indigo-700 mb-1">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Số ngày chạy</span>
+                  </div>
+                  <p className="text-base font-black text-indigo-950">
+                    {display.duration_days || "Đang chạy"}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 col-span-2 sm:col-span-1">
+                  <div className="flex items-center gap-1.5 text-slate-600 mb-1">
+                    <Globe className="h-4 w-4 text-slate-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Thị trường</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-900 truncate" title={display.market}>
+                    {display.market || "Chưa rõ"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Price Row */}
+              {display.price && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 shrink-0 mt-0.5">
+                    <Tag className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800">
+                      Giá Sản Phẩm / Chính Sách Bán
+                    </span>
+                    <p className="text-xs sm:text-sm font-bold text-emerald-950 leading-relaxed">
+                      {display.price}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="p-6 text-center text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-2xl">
-              {error}
-            </div>
-          ) : topAds.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500 bg-white border border-dashed border-slate-200 rounded-2xl">
-              <Store className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-              Chưa có dữ liệu Top Ads cụ thể cho domain này trong cơ sở dữ liệu.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {topAds.map((ad, idx) => {
-                const thumbnail =
-                  ad.thumbnail_r2 ||
-                  ad.images?.[0]?.resized_image_url ||
-                  ad.images?.[0]?.original_image_url ||
-                  ad.videos?.[0]?.thumbnail_url;
+              )}
 
-                const spendText = formatCurrency(ad.estimated_spend_usd);
-                const adIdStr = String(ad.ad_archive_id || idx);
-
-                return (
-                  <div
-                    key={ad.ad_archive_id || idx}
-                    className="flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-indigo-300 hover:shadow-xs transition-all"
-                  >
-                    <div className="space-y-3">
-                      {/* Top bar of ad item */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border-rose-200"
-                          >
-                            Score: {ad.score || 0}
-                          </Badge>
-                          {ad.level != null && (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border-slate-200"
-                            >
-                              Tier {ad.level}
-                            </Badge>
-                          )}
-                        </div>
-
-                        {ad.start_date && (
-                          <span className="text-[10px] text-slate-400 flex items-center gap-1 shrink-0">
-                            <Calendar className="h-3 w-3" />
-                            {formatAdDate(ad.start_date)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Creative preview & Text */}
-                      <div className="flex gap-3">
-                        <div className="relative h-20 w-20 shrink-0 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center">
-                          {thumbnail ? (
-                            <Image
-                              src={thumbnail}
-                              alt="Ad Thumbnail"
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <Film className="h-6 w-6 text-slate-300" />
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="relative group/copy">
-                            <p className="text-xs text-slate-700 line-clamp-3 leading-relaxed">
-                              {ad.text || "Quảng cáo hình ảnh / video không có văn bản."}
-                            </p>
-                            {ad.text && (
-                              <button
-                                type="button"
-                                onClick={() => handleCopyText(adIdStr, ad.text)}
-                                className="absolute right-0 top-0 bg-white/90 p-1 rounded border border-slate-200 text-slate-400 hover:text-slate-700 opacity-0 group-hover/copy:opacity-100 transition-opacity cursor-pointer shadow-2xs"
-                                title="Sao chép văn bản quảng cáo"
-                              >
-                                {copiedTextId === adIdStr ? (
-                                  <Check className="h-3 w-3 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3 w-3" />
-                                )}
-                              </button>
-                            )}
-                          </div>
-
-                          {spendText && (
-                            <p className="text-[11px] font-semibold text-emerald-700 mt-1 flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              <span>Chi tiêu: ~{spendText}</span>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Footer of ad item */}
-                    <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
-                        <span>ID: {ad.ad_archive_id}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyAdId(adIdStr)}
-                          className="hover:text-slate-700 p-0.5 rounded cursor-pointer"
-                          title="Sao chép ID"
-                        >
-                          {copiedAdId === adIdStr ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
-                        </button>
-                      </div>
-
-                      {ad.ad_library_url && (
-                        <a
-                          href={ad.ad_library_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
-                        >
-                          <span>Mở Ad Library</span>
-                          <ArrowUpRight className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
+              {/* Lý Do WIN - Trọng tâm phân tích */}
+              <div className="rounded-2xl border-2 border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/40 p-4 sm:p-5 shadow-xs space-y-2">
+                <div className="flex items-center gap-2 text-indigo-900">
+                  <div className="p-1.5 rounded-xl bg-indigo-600 text-white shadow-xs">
+                    <Trophy className="h-4 w-4" />
                   </div>
-                );
-              })}
+                  <h4 className="text-sm font-black uppercase tracking-wider">
+                    Lý do sản phẩm WIN
+                  </h4>
+                </div>
+
+                {loading ? (
+                  <div className="space-y-2 pt-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-4/6" />
+                  </div>
+                ) : display.win_reason ? (
+                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-medium">
+                    {display.win_reason}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">
+                    Đang nạp phân tích chi tiết cho sản phẩm này...
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-1">
+                {display.library_url && (
+                  isUnlimited ? (
+                    <Button
+                      asChild
+                      className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 cursor-pointer"
+                    >
+                      <a href={display.library_url} target="_blank" rel="noopener noreferrer">
+                        <span>Xem trên Facebook Ad Library</span>
+                        <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        toast.info("Vui lòng nâng cấp gói Unlimited để mở link Facebook Ad Library!");
+                        onUpgrade?.();
+                      }}
+                      className="w-full h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-300 shadow-2xs hover:scale-[1.01] transition-all cursor-pointer flex items-center justify-between px-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-amber-600" />
+                        <span>Xem trên Facebook Ad Library</span>
+                      </div>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                        Đã khóa 🔒
+                      </span>
+                    </Button>
+                  )
+                )}
+
+                {display.landing_url && (
+                  isUnlimited ? (
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full h-10 rounded-xl border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs cursor-pointer"
+                    >
+                      <a href={display.landing_url} target="_blank" rel="noopener noreferrer">
+                        <ShoppingBag className="mr-1.5 h-3.5 w-3.5 text-indigo-600" />
+                        <span>Mở Trang Đích (Landing Page)</span>
+                        <ExternalLink className="ml-1.5 h-3.5 w-3.5 text-slate-400" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        toast.info("Vui lòng nâng cấp gói Unlimited để mở link Landing Page!");
+                        onUpgrade?.();
+                      }}
+                      className="w-full h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs border border-dashed border-slate-300 hover:scale-[1.01] transition-all cursor-pointer flex items-center justify-between px-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-amber-600" />
+                        <span>Mở Trang Đích (Landing Page)</span>
+                      </div>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                        Đã khóa 🔒
+                      </span>
+                    </Button>
+                  )
+                )}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

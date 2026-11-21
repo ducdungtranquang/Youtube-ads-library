@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { ExternalLink, Flame, Trophy, Layers, ArrowUpRight, Search, Globe, ShoppingBag } from "lucide-react";
+import { Flame, Clock, Store, Tag, ArrowUpRight, ShoppingBag } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { WinningProduct } from "@/types/winning-product";
 
@@ -15,177 +13,155 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onSelect }: ProductCardProps) {
-  const [faviconError, setFaviconError] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [flagError, setFlagError] = useState(false);
 
-  const cleanDomain = product.domain?.replace(/^https?:\/\//i, "").replace(/\/+$/, "") || "";
-  const websiteUrl = cleanDomain ? `https://${cleanDomain}` : null;
-  const faviconUrl = cleanDomain ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=64` : null;
-  const thumbnail = product.thumbnail_r2 && !imageError ? product.thumbnail_r2 : null;
+  const thumbnail = (product.thumbnail || product.thumbnail_r2) && !imageError
+    ? (product.thumbnail || product.thumbnail_r2)
+    : null;
 
-  // Format score color
-  const score = product.product_score || 0;
-  const getScoreBadgeClass = (s: number) => {
-    if (s >= 80) return "bg-rose-500/10 text-rose-600 border-rose-200";
-    if (s >= 50) return "bg-amber-500/10 text-amber-700 border-amber-200";
-    if (s >= 20) return "bg-indigo-500/10 text-indigo-700 border-indigo-200";
-    return "bg-slate-100 text-slate-700 border-slate-200";
-  };
+  // Xử lý icon cờ quốc gia: CHỈ hiển thị nếu xác định được mã quốc gia rõ ràng (country_code)
+  // Các trường hợp ghi chung chung "Nước ngoài" / chưa rõ nước -> KHÔNG hiện icon cờ
+  const hasCountryFlag = Boolean(product.country_code && !flagError);
 
   return (
     <Card
       onClick={() => onSelect(product)}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xs hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer select-none"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-xs hover:border-indigo-500 hover:shadow-lg transition-all duration-300 cursor-pointer select-none"
     >
       <div className="space-y-3">
-        {/* Product Media Thumbnail */}
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-200/80">
+        {/* Product Media Thumbnail Container */}
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-slate-950 border border-slate-200/80">
           {thumbnail ? (
             <Image
               src={thumbnail}
-              alt={product.title || cleanDomain || "Product Thumbnail"}
+              alt={product.title || "Winning Product Thumbnail"}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               onError={() => setImageError(true)}
               unoptimized
             />
           ) : (
-            <div className="h-full w-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-50 to-slate-100 text-slate-400">
-              <div className="h-10 w-10 rounded-full bg-white shadow-2xs flex items-center justify-center border border-slate-200/60">
-                {faviconUrl && !faviconError ? (
-                  <Image
-                    src={faviconUrl}
-                    alt={cleanDomain}
-                    width={22}
-                    height={22}
-                    className="h-5 w-5 object-contain"
-                    onError={() => setFaviconError(true)}
-                    unoptimized
-                  />
-                ) : (
-                  <ShoppingBag className="h-5 w-5 text-slate-400" />
-                )}
+            <div className="h-full w-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-900 to-slate-950 text-slate-400">
+              <div className="h-10 w-10 rounded-full bg-slate-800 shadow-inner flex items-center justify-center border border-slate-700">
+                <ShoppingBag className="h-5 w-5 text-indigo-400" />
               </div>
               <span className="text-[11px] font-medium text-slate-400 px-3 truncate max-w-full">
-                {cleanDomain || "E-commerce Product"}
+                {product.title || "Winning Product"}
               </span>
             </div>
           )}
 
-          {/* Floating Score Badge on Media */}
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <Badge
-              variant="outline"
-              className={`font-mono text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs backdrop-blur-md bg-white/95 border-slate-200 ${getScoreBadgeClass(score)}`}
-              title={`Điểm chiến thắng của sản phẩm: ${score.toFixed(1)}`}
+          {/* 🚩 Country Flag Badge: Chỉ hiện khi có country_code rõ ràng, không rõ nước thì không hiện */}
+          {hasCountryFlag && (
+            <div
+              className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/20 text-white shadow-md pointer-events-none"
+              title={`Thị trường: ${product.country_name || product.market}`}
             >
-              <Flame className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
-              <span>{score.toFixed(1)}</span>
-            </Badge>
-          </div>
+              <img
+                src={`https://flagcdn.com/24x18/${product.country_code}.png`}
+                alt={product.country_name || product.market || "Flag"}
+                className="h-3.5 w-5 object-cover rounded-xs shrink-0 shadow-2xs"
+                onError={() => setFlagError(true)}
+              />
+              <span className="text-[10px] font-bold tracking-tight">
+                {product.country_name || product.market}
+              </span>
+            </div>
+          )}
+
+          {/* Floating Ads Running Count on Media */}
+          {product.ads_running_count ? (
+            <div className="absolute top-2.5 right-2.5 z-10 pointer-events-none">
+              <Badge
+                variant="outline"
+                className="font-mono text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md backdrop-blur-md bg-slate-950/85 text-amber-300 border-amber-400/30"
+              >
+                <Flame className="h-3.5 w-3.5 text-amber-400 fill-amber-400 animate-pulse" />
+                <span>{product.ads_running_count} ADS</span>
+              </Badge>
+            </div>
+          ) : null}
         </div>
 
-        {/* Domain Row: Favicon + Domain Name + External Link */}
+        {/* Page / Brand Row */}
         <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-100 border border-slate-200 overflow-hidden text-slate-500 shadow-2xs">
-              {faviconUrl && !faviconError ? (
-                <Image
-                  src={faviconUrl}
-                  alt={cleanDomain}
-                  width={18}
-                  height={18}
-                  className="h-4 w-4 object-contain"
-                  onError={() => setFaviconError(true)}
-                  unoptimized
-                />
-              ) : (
-                <Globe className="h-3.5 w-3.5 text-slate-400" />
-              )}
-            </div>
-
-            <span className="text-xs font-bold text-slate-800 truncate" title={cleanDomain}>
-              {cleanDomain || "Unknown Domain"}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Store className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+            <span
+              className="text-xs font-bold text-slate-700 truncate"
+              title={product.page_name || "Fanpage"}
+            >
+              {product.page_name || "Chưa rõ Fanpage"}
             </span>
-
-            {websiteUrl && (
-              <a
-                href={websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-slate-400 hover:text-indigo-600 transition-colors p-0.5 rounded shrink-0"
-                title="Mở website cửa hàng"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
           </div>
 
-          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 shrink-0">
-            {product.category && product.category !== "other" ? product.category : "E-commerce"}
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+              product.market_type === "VN"
+                ? "bg-rose-50 text-rose-700 border border-rose-200"
+                : "bg-sky-50 text-sky-700 border border-sky-200"
+            }`}
+          >
+            {product.market_type === "VN" ? "Việt Nam" : "Quốc tế"}
           </span>
         </div>
 
         {/* Product Title */}
         <div>
           <h3
-            className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors cursor-pointer min-h-[2.5rem]"
-            onClick={() => onSelect(product)}
-            title={product.title || cleanDomain}
+            className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors min-h-[2.5rem]"
+            title={product.title}
           >
-            {product.title || cleanDomain || "Sản phẩm không có tiêu đề"}
+            {product.title || "Sản phẩm chiến thắng"}
           </h3>
         </div>
 
-        {/* Key Metrics Pills */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <div className="flex items-center gap-2 rounded-xl bg-amber-50/70 border border-amber-100/80 px-2.5 py-1.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 text-amber-600 shrink-0">
-              <Trophy className="h-3 w-3" />
-            </div>
+        {/* Price Tag if available */}
+        {product.price && (
+          <div className="flex items-start gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+            <Tag className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] font-semibold text-slate-700 line-clamp-1 leading-snug">
+              {product.price}
+            </p>
+          </div>
+        )}
+
+        {/* Key Metrics Row: Ads chạy & Ngày chạy */}
+        <div className="grid grid-cols-2 gap-2 pt-0.5">
+          <div className="flex items-center gap-2 rounded-xl bg-amber-50/80 border border-amber-200/60 px-2.5 py-1.5">
+            <Flame className="h-3.5 w-3.5 text-amber-600 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[9px] uppercase font-bold tracking-wider text-amber-700/80">Winning Ads</p>
-              <p className="text-xs font-black text-amber-900">{product.winning_ads || 0}</p>
+              <p className="text-[9px] uppercase font-bold tracking-wider text-amber-700/80">Ads chạy</p>
+              <p className="text-xs font-black text-amber-950 truncate">
+                {product.ads_running_count ? `${product.ads_running_count} ads` : "Đang vít"}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl bg-indigo-50/70 border border-indigo-100/80 px-2.5 py-1.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 shrink-0">
-              <Layers className="h-3 w-3" />
-            </div>
+          <div className="flex items-center gap-2 rounded-xl bg-indigo-50/80 border border-indigo-200/60 px-2.5 py-1.5">
+            <Clock className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[9px] uppercase font-bold tracking-wider text-indigo-700/80">Total Ads</p>
-              <p className="text-xs font-black text-indigo-900">{product.total_ads || 0}</p>
+              <p className="text-[9px] uppercase font-bold tracking-wider text-indigo-700/80">Thời gian</p>
+              <p className="text-xs font-black text-indigo-950 truncate">
+                {product.duration_days || "Đang chạy"}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer Actions */}
+      {/* Footer CTA Button */}
       <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-        <Link
-          href={`/facebook-ads-search?text=${encodeURIComponent(cleanDomain)}`}
-          className="text-xs font-medium text-slate-600 hover:text-indigo-600 flex items-center gap-1 transition-colors"
-          title="Soi toàn bộ quảng cáo của domain này trên Facebook Ads Spy"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Search className="h-3.5 w-3.5 text-indigo-500" />
-          <span>Soi Ads Facebook</span>
-        </Link>
+        <span className="text-[11px] font-semibold text-slate-400 group-hover:text-indigo-600 transition-colors">
+          Bấm xem chi tiết
+        </span>
 
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => onSelect(product)}
-          className="h-8 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs cursor-pointer flex items-center gap-1 group-hover:scale-[1.02] transition-transform"
-        >
-          <span>Xem Top Ads</span>
-          <ArrowUpRight className="h-3.5 w-3.5" />
-        </Button>
+        <span className="h-7 w-7 rounded-lg bg-indigo-50 group-hover:bg-indigo-600 text-indigo-600 group-hover:text-white flex items-center justify-center transition-all shadow-2xs">
+          <ArrowUpRight className="h-4 w-4" />
+        </span>
       </div>
     </Card>
   );
 }
-

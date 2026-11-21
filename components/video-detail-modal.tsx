@@ -346,10 +346,10 @@ export function VideoDetailModal({ open, onOpenChange, video, onCompanyClick, on
             <DialogClose asChild>
               <button
                 type="button"
-                className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer border border-slate-200/80 shadow-2xs focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer border border-slate-200/80 shadow-2xs hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 aria-label="Đóng chi tiết quảng cáo"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </DialogClose>
           </div>

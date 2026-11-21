@@ -163,11 +163,11 @@ export function Header() {
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
-                  {item.badge && (
+                  {/* {item.badge && (
                     <span className="text-xs sm:text-sm font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-md shadow-amber-400/30 tracking-wider animate-pulse">
                       {item.badge}
                     </span>
-                  )}
+                  )} */}
                 </Link>
               )
             })}
@@ -216,11 +216,11 @@ export function Header() {
                         <Icon className="h-5 w-5" />
                         <span>{item.label}</span>
                       </div>
-                      {item.badge && (
+                      {/* {item.badge && (
                         <span className="text-xs sm:text-sm font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-md shadow-amber-400/30 tracking-wider animate-pulse">
                           {item.badge}
                         </span>
-                      )}
+                      )} */}
                     </Link>
                   )
                 })}

@@ -246,10 +246,10 @@ export function BrandDetailModal({
             <DialogClose asChild>
               <button
                 type="button"
-                className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center justify-center transition-all cursor-pointer border border-slate-200/80 dark:border-slate-700/80 shadow-2xs focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 flex items-center justify-center transition-all cursor-pointer border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 aria-label="Đóng chi tiết thương hiệu"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </DialogClose>
           </div>

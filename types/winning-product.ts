@@ -1,15 +1,32 @@
 export interface WinningProduct {
+  id: string;
   _id?: string;
-  domain: string;
-  title: string;
-  product_score: number;
-  winning_ads: number;
-  total_ads: number;
+  title: string;              // Tên Hàng
+  library_url?: string;       // Link Library
+  landing_url?: string;       // Link Landing
+  thumbnail?: string;         // Ảnh Sản Phẩm
+  thumbnail_r2?: string;
+  price?: string;             // Giá Sản Phẩm
+  ads_running_count?: number; // Bao Nhiêu ADS Chạy
+  duration_days?: string;     // Tổng Số Ngày Chạy
+  scan_date?: string;         // Ngày quét
+  market?: string;            // Thị trường chạy
+  market_type?: "VN" | "GLOBAL";
+  country_code?: string | null; // Mã cờ ISO 2 chữ số (vd: 'vn', 'us', 'de') hoặc null nếu không rõ nước
+  country_name?: string;
+  country_flag?: string | null; // Emoji cờ hoặc null nếu không rõ nước
+  ads_spy_url?: string;       // Link Đến ADS SPY TOOL (nếu có)
+  page_name?: string;         // Tên PAGE
+  win_reason?: string;        // Lý do WIN
+
+  // Legacy fields for backwards compatibility
+  domain?: string;
+  product_score?: number;
+  winning_ads?: number;
+  total_ads?: number;
   created_at?: string;
   updated_at?: string;
   category?: string;
-  thumbnail_r2?: string;
-  landing_url?: string;
   platform?: string;
   product_key?: string;
 }
@@ -37,7 +54,7 @@ export interface ProductAd {
 }
 
 export interface ProductDetail extends WinningProduct {
-  top_ads: ProductAd[];
+  top_ads?: ProductAd[];
 }
 
 export interface MonthlyWinnerItem {
@@ -61,6 +78,7 @@ export interface DailyTopItem {
 export interface ProductSearchParams {
   q?: string;
   domain?: string;
+  market?: "ALL" | "VN" | "GLOBAL";
   min_product_score?: number | string;
   min_winning_ads?: number | string;
   min_total_ads?: number | string;
@@ -81,6 +99,11 @@ export interface ProductsSearchResponse {
   success: boolean;
   pagination: ProductPagination;
   data: WinningProduct[];
+  stats?: {
+    total: number;
+    vn_count: number;
+    global_count: number;
+  };
   message?: string;
   cached?: boolean;
 }
@@ -99,8 +122,8 @@ export interface MonthlyWinnersResponse {
 
 export interface ProductDetailResponse {
   success: boolean;
-  data?: ProductDetail;
+  data: WinningProduct | null;
   message?: string;
+  error?: string;
   cached?: boolean;
 }
-
