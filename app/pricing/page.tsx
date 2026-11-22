@@ -50,6 +50,7 @@ export default function PricingPage() {
 
     setIsProcessing(true)
     try {
+      const refCode = typeof window !== 'undefined' ? localStorage.getItem('ads_spy_ref') : null
       const response = await fetch('/api/payment/create', {
         method: 'POST',
         headers: {
@@ -60,6 +61,7 @@ export default function PricingPage() {
           userEmail: user.email,
           planId: 'unlimited',
           billingCycle: cycle,
+          referralCode: refCode || undefined,
         }),
       })
 
@@ -422,7 +424,23 @@ export default function PricingPage() {
               </CardContent>
             </div>
 
-            <div className="p-6 sm:p-8 pt-0 space-y-3">
+            <div className="p-6 sm:p-8 pt-0 space-y-4">
+              {/* Payment Warning Notice */}
+              <div className="rounded-2xl bg-amber-50/90 border border-amber-200/90 p-3.5 text-xs text-amber-900 flex items-start gap-3 shadow-2xs">
+                <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-950 flex items-center gap-1.5">
+                    <span>Lưu ý thanh toán VietQR:</span>
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 border border-amber-300">
+                      Quét &amp; Chuyển ngay
+                    </span>
+                  </p>
+                  <p className="text-amber-800 leading-relaxed text-[11px]">
+                    Vui lòng mở ứng dụng ngân hàng và <strong>chuyển khoản ngay</strong> trên màn hình thanh toán. <strong>Không chụp màn hình để chuyển khoản sau</strong> vì mã QR có thể hết hạn, dẫn đến việc tài khoản không thể kích hoạt tự động.
+                  </p>
+                </div>
+              </div>
+
               <Button
                 onClick={() => handlePayment(billingCycle)}
                 disabled={isProcessing}

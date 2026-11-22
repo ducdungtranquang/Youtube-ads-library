@@ -16,8 +16,9 @@ export async function POST(request: NextRequest) {
     console.log('PayOS Webhook received:', JSON.stringify(body, null, 2))
 
     // Verify webhook signature using SDK v2
+    let webhookData: any = null
     try {
-      const webhookData = (payos.webhooks as any).verifyPaymentData(body)
+      webhookData = await payos.webhooks.verify(body)
       console.log('Verified webhook data:', webhookData)
     } catch (verifyError) {
       console.error('Invalid webhook signature:', verifyError)
@@ -27,35 +28,83 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { orderCode, code, desc } = body.data || body
+    const orderCode = webhookData?.orderCode ?? body?.data?.orderCode ?? body?.orderCode
+    const code = body?.code ?? webhookData?.code ?? body?.data?.code
+    const desc = body?.desc ?? webhookData?.desc ?? body?.data?.desc
 
-    // code === '00' means payment success
-    if (code === '00') {
-      // Get payment info from database
-      const { data: payment, error: fetchError } = await supabaseAdmin
+    // code === '00' or success status means payment success
+    const isPaymentSuccess = code === '00' || desc === 'success' || body?.success === true
+
+    if (isPaymentSuccess && orderCode) {
+      // Get payment info from database with flexible number/string type check
+      let { data: payment } = await supabaseAdmin
         .from('payments')
         .select('*')
         .eq('order_code', orderCode)
-        .single()
+        .maybeSingle()
 
-      if (fetchError || !payment) {
-        console.error('Payment not found:', fetchError)
+      if (!payment && typeof orderCode === 'number') {
+        const { data: p2 } = await supabaseAdmin
+          .from('payments')
+          .select('*')
+          .eq('order_code', String(orderCode))
+          .maybeSingle()
+        payment = p2
+      } else if (!payment && typeof orderCode === 'string') {
+        const num = Number(orderCode)
+        if (!isNaN(num)) {
+          const { data: p2 } = await supabaseAdmin
+            .from('payments')
+            .select('*')
+            .eq('order_code', num)
+            .maybeSingle()
+          payment = p2
+        }
+      }
+
+      // Check if PayOS has payment info in case DB insert was missing
+      let paymentInfo: any = null
+      try {
+        paymentInfo = await payos.paymentRequests.get(Number(orderCode))
+      } catch (payosErr) {
+        console.warn('[Webhook] Could not fetch paymentRequests from PayOS:', payosErr)
+      }
+
+      // Resolve user ID and Email
+      let targetUserId = payment?.user_id
+      let targetEmail = payment?.user_email || webhookData?.counterAccountName || paymentInfo?.buyerEmail
+
+      if (!targetUserId && targetEmail) {
+        const { data: profileByEmail } = await supabaseAdmin
+          .from('user_profiles')
+          .select('id, email')
+          .eq('email', targetEmail)
+          .maybeSingle()
+        if (profileByEmail) {
+          targetUserId = profileByEmail.id
+          targetEmail = profileByEmail.email
+        }
+      }
+
+      if (!targetUserId) {
+        console.error('Payment user not found for orderCode:', orderCode)
         return NextResponse.json(
-          { success: false, error: 'Payment not found' },
+          { success: false, error: 'User for payment not found' },
           { status: 404 }
         )
       }
 
       // Check if payment was already processed to avoid duplicated notifications / renewals
-      const isAlreadyCompleted = payment.status === 'completed'
+      const isAlreadyCompleted = payment?.status === 'completed'
 
       // Calculate subscription end date based on payment amount (1, 3, or 12 months)
+      const rawAmount = Number(payment?.amount || webhookData?.amount || body?.data?.amount || paymentInfo?.amount || 0)
       const subscriptionStart = new Date()
       const subscriptionEnd = new Date()
       let durationMonths = 1
-      if (payment.amount >= 900000) {
+      if (rawAmount >= 900000) {
         durationMonths = 12
-      } else if (payment.amount >= 250000) {
+      } else if (rawAmount >= 250000) {
         durationMonths = 3
       }
       subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths)
@@ -64,8 +113,8 @@ export async function POST(request: NextRequest) {
       const { error: updateError } = await supabaseAdmin
         .from('user_profiles')
         .upsert({
-          id: payment.user_id,
-          email: payment.user_email,
+          id: targetUserId,
+          email: targetEmail,
           subscription_status: 'unlimited',
           subscription_plan: 'unlimited',
           subscription_start: subscriptionStart.toISOString(),
@@ -81,14 +130,30 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Update payment status
-      await supabaseAdmin
-        .from('payments')
-        .update({
-          status: 'completed',
-          paid_at: new Date().toISOString()
-        })
-        .eq('order_code', orderCode)
+      // Update or create payment record
+      if (payment) {
+        await supabaseAdmin
+          .from('payments')
+          .update({
+            status: 'completed',
+            paid_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('order_code', orderCode)
+      } else {
+        await supabaseAdmin
+          .from('payments')
+          .insert({
+            order_code: orderCode,
+            user_id: targetUserId,
+            user_email: targetEmail,
+            plan_id: 'unlimited',
+            amount: rawAmount,
+            status: 'completed',
+            paid_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          })
+      }
 
       // Xử lý tính hoa hồng 20% cho đối tác tiếp thị nếu có mã giới thiệu
       if (payment.referral_code && !isAlreadyCompleted) {
@@ -107,11 +172,11 @@ export async function POST(request: NextRequest) {
               .from('affiliate_commissions')
               .insert({
                 affiliate_id: partner.id,
-                referred_user_id: payment.user_id,
-                referred_email: payment.user_email,
+                referred_user_id: targetUserId,
+                referred_email: targetEmail,
                 order_code: orderCode,
                 plan_name: 'Gói Unlimited',
-                order_amount: payment.amount,
+                order_amount: rawAmount,
                 commission_rate: 0.20,
                 commission_amount: commission,
                 status: 'completed',
@@ -139,30 +204,32 @@ export async function POST(request: NextRequest) {
       if (!isAlreadyCompleted) {
         notifyPaymentSuccess({
           orderCode,
-          amount: Number(payment.amount),
-          userEmail: payment.user_email,
-          userId: payment.user_id,
+          amount: rawAmount,
+          userEmail: targetEmail,
+          userId: targetUserId,
           planName: 'Gói Unlimited',
           durationMonths,
-          referralCode: payment.referral_code,
+          referralCode: payment?.referral_code,
           paidAt: new Date(),
         }).catch((err) => console.error('[Webhook] Failed to dispatch payment notification:', err))
       }
 
-      console.log(`Payment ${orderCode} completed successfully for user ${payment.user_id}`)
+      console.log(`Payment ${orderCode} completed successfully for user ${targetUserId}`)
 
       return NextResponse.json({ success: true })
     } else {
       // Payment failed or cancelled
       console.log(`Payment ${orderCode} failed/cancelled: ${desc}`)
 
-      await supabaseAdmin
-        .from('payments')
-        .update({
-          status: 'failed',
-          error_message: desc
-        })
-        .eq('order_code', orderCode)
+      if (orderCode) {
+        await supabaseAdmin
+          .from('payments')
+          .update({
+            status: 'failed',
+            error_message: desc
+          })
+          .eq('order_code', orderCode)
+      }
 
       return NextResponse.json({ success: true })
     }

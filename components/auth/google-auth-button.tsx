@@ -25,6 +25,13 @@ export function GoogleAuthButton({ mode = 'login', className, disabled, prominen
     }
     setIsLoading(true)
     try {
+      // Đảm bảo cookie mã giới thiệu được lưu trước khi trình duyệt chuyển hướng sang Google OAuth
+      if (typeof window !== 'undefined') {
+        const storedRef = localStorage.getItem('ads_spy_ref')
+        if (storedRef) {
+          document.cookie = `ads_spy_ref=${encodeURIComponent(storedRef)}; path=/; max-age=${30 * 24 * 3600}; SameSite=Lax`
+        }
+      }
       const { error } = await signInWithOAuth('google')
       if (error) {
         toast.error(error.message || `${mode === 'login' ? 'Đăng nhập' : 'Đăng ký'} bằng Google thất bại`)

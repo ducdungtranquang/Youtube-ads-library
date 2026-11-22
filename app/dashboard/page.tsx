@@ -5,18 +5,21 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, ArrowRight, Sparkles, Video, Target, BookOpen, Star, Zap, Gift } from "lucide-react"
+import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, ArrowRight, Sparkles, Video, Target, BookOpen, Star, Zap, Gift, Check } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect, useState } from "react"
 import { useFavorites } from '@/hooks/use-favorites'
 import { supabase } from "@/lib/supabase"
 import { SearchQuotaManager } from "@/lib/search-quota"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
 interface UserProfile {
   subscription_plan?: string | null;
   subscription_status?: string | null;
   daily_search_count?: number | null;
   last_search_date?: string | null;
+  referred_by?: string | null;
 }
 
 function DashboardPage() {
@@ -41,6 +44,8 @@ function DashboardPage() {
     return null;
   });
   const [mounted, setMounted] = useState(false)
+  const [inputReferralCode, setInputReferralCode] = useState("")
+  const [isApplyingRef, setIsApplyingRef] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -54,7 +59,7 @@ function DashboardPage() {
       if (data) setCounts(data as typeof counts);
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('subscription_plan, subscription_status, daily_search_count, last_search_date')
+        .select('subscription_plan, subscription_status, daily_search_count, last_search_date, referred_by')
         .eq('id', user.id)
         .maybeSingle()
 
@@ -68,6 +73,35 @@ function DashboardPage() {
     }
     loadCounts()
   }, [user, getFavoritesCounts])
+
+  const handleApplyReferral = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputReferralCode.trim() || !user) return
+
+    setIsApplyingRef(true)
+    try {
+      const res = await fetch('/api/user/apply-referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          referralCode: inputReferralCode.trim().toUpperCase(),
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        toast.success(json.message || 'Áp dụng mã giới thiệu thành công!')
+        setDbProfile(prev => ({ ...(prev || {}), referred_by: json.referred_by || inputReferralCode.trim().toUpperCase() }))
+        setInputReferralCode('')
+      } else {
+        toast.error(json.message || 'Không thể áp dụng mã giới thiệu.')
+      }
+    } catch {
+      toast.error('Đã xảy ra lỗi khi liên kết mã giới thiệu.')
+    } finally {
+      setIsApplyingRef(false)
+    }
+  }
 
   const normalizedPlan = SearchQuotaManager.getPlan(user, dbProfile);
   const planInfo = SUBSCRIPTION_MAP[normalizedPlan] || SUBSCRIPTION_MAP.free;
@@ -317,29 +351,71 @@ function DashboardPage() {
 
           {/* Affiliate Banner Card */}
           <Card className="border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 text-white shadow-xl shadow-emerald-950/20 rounded-2xl mt-6 overflow-hidden">
-            <CardContent className="p-6 sm:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-              <div className="flex items-start sm:items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shrink-0">
-                  <Gift className="h-6 w-6" />
+            <CardContent className="p-6 sm:p-7 space-y-4">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                <div className="flex items-start sm:items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shrink-0">
+                    <Gift className="h-6 w-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-white">Chương Trình Đối Tác Tiếp Thị (Affiliate)</h3>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950">
+                        Hoa hồng 20%
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                      Nhận 20% hoa hồng trọn đời trên mọi đơn hàng nâng cấp trả phí từ người dùng bạn giới thiệu. Cookie lưu 30 ngày, rút tiền tự động về ngân hàng.
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-white">Chương Trình Đối Tác Tiếp Thị (Affiliate)</h3>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950">
-                      Hoa hồng 20%
+                <Button asChild className="shrink-0 h-11 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-950 cursor-pointer">
+                  <Link href="/affiliate">
+                    Lấy Link Tiếp Thị Ngay
+                    <ArrowRight className="ml-1.5 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+
+              {/* Nhập mã giới thiệu hoặc hiển thị trạng thái đã kết nối */}
+              <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                {dbProfile?.referred_by ? (
+                  <div className="flex items-center gap-2 text-emerald-400 font-medium">
+                    <Check className="h-4 w-4" />
+                    <span>
+                      Tài khoản đã liên kết mã giới thiệu:{" "}
+                      <strong className="font-mono text-white bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700">
+                        {dbProfile.referred_by}
+                      </strong>
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-                    Nhận 20% hoa hồng trọn đời trên mọi đơn hàng nâng cấp trả phí từ người dùng bạn giới thiệu. Cookie lưu 30 ngày, rút tiền tự động về ngân hàng.
-                  </p>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 text-slate-300">
+                      <Gift className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <span>Bạn có mã giới thiệu từ bạn bè? Nhập mã để nhận ưu đãi:</span>
+                    </div>
+                    <form onSubmit={handleApplyReferral} className="flex items-center gap-2 w-full sm:w-auto">
+                      <Input
+                        type="text"
+                        placeholder="VD: ADS888"
+                        value={inputReferralCode}
+                        onChange={(e) => setInputReferralCode(e.target.value.toUpperCase().trim())}
+                        maxLength={20}
+                        className="h-9 w-36 bg-slate-950 border-slate-700 text-white font-mono text-xs uppercase px-3 rounded-xl focus-visible:ring-emerald-500"
+                      />
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={isApplyingRef || !inputReferralCode.trim()}
+                        className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs cursor-pointer shadow-xs disabled:opacity-50"
+                      >
+                        {isApplyingRef ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Áp dụng"}
+                      </Button>
+                    </form>
+                  </>
+                )}
               </div>
-              <Button asChild className="shrink-0 h-11 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-950 cursor-pointer">
-                <Link href="/affiliate">
-                  Lấy Link Tiếp Thị Ngay
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
-                </Link>
-              </Button>
             </CardContent>
           </Card>
 

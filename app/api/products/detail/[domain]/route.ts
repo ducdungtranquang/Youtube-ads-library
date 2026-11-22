@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+          "Cache-Control": "public, s-maxage=7200, stale-while-revalidate=14400",
         },
       }
     );

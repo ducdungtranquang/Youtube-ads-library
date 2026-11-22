@@ -84,7 +84,7 @@ export default function FavoritesPage() {
       // Load counts
       const countsData = await getFavoritesCounts();
       if (countsData) {
-        setCounts(countsData);
+        setCounts(countsData as any);
       }
 
       // Load favorites for active tab

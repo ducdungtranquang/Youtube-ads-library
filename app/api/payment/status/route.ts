@@ -22,51 +22,98 @@ export async function GET(request: NextRequest) {
     }
 
     // Get payment from PayOS using SDK v2
-    const paymentInfo = await payos.paymentRequests.get(Number(orderCode))
+    const numOrderCode = Number(orderCode)
+    const paymentInfo = await payos.paymentRequests.get(numOrderCode)
 
-    // Get payment from database
-    const { data: payment } = await supabaseAdmin
+    // Get payment from database with flexible number/string type check
+    let { data: payment } = await supabaseAdmin
       .from('payments')
       .select('*')
       .eq('order_code', orderCode)
-      .single()
+      .maybeSingle()
 
-    // If payment is PAID but our DB not updated yet, update it
-    if (paymentInfo.status === 'PAID' && payment?.status !== 'completed') {
+    if (!payment && !isNaN(numOrderCode)) {
+      const { data: p2 } = await supabaseAdmin
+        .from('payments')
+        .select('*')
+        .eq('order_code', numOrderCode)
+        .maybeSingle()
+      payment = p2
+    }
+
+    // A payment is considered successful if PayOS status is PAID
+    // OR if the user paid in full (amountPaid >= amount) - covers late transfers after 15m expiration
+    const isPaidInPayOS =
+      paymentInfo.status === 'PAID' ||
+      (typeof paymentInfo.amountPaid === 'number' && paymentInfo.amountPaid >= paymentInfo.amount)
+
+    // If payment is PAID or fully transferred in PayOS, but our DB not updated yet, update it
+    if (isPaidInPayOS && payment?.status !== 'completed') {
+      const paidAmount = Number(payment?.amount || paymentInfo?.amountPaid || paymentInfo?.amount || 0)
+      const userEmail = payment?.user_email || (paymentInfo as any)?.buyerEmail
+      let targetUserId = payment?.user_id
+
+      if (!targetUserId && userEmail) {
+        const { data: profileByEmail } = await supabaseAdmin
+          .from('user_profiles')
+          .select('id')
+          .eq('email', userEmail)
+          .maybeSingle()
+        targetUserId = profileByEmail?.id
+      }
+
       const subscriptionStart = new Date()
       const subscriptionEnd = new Date()
       let durationMonths = 1
-      if (payment.amount >= 900000) {
+      if (paidAmount >= 900000) {
         durationMonths = 12
-      } else if (payment.amount >= 250000) {
+      } else if (paidAmount >= 250000) {
         durationMonths = 3
       }
       subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths)
 
       // Upsert user profile with subscription (create if not exists)
-      await supabaseAdmin
-        .from('user_profiles')
-        .upsert({
-          id: payment.user_id,
-          email: payment.user_email,
-          subscription_status: 'unlimited',
-          subscription_plan: 'unlimited',
-          subscription_start: subscriptionStart.toISOString(),
-          subscription_end: subscriptionEnd.toISOString(),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' })
+      if (targetUserId) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .upsert({
+            id: targetUserId,
+            email: userEmail,
+            subscription_status: 'unlimited',
+            subscription_plan: 'unlimited',
+            subscription_start: subscriptionStart.toISOString(),
+            subscription_end: subscriptionEnd.toISOString(),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' })
+      }
 
-      // Update payment status
-      await supabaseAdmin
-        .from('payments')
-        .update({
-          status: 'completed',
-          paid_at: new Date().toISOString()
-        })
-        .eq('order_code', orderCode)
+      // Update or create payment record
+      if (payment) {
+        await supabaseAdmin
+          .from('payments')
+          .update({
+            status: 'completed',
+            paid_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('order_code', orderCode)
+      } else if (targetUserId) {
+        await supabaseAdmin
+          .from('payments')
+          .insert({
+            order_code: numOrderCode || orderCode,
+            user_id: targetUserId,
+            user_email: userEmail,
+            plan_id: 'unlimited',
+            amount: paidAmount,
+            status: 'completed',
+            paid_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          })
+      }
 
       // Xử lý tính hoa hồng 20% cho đối tác tiếp thị nếu có mã giới thiệu
-      if (payment.referral_code) {
+      if (payment?.referral_code && targetUserId) {
         try {
           const { data: partner } = await supabaseAdmin
             .from('affiliate_partners')
@@ -74,18 +121,18 @@ export async function GET(request: NextRequest) {
             .eq('referral_code', payment.referral_code.toString().trim().toUpperCase())
             .maybeSingle()
 
-          if (partner && partner.id !== payment.user_id) {
-            const commission = Math.round(Number(payment.amount) * 0.20)
+          if (partner && partner.id !== targetUserId) {
+            const commission = Math.round(paidAmount * 0.20)
 
             await supabaseAdmin
               .from('affiliate_commissions')
               .insert({
                 affiliate_id: partner.id,
-                referred_user_id: payment.user_id,
-                referred_email: payment.user_email,
+                referred_user_id: targetUserId,
+                referred_email: userEmail,
                 order_code: orderCode,
                 plan_name: 'Gói Unlimited',
-                order_amount: payment.amount,
+                order_amount: paidAmount,
                 commission_rate: 0.20,
                 commission_amount: commission,
                 status: 'completed',
@@ -109,12 +156,12 @@ export async function GET(request: NextRequest) {
       // Gửi thông báo tức thì về Slack và Email (báo về điện thoại cho admin)
       notifyPaymentSuccess({
         orderCode,
-        amount: Number(payment.amount),
-        userEmail: payment.user_email,
-        userId: payment.user_id,
+        amount: paidAmount,
+        userEmail: userEmail,
+        userId: targetUserId,
         planName: 'Gói Unlimited',
         durationMonths,
-        referralCode: payment.referral_code,
+        referralCode: payment?.referral_code,
         paidAt: new Date(),
       }).catch((err) => console.error('[Status API] Failed to dispatch payment notification:', err))
 

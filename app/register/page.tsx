@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,21 +20,43 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
-  Zap
+  Zap,
+  Gift
 } from "lucide-react"
 import { toast } from "sonner"
 
-export default function RegisterPage() {
+function RegisterPageContent() {
+  const searchParams = useSearchParams()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [referralCode, setReferralCode] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [loading, setLoading] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const { signUp, user, loading: authLoading } = useAuth()
   const router = useRouter()
   const hasRedirected = useRef(false)
+
+  // Tự động nhận diện mã giới thiệu từ URL (?ref=...) hoặc từ localStorage
+  useEffect(() => {
+    const urlRef = searchParams.get("ref")?.trim()
+    const storedRef = typeof window !== "undefined" ? localStorage.getItem("ads_spy_ref") : null
+    const activeRef = (urlRef || storedRef || "").toUpperCase().trim()
+    if (activeRef) {
+      setReferralCode(activeRef)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ads_spy_ref", activeRef)
+        document.cookie = `ads_spy_ref=${encodeURIComponent(activeRef)}; path=/; max-age=${30 * 24 * 3600}; SameSite=Lax`
+      }
+      fetch("/api/affiliate/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referralCode: activeRef, eventType: "click" }),
+      }).catch(() => {})
+    }
+  }, [searchParams])
 
   // Redirect if already logged in
   useEffect(() => {
@@ -71,16 +93,16 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const refCode = typeof window !== 'undefined' ? localStorage.getItem('ads_spy_ref') : null
-      const { error } = await signUp(email, password, fullName, refCode || undefined)
+      const activeRef = referralCode.trim().toUpperCase() || (typeof window !== 'undefined' ? localStorage.getItem('ads_spy_ref') : null)
+      const { error } = await signUp(email, password, fullName, activeRef || undefined)
       if (error) {
         toast.error(error.message || "Tạo tài khoản thất bại. Vui lòng kiểm tra lại thông tin.")
       } else {
-        if (refCode) {
+        if (activeRef) {
           fetch('/api/affiliate/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ referralCode: refCode, eventType: 'signup' })
+            body: JSON.stringify({ referralCode: activeRef, eventType: 'signup' })
           }).catch(() => {})
         }
         toast.success("Tài khoản đã được tạo thành công! Vui lòng kiểm tra email để xác minh.")
@@ -238,6 +260,44 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Referral Code (Optional) Input */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="referral-code" className="text-xs font-semibold text-slate-700">
+                      Mã giới thiệu (Không bắt buộc)
+                    </Label>
+                    {referralCode && (
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        ✓ Đã áp dụng mã đối tác
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Gift className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="referral-code"
+                      type="text"
+                      placeholder="VD: ADS888 (Nhập mã nhận được từ bạn bè)"
+                      value={referralCode}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase().trim()
+                        setReferralCode(val)
+                        if (typeof window !== "undefined") {
+                          if (val) {
+                            localStorage.setItem("ads_spy_ref", val)
+                            document.cookie = `ads_spy_ref=${encodeURIComponent(val)}; path=/; max-age=${30 * 24 * 3600}; SameSite=Lax`
+                          } else {
+                            localStorage.removeItem("ads_spy_ref")
+                            document.cookie = `ads_spy_ref=; path=/; max-age=0`
+                          }
+                        }
+                      }}
+                      maxLength={20}
+                      className="pl-10 h-11 bg-slate-50/80 hover:bg-slate-50 focus:bg-white border-slate-200 focus:border-rose-500 focus-visible:ring-rose-500/20 text-slate-900 placeholder:text-slate-400 rounded-xl text-sm font-mono uppercase tracking-wider transition-all"
+                    />
+                  </div>
+                </div>
+
                 {/* Terms and Policy Checkbox */}
                 <div className="flex items-start gap-2.5 pt-1">
                   <Checkbox
@@ -325,5 +385,22 @@ export default function RegisterPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-900">
+          <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-2xl border border-slate-200 shadow-xl">
+            <Loader2 className="h-8 w-8 animate-spin text-rose-600" />
+            <p className="text-sm font-semibold text-slate-700">Đang tải trang đăng ký...</p>
+          </div>
+        </div>
+      }
+    >
+      <RegisterPageContent />
+    </Suspense>
   )
 }

@@ -12,7 +12,23 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { userId, userEmail, planId = 'unlimited', billingCycle = 'monthly', referralCode } = body
-    const activeRefCode = (referralCode || request.cookies.get('ads_spy_ref')?.value || null)?.toString().trim().toUpperCase() || null
+    let activeRefCode = (referralCode || request.cookies.get('ads_spy_ref')?.value || null)?.toString().trim().toUpperCase() || null
+
+    // Fallback: Nếu không có trong request/cookie, kiểm tra xem user này từng đăng ký bằng mã giới thiệu nào không
+    if (!activeRefCode && userId) {
+      try {
+        const { data: profile } = await supabaseAdmin
+          .from('user_profiles')
+          .select('referred_by')
+          .eq('id', userId)
+          .maybeSingle()
+        if (profile?.referred_by) {
+          activeRefCode = profile.referred_by.trim().toUpperCase()
+        }
+      } catch (refErr) {
+        console.warn('Could not lookup referred_by for user:', refErr)
+      }
+    }
 
     // Validate input
     if (!userId || !userEmail || !planId) {
@@ -45,11 +61,13 @@ export async function POST(request: NextRequest) {
       yearly: 'Goi Unlimited 12T',
     }
 
-    // Create PayOS payment link using SDK v2
+    // Create PayOS payment link using SDK v2 (thời hạn 24 giờ để tránh lỗi hết hạn khi user chuyển khoản sau)
+    const expiredAt = Math.floor(Date.now() / 1000) + 24 * 60 * 60 // 24 hours expiry
     const paymentLink = await payos.paymentRequests.create({
       orderCode,
       amount,
       description: descMap[cycleKey], // Max 25 chars
+      buyerEmail: userEmail,
       items: [
         {
           name: `Gói Unlimited (${cycle.name})`,
@@ -59,7 +77,7 @@ export async function POST(request: NextRequest) {
       ],
       returnUrl: `${baseUrl}/payment/success?orderCode=${orderCode}`,
       cancelUrl: `${baseUrl}/payment/cancel?orderCode=${orderCode}`,
-      expiredAt: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes expiry
+      expiredAt,
     })
 
     // Store payment info in database for later verification

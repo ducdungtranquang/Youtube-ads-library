@@ -1,3 +1,6 @@
+export type ProductPlatformType = "LANDING" | "MESSENGER" | "WHATSAPP" | "OTHER";
+export type ProductPlatformFilter = "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP";
+
 export interface WinningProduct {
   id: string;
   _id?: string;
@@ -18,6 +21,9 @@ export interface WinningProduct {
   ads_spy_url?: string;       // Link Đến ADS SPY TOOL (nếu có)
   page_name?: string;         // Tên PAGE
   win_reason?: string;        // Lý do WIN
+  platform_raw?: string;      // Dạng chạy gốc từ Sheet (vd: "Mess tin nhắn", "Landing", "Mess tin nhắn (WhatsApp)")
+  platform_type?: ProductPlatformType; // Chuẩn hóa phân loại nền tảng
+  platform_label?: string;    // Nhãn hiển thị giao diện ("Landing Page", "Messenger", "WhatsApp")
 
   // Legacy fields for backwards compatibility
   domain?: string;

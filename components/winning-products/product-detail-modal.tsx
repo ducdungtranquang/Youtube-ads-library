@@ -30,6 +30,8 @@ import {
   ShoppingBag,
   X,
   Lock,
+  MessageCircle,
+  MessageSquare,
 } from "lucide-react";
 import type { WinningProduct } from "@/types/winning-product";
 
@@ -158,6 +160,35 @@ export function ProductDetailModal({
                 {display.market_type === "VN" ? "Thị trường Việt Nam" : "Thị trường Quốc tế"}
               </Badge>
 
+              {/* Dạng chạy / Nền tảng Badge */}
+              {display.platform_type === "LANDING" && (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border-indigo-200 flex items-center gap-1.5"
+                >
+                  <Globe className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>Dạng chạy: Landing Page</span>
+                </Badge>
+              )}
+              {display.platform_type === "MESSENGER" && (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1.5"
+                >
+                  <MessageCircle className="h-3.5 w-3.5 text-blue-600" />
+                  <span>Dạng chạy: Mess tin nhắn</span>
+                </Badge>
+              )}
+              {display.platform_type === "WHATSAPP" && (
+                <Badge
+                  variant="outline"
+                  className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5"
+                >
+                  <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Dạng chạy: WhatsApp</span>
+                </Badge>
+              )}
+
               {display.scan_date && (
                 <span className="text-xs text-slate-400 flex items-center gap-1 sm:ml-auto">
                   <Calendar className="h-3.5 w-3.5" />
@@ -267,7 +298,7 @@ export function ProductDetailModal({
             {/* Cột phải (7 cột): Thông Số & Lý do WIN */}
             <div className="md:col-span-7 space-y-4">
               {/* Quick Specs Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70">
                   <div className="flex items-center gap-1.5 text-amber-700 mb-1">
                     <Flame className="h-4 w-4" />
@@ -288,13 +319,29 @@ export function ProductDetailModal({
                   </p>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 col-span-2 sm:col-span-1">
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-center gap-1.5 text-slate-600 mb-1">
                     <Globe className="h-4 w-4 text-slate-500" />
                     <span className="text-[10px] font-bold uppercase tracking-wider">Thị trường</span>
                   </div>
-                  <p className="text-sm font-bold text-slate-900 truncate" title={display.market}>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 truncate" title={display.market}>
                     {display.market || "Chưa rõ"}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-purple-50/80 border border-purple-200/70">
+                  <div className="flex items-center gap-1.5 text-purple-700 mb-1">
+                    {display.platform_type === "MESSENGER" ? (
+                      <MessageCircle className="h-4 w-4 text-blue-600" />
+                    ) : display.platform_type === "WHATSAPP" ? (
+                      <MessageSquare className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <Globe className="h-4 w-4 text-indigo-600" />
+                    )}
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Dạng chạy</span>
+                  </div>
+                  <p className="text-xs sm:text-sm font-black text-purple-950 truncate" title={display.platform_label || display.platform_raw}>
+                    {display.platform_label || display.platform_raw || "Landing Page"}
                   </p>
                 </div>
               </div>
@@ -385,8 +432,20 @@ export function ProductDetailModal({
                       className="w-full h-10 rounded-xl border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs cursor-pointer"
                     >
                       <a href={display.landing_url} target="_blank" rel="noopener noreferrer">
-                        <ShoppingBag className="mr-1.5 h-3.5 w-3.5 text-indigo-600" />
-                        <span>Mở Trang Đích (Landing Page)</span>
+                        {display.platform_type === "MESSENGER" ? (
+                          <MessageCircle className="mr-1.5 h-3.5 w-3.5 text-blue-600" />
+                        ) : display.platform_type === "WHATSAPP" ? (
+                          <MessageSquare className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <ShoppingBag className="mr-1.5 h-3.5 w-3.5 text-indigo-600" />
+                        )}
+                        <span>
+                          {display.platform_type === "MESSENGER"
+                            ? "Mở Tin Nhắn Messenger (Fanpage)"
+                            : display.platform_type === "WHATSAPP"
+                            ? "Mở Chat WhatsApp"
+                            : "Mở Trang Đích (Landing Page)"}
+                        </span>
                         <ExternalLink className="ml-1.5 h-3.5 w-3.5 text-slate-400" />
                       </a>
                     </Button>
@@ -394,14 +453,24 @@ export function ProductDetailModal({
                     <Button
                       type="button"
                       onClick={() => {
-                        toast.info("Vui lòng nâng cấp gói Unlimited để mở link Landing Page!");
+                        toast.info(
+                          display.platform_type === "MESSENGER"
+                            ? "Vui lòng nâng cấp gói Unlimited để mở link Messenger Fanpage!"
+                            : "Vui lòng nâng cấp gói Unlimited để mở link Landing Page!"
+                        );
                         onUpgrade?.();
                       }}
                       className="w-full h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs border border-dashed border-slate-300 hover:scale-[1.01] transition-all cursor-pointer flex items-center justify-between px-4"
                     >
                       <div className="flex items-center gap-2">
                         <Lock className="h-4 w-4 text-amber-600" />
-                        <span>Mở Trang Đích (Landing Page)</span>
+                        <span>
+                          {display.platform_type === "MESSENGER"
+                            ? "Mở Tin Nhắn Messenger"
+                            : display.platform_type === "WHATSAPP"
+                            ? "Mở Chat WhatsApp"
+                            : "Mở Trang Đích (Landing Page)"}
+                        </span>
                       </div>
                       <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
                         Đã khóa 🔒

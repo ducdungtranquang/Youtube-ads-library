@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWinningProductsList } from "@/lib/services/winning-products-sheet";
+import { getWinningProductsList, getAllSheetWinningProducts } from "@/lib/services/winning-products-sheet";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const isRefresh = searchParams.get("refresh") === "1" || searchParams.get("refresh") === "true";
+    if (isRefresh) {
+      await getAllSheetWinningProducts({ forceRefresh: true });
+    }
+
     const q = searchParams.get("q") || searchParams.get("text") || "";
     const rawMarket = searchParams.get("market") || searchParams.get("country") || "ALL";
     const market = rawMarket.toUpperCase() as "ALL" | "VN" | "GLOBAL";
+    const rawPlatform = searchParams.get("platform") || "ALL";
+    const platform = rawPlatform.toUpperCase() as "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "24", 10);
 
     const result = await getWinningProductsList({
       q,
       market: ["ALL", "VN", "GLOBAL"].includes(market) ? market : "ALL",
+      platform: ["ALL", "LANDING", "MESSENGER", "WHATSAPP"].includes(platform) ? platform : "ALL",
       page: isNaN(page) ? 1 : page,
       limit: isNaN(limit) ? 24 : limit,
     });
@@ -27,7 +35,7 @@ export async function GET(request: NextRequest) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+          "Cache-Control": "public, s-maxage=7200, stale-while-revalidate=14400",
         },
       }
     );

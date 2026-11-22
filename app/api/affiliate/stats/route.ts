@@ -21,7 +21,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host')
+    const proto = request.headers.get('x-forwarded-proto') || (host?.includes('localhost') ? 'http' : 'https')
+    const origin = host
+      ? `${proto}://${host}`
+      : (process.env.NEXT_PUBLIC_APP_URL || 'https://ads-spy-tool.tech')
 
     // 1. Fetch user to verify email
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)

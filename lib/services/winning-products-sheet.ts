@@ -21,6 +21,9 @@ export interface SheetWinningProduct {
   ads_spy_url: string;        // Link Đến ADS SPY TOOL (nếu có)
   page_name: string;          // Tên PAGE
   win_reason: string;         // Lý do WIN
+  platform_raw: string;       // Dạng chạy gốc từ Sheet (vd: "Mess tin nhắn", "Landing", "Mess tin nhắn (WhatsApp)")
+  platform_type: "LANDING" | "MESSENGER" | "WHATSAPP" | "OTHER";
+  platform_label: string;     // "Landing Page", "Messenger", "WhatsApp", "Chưa rõ"
 }
 
 // Bảng ánh xạ quốc gia chuẩn
@@ -65,6 +68,60 @@ function resolveCountry(marketRaw: string): {
   // Các trường hợp ghi chung chung "Nước ngoài", "Nước ngoà", "Nước ngo`",...
   // User yêu cầu: product nào không rõ nước thì KHÔNG hiện icon cờ (code = null, flag = null)
   return { code: null, name: marketRaw || "Nước ngoài", flag: null, isVN: false };
+}
+
+// Chuẩn hóa và phân loại Dạng chạy / Nền tảng (Landing Page vs Messenger vs WhatsApp)
+export function resolvePlatformType(
+  rawPlatform: string,
+  landingUrl?: string
+): {
+  type: "LANDING" | "MESSENGER" | "WHATSAPP" | "OTHER";
+  label: string;
+  raw: string;
+} {
+  const raw = (rawPlatform || "").trim();
+  const lower = raw.toLowerCase();
+
+  if (lower.includes("whatsapp")) {
+    return { type: "WHATSAPP", label: "WhatsApp", raw };
+  }
+  if (
+    lower.includes("mess") ||
+    lower.includes("tin nhắn") ||
+    lower.includes("tin nhan") ||
+    lower.includes("inbox") ||
+    lower.includes("chat")
+  ) {
+    return { type: "MESSENGER", label: "Messenger", raw };
+  }
+  if (
+    lower.includes("landing") ||
+    lower.includes("web") ||
+    lower.includes("ladipage") ||
+    lower.includes("chuyển đổi") ||
+    lower.includes("chuyen doi")
+  ) {
+    return { type: "LANDING", label: "Landing Page", raw };
+  }
+
+  // Fallback dựa vào Link Landing nếu cột Dạng chạy bị bỏ trống
+  const urlLower = (landingUrl || "").toLowerCase();
+  if (urlLower.includes("wa.me") || urlLower.includes("whatsapp.com")) {
+    return { type: "WHATSAPP", label: "WhatsApp", raw: raw || "WhatsApp" };
+  }
+  if (
+    urlLower.includes("m.me") ||
+    urlLower.includes("facebook.com/messages") ||
+    urlLower === "https://www.facebook.com/" ||
+    urlLower === "https://facebook.com/"
+  ) {
+    return { type: "MESSENGER", label: "Messenger", raw: raw || "Mess tin nhắn" };
+  }
+  if (urlLower.startsWith("http") && !urlLower.includes("facebook.com")) {
+    return { type: "LANDING", label: "Landing Page", raw: raw || "Landing" };
+  }
+
+  return { type: "OTHER", label: raw || "Chưa rõ", raw: raw || "Chưa rõ" };
 }
 
 // Hàm parse CSV chuẩn RFC 4180 xử lý chuỗi nhiều dòng và dấu ngoặc kép
@@ -132,7 +189,7 @@ const cache: CacheStore =
 
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1caTdmpu0CdJ6xVMJjDq3WtRrFDCzBp4MwvluayokQhM/export?format=csv";
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 phút
+const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 tiếng (tối ưu giảm tải tối đa số lượt gọi đến Google Sheets)
 
 async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
   try {
@@ -141,7 +198,7 @@ async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AdsSpyTool/1.0",
       },
-      next: { revalidate: 300 }, // Next.js ISR cache 5 phút
+      next: { revalidate: 7200 }, // Next.js ISR cache 2 tiếng (7200s)
     });
 
     if (!res.ok) {
@@ -170,6 +227,13 @@ async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
         const country = resolveCountry(raw["Thị trường chạy"] || "");
         const rawAds = raw["Bao Nhiêu ADS Chạy"] || "0";
         const adsCount = parseInt(rawAds.replace(/\D/g, "") || "0", 10);
+        const rawPlatform =
+          raw["Dạng chạy"] ||
+          raw["Dạng Chạy"] ||
+          raw["Dạng chạy (Landing / Mess)"] ||
+          raw["Nền tảng"] ||
+          "";
+        const platform = resolvePlatformType(rawPlatform, raw["Link Landing"] || "");
 
         return {
           id: String(idx + 1),
@@ -182,13 +246,16 @@ async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
           duration_days: (raw["Tổng Số Ngày Chạy"] || "").trim(),
           scan_date: (raw["Ngày quét"] || "").trim(),
           market: (raw["Thị trường chạy"] || "").trim(),
-          market_type: country.isVN ? "VN" : "GLOBAL",
+          market_type: (country.isVN ? "VN" : "GLOBAL") as "VN" | "GLOBAL",
           country_code: country.code,
           country_name: country.name,
           country_flag: country.flag,
           ads_spy_url: (raw["Link Đến ADS SPY TOOL (nếu có)"] || "").trim(),
           page_name: (raw["Tên PAGE"] || "").trim(),
           win_reason: (raw["Lý do WIN"] || "").trim(),
+          platform_raw: platform.raw,
+          platform_type: platform.type,
+          platform_label: platform.label,
         };
       })
       .filter((item) => item.title.length > 0);
@@ -205,18 +272,51 @@ async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
 }
 
 /**
- * Lấy toàn bộ danh sách sản phẩm với cơ chế Cache hiệu năng cao
+ * Lấy toàn bộ danh sách sản phẩm với cơ chế Cache hiệu năng cao Stale-While-Revalidate
  */
-export async function getAllSheetWinningProducts(): Promise<SheetWinningProduct[]> {
+export async function getAllSheetWinningProducts(options?: { forceRefresh?: boolean }): Promise<SheetWinningProduct[]> {
   const now = Date.now();
   const isExpired = now - cache.lastFetchedAt > CACHE_TTL_MS;
 
-  // Nếu cache còn mới, trả về ngay tức thì (< 1ms)
+  // 1. Nếu yêu cầu forceRefresh: Bắt buộc gọi mới
+  if (options?.forceRefresh) {
+    cache.isFetching = true;
+    try {
+      const items = await fetchAndParseSheet();
+      cache.items = items;
+      cache.lastFetchedAt = Date.now();
+      return items;
+    } finally {
+      cache.isFetching = false;
+    }
+  }
+
+  // 2. Nếu đã có cache và chưa hết hạn: Trả về tức thì (< 1ms)
   if (cache.items.length > 0 && !isExpired) {
     return cache.items;
   }
 
-  // Nếu đang fetch thì đợi fetch hoàn tất
+  // 3. Stale-While-Revalidate: Nếu đã có cache cũ nhưng đã hết hạn:
+  // Trả về cache cũ NGAY LẬP TỨC để người dùng không phải chờ, đồng thời re-fetch ngầm trong background
+  if (cache.items.length > 0 && isExpired) {
+    if (!cache.isFetching) {
+      cache.isFetching = true;
+      fetchAndParseSheet()
+        .then((items) => {
+          cache.items = items;
+          cache.lastFetchedAt = Date.now();
+        })
+        .catch((err) => {
+          console.warn("[WinningProductsSheet] Background refresh failed, keeping existing cache:", err);
+        })
+        .finally(() => {
+          cache.isFetching = false;
+        });
+    }
+    return cache.items;
+  }
+
+  // 4. Lần đầu khởi động chưa có cache: Bắt buộc đợi fetch lần đầu
   if (cache.isFetching && cache.items.length > 0) {
     return cache.items;
   }
@@ -233,11 +333,20 @@ export async function getAllSheetWinningProducts(): Promise<SheetWinningProduct[
 }
 
 /**
+ * Cho phép kích hoạt xóa cache thủ công khi admin cập nhật Google Sheet mới
+ */
+export async function revalidateWinningProductsCache(): Promise<{ success: boolean; total: number }> {
+  const items = await getAllSheetWinningProducts({ forceRefresh: true });
+  return { success: true, total: items.length };
+}
+
+/**
  * Lọc và phân trang cho danh sách (chỉ trả về các trường cơ bản cho card để tối ưu băng thông và tốc độ)
  */
 export async function getWinningProductsList(params: {
   q?: string;
   market?: "ALL" | "VN" | "GLOBAL";
+  platform?: "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP";
   page?: number;
   limit?: number;
 }): Promise<{
@@ -252,6 +361,9 @@ export async function getWinningProductsList(params: {
     total: number;
     vn_count: number;
     global_count: number;
+    landing_count: number;
+    messenger_count: number;
+    whatsapp_count: number;
   };
 }> {
   const allItems = await getAllSheetWinningProducts();
@@ -260,6 +372,9 @@ export async function getWinningProductsList(params: {
   const totalAll = allItems.length;
   const vnCount = allItems.filter((i) => i.market_type === "VN").length;
   const globalCount = allItems.filter((i) => i.market_type === "GLOBAL").length;
+  const landingCount = allItems.filter((i) => i.platform_type === "LANDING").length;
+  const messengerCount = allItems.filter((i) => i.platform_type === "MESSENGER").length;
+  const whatsappCount = allItems.filter((i) => i.platform_type === "WHATSAPP").length;
 
   let filtered = allItems;
 
@@ -271,7 +386,17 @@ export async function getWinningProductsList(params: {
     filtered = filtered.filter((i) => i.market_type === "GLOBAL");
   }
 
-  // 2. Tìm kiếm theo Tên Hàng (không phân biệt hoa thường và dấu tiếng Việt)
+  // 2. Lọc theo Dạng chạy / Nền tảng: Landing Page vs Messenger vs WhatsApp
+  const platformFilter = (params.platform || "ALL").toUpperCase();
+  if (platformFilter === "LANDING") {
+    filtered = filtered.filter((i) => i.platform_type === "LANDING");
+  } else if (platformFilter === "MESSENGER") {
+    filtered = filtered.filter((i) => i.platform_type === "MESSENGER");
+  } else if (platformFilter === "WHATSAPP") {
+    filtered = filtered.filter((i) => i.platform_type === "WHATSAPP");
+  }
+
+  // 3. Tìm kiếm theo Tên Hàng hoặc Tên Page (không phân biệt hoa thường và dấu tiếng Việt)
   if (params.q?.trim()) {
     const searchNormalized = params.q
       .trim()
@@ -315,6 +440,9 @@ export async function getWinningProductsList(params: {
     country_flag: item.country_flag,
     page_name: item.page_name,
     landing_url: item.landing_url,
+    platform_raw: item.platform_raw,
+    platform_type: item.platform_type,
+    platform_label: item.platform_label,
   }));
 
   return {
@@ -329,6 +457,9 @@ export async function getWinningProductsList(params: {
       total: totalAll,
       vn_count: vnCount,
       global_count: globalCount,
+      landing_count: landingCount,
+      messenger_count: messengerCount,
+      whatsapp_count: whatsappCount,
     },
   };
 }

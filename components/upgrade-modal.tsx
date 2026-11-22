@@ -46,6 +46,7 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
 
     setIsProcessing(true)
     try {
+      const refCode = typeof window !== 'undefined' ? localStorage.getItem('ads_spy_ref') : null
       const response = await fetch('/api/payment/create', {
         method: 'POST',
         headers: {
@@ -56,6 +57,7 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
           userEmail: user.email,
           planId: 'unlimited',
           billingCycle: selectedCycle,
+          referralCode: refCode || undefined,
         }),
       })
 
@@ -215,6 +217,22 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
                 <Check className="h-4 w-4 text-emerald-600 shrink-0 font-bold" />
                 <span>Hỗ trợ ưu tiên kỹ thuật 24/7</span>
               </div>
+            </div>
+          </div>
+
+          {/* Lưu ý quan trọng khi thanh toán */}
+          <div className="rounded-2xl bg-amber-50/90 border border-amber-200/90 p-3.5 text-xs text-amber-900 flex items-start gap-3 shadow-2xs">
+            <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-amber-950 flex items-center gap-1.5">
+                <span>Lưu ý thanh toán VietQR:</span>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 border border-amber-300">
+                  Quét &amp; Chuyển ngay
+                </span>
+              </p>
+              <p className="text-amber-800 leading-relaxed text-[11px]">
+                Vui lòng mở ứng dụng ngân hàng và <strong>chuyển khoản ngay</strong> trên màn hình thanh toán. <strong>Không chụp màn hình để chuyển khoản sau</strong> vì đơn hàng sẽ hết hạn, dẫn đến việc tài khoản không thể kích hoạt tự động.
+              </p>
             </div>
           </div>
 

@@ -28,6 +28,8 @@ import {
   X,
   Play,
   ArrowRight,
+  MessageCircle,
+  MessageSquare,
 } from "lucide-react";
 import { VideoTutorialModal } from "@/components/tutorials/video-tutorial-modal";
 import type { WinningProduct } from "@/types/winning-product";
@@ -55,11 +57,22 @@ function WinningProductsContent() {
     const raw = searchParams.get("market")?.toUpperCase();
     return raw === "VN" || raw === "GLOBAL" ? raw : "ALL";
   });
+  const [platformFilter, setPlatformFilter] = useState<"ALL" | "LANDING" | "MESSENGER" | "WHATSAPP">(() => {
+    const raw = searchParams.get("platform")?.toUpperCase();
+    return raw === "LANDING" || raw === "MESSENGER" || raw === "WHATSAPP" ? raw : "ALL";
+  });
   const [page, setPage] = useState(() => parseInt(searchParams.get("page") || "1", 10) || 1);
 
   // Data States
   const [products, setProducts] = useState<WinningProduct[]>([]);
-  const [stats, setStats] = useState({ total: 0, vn_count: 0, global_count: 0 });
+  const [stats, setStats] = useState({
+    total: 0,
+    vn_count: 0,
+    global_count: 0,
+    landing_count: 0,
+    messenger_count: 0,
+    whatsapp_count: 0,
+  });
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -81,12 +94,18 @@ function WinningProductsContent() {
   }, [openUpgradeModal]);
 
   // Fetch products from API (Cached Google Sheets data)
-  const fetchProducts = useCallback(async (qVal: string, mVal: "ALL" | "VN" | "GLOBAL", pageVal: number) => {
+  const fetchProducts = useCallback(async (
+    qVal: string,
+    mVal: "ALL" | "VN" | "GLOBAL",
+    pVal: "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP",
+    pageVal: number
+  ) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (qVal.trim()) params.set("q", qVal.trim());
       if (mVal !== "ALL") params.set("market", mVal);
+      if (pVal !== "ALL") params.set("platform", pVal);
       if (pageVal > 1) params.set("page", String(pageVal));
       params.set("limit", "24");
 
@@ -117,16 +136,17 @@ function WinningProductsContent() {
 
   // Sync state to URL and fetch on change
   useEffect(() => {
-    fetchProducts(searchQuery, marketFilter, page);
+    fetchProducts(searchQuery, marketFilter, platformFilter, page);
 
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     if (marketFilter !== "ALL") params.set("market", marketFilter);
+    if (platformFilter !== "ALL") params.set("platform", platformFilter);
     if (page > 1) params.set("page", String(page));
 
     const newUrl = params.toString() ? `/winning-products?${params.toString()}` : `/winning-products`;
     window.history.replaceState(null, "", newUrl);
-  }, [searchQuery, marketFilter, page, fetchProducts]);
+  }, [searchQuery, marketFilter, platformFilter, page, fetchProducts]);
 
   const handleSelectProduct = (product: WinningProduct) => {
     setSelectedProduct(product);
@@ -140,6 +160,13 @@ function WinningProductsContent() {
     });
   };
 
+  const handlePlatformChange = (p: "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP") => {
+    startTransition(() => {
+      setPlatformFilter(p);
+      setPage(1);
+    });
+  };
+
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPage(1);
@@ -148,6 +175,7 @@ function WinningProductsContent() {
   const handleResetFilters = () => {
     setSearchQuery("");
     setMarketFilter("ALL");
+    setPlatformFilter("ALL");
     setPage(1);
   };
 
@@ -234,6 +262,36 @@ function WinningProductsContent() {
                     <p className="text-xl font-black text-sky-400">{stats.global_count || "33"}</p>
                     {!isUnlimited && <Lock className="h-3.5 w-3.5 text-sky-300" />}
                   </div>
+                </button>
+
+                {/* Counter Landing Page */}
+                <button
+                  type="button"
+                  onClick={() => handlePlatformChange("LANDING")}
+                  className={`px-3 py-2 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-center transition-all cursor-pointer hover:bg-indigo-500/25 ${
+                    platformFilter === "LANDING" ? "ring-2 ring-indigo-400" : ""
+                  }`}
+                  title="Lọc sản phẩm chạy Landing Page"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="text-[10px] uppercase font-bold text-indigo-300 tracking-wider">🌐 Landing</p>
+                  </div>
+                  <p className="text-xl font-black text-indigo-300">{stats.landing_count || 0}</p>
+                </button>
+
+                {/* Counter Mess tin nhắn */}
+                <button
+                  type="button"
+                  onClick={() => handlePlatformChange("MESSENGER")}
+                  className={`px-3 py-2 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-center transition-all cursor-pointer hover:bg-blue-500/25 ${
+                    platformFilter === "MESSENGER" ? "ring-2 ring-blue-400" : ""
+                  }`}
+                  title="Lọc sản phẩm chạy Mess tin nhắn"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="text-[10px] uppercase font-bold text-blue-300 tracking-wider">💬 Mess</p>
+                  </div>
+                  <p className="text-xl font-black text-blue-300">{stats.messenger_count || 0}</p>
                 </button>
               </div>
             </div>
@@ -346,7 +404,7 @@ function WinningProductsContent() {
                         </span>
                       </button>
                     )}
-                    {(searchQuery || marketFilter !== "ALL") && (
+                    {(searchQuery || marketFilter !== "ALL" || platformFilter !== "ALL") && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -359,6 +417,86 @@ function WinningProductsContent() {
                       </Button>
                     )}
                   </div>
+                </div>
+
+                {/* Platform Filter Pills (Dạng chạy / Nền tảng) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 border-t border-slate-100">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+                    <span>Dạng chạy:</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePlatformChange("ALL")}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      platformFilter === "ALL"
+                        ? "bg-slate-900 text-white shadow-2xs"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>Tất cả</span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                      platformFilter === "ALL" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {stats.total || total}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePlatformChange("LANDING")}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      platformFilter === "LANDING"
+                        ? "bg-indigo-600 text-white shadow-2xs"
+                        : "bg-indigo-50/80 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/60"
+                    }`}
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    <span>Landing Page</span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                      platformFilter === "LANDING" ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-800"
+                    }`}>
+                      {stats.landing_count || 0}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePlatformChange("MESSENGER")}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      platformFilter === "MESSENGER"
+                        ? "bg-blue-600 text-white shadow-2xs"
+                        : "bg-blue-50/80 text-blue-700 hover:bg-blue-100 border border-blue-200/60"
+                    }`}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span>Mess tin nhắn</span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                      platformFilter === "MESSENGER" ? "bg-white/20 text-white" : "bg-blue-100 text-blue-800"
+                    }`}>
+                      {stats.messenger_count || 0}
+                    </span>
+                  </button>
+
+                  {stats.whatsapp_count > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handlePlatformChange("WHATSAPP")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                        platformFilter === "WHATSAPP"
+                          ? "bg-emerald-600 text-white shadow-2xs"
+                          : "bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60"
+                      }`}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      <span>WhatsApp</span>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                        platformFilter === "WHATSAPP" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
+                      }`}>
+                        {stats.whatsapp_count}
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Search Bar Input */}

@@ -39,7 +39,7 @@ async function processUserProfileSync(params: {
   // 1. Kiểm tra profile hiện tại trong database
   const { data: existing, error: fetchErr } = await supabaseAdmin
     .from('user_profiles')
-    .select('id, subscription_plan, subscription_status, subscription_end, email, created_at')
+    .select('id, subscription_plan, subscription_status, subscription_end, email, referred_by, created_at')
     .eq('id', userId)
     .maybeSingle()
 
@@ -112,11 +112,25 @@ async function processUserProfileSync(params: {
 
   // 5. Cập nhật hoặc tạo profile
   if (existing) {
+    const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() }
+    let shouldUpdate = false
+
     // Nếu profile đã tồn tại nhưng thiếu email thì bổ sung
     if (!existing.email && resolvedEmail) {
+      updatePayload.email = resolvedEmail
+      shouldUpdate = true
+    }
+
+    // Nếu profile chưa có người giới thiệu nhưng request có truyền mã thì bổ sung
+    if (!existing.referred_by && referredBy) {
+      updatePayload.referred_by = referredBy.trim().toUpperCase()
+      shouldUpdate = true
+    }
+
+    if (shouldUpdate) {
       await supabaseAdmin
         .from('user_profiles')
-        .update({ email: resolvedEmail, updated_at: new Date().toISOString() })
+        .update(updatePayload)
         .eq('id', userId)
     }
 

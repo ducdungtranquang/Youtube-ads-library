@@ -129,13 +129,16 @@ export default function AffiliatePage() {
     }
   }, [referralCount, calcCycle])
 
-  // Current domain referral URL
+  // Current domain referral URL (luôn ưu tiên domain thực tế người dùng đang truy cập)
   const currentReferralUrl = useMemo(() => {
-    if (stats?.referralUrl) return stats.referralUrl
-    if (typeof window !== "undefined" && stats?.partner?.referralCode) {
-      return `${window.location.origin}/register?ref=${stats.partner.referralCode}`
+    const code = stats?.partner?.referralCode || "DEMO888"
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/register?ref=${code}`
     }
-    return "https://adsspytool.io/register?ref=DEMO888"
+    if (stats?.referralUrl && !stats.referralUrl.includes("localhost")) {
+      return stats.referralUrl
+    }
+    return `https://ads-spy-tool.tech/register?ref=${code}`
   }, [stats])
 
   const handleCopyLink = () => {
@@ -586,10 +589,20 @@ Link đăng ký nhận lượt tìm kiếm: {{LINK}}`,
                       type="button"
                       variant="outline"
                       onClick={handleCopyCode}
-                      className="h-12 px-4 rounded-xl border-slate-800 bg-slate-950 hover:bg-slate-800 text-slate-300 font-semibold text-xs cursor-pointer"
+                      className="h-12 px-4 rounded-xl border-slate-700 bg-slate-900 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 font-bold text-xs cursor-pointer shadow-sm flex items-center gap-1.5"
                       title="Sao chép chỉ mã giới thiệu"
                     >
-                      {isCopiedCode ? <Check className="h-4 w-4 text-emerald-400" /> : "Mã"}
+                      {isCopiedCode ? (
+                        <>
+                          <Check className="h-4 w-4 text-emerald-400" />
+                          <span>Đã chép mã</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>Mã: <strong className="font-mono text-white">{stats?.partner?.referralCode || "DEMO888"}</strong></span>
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -703,24 +716,24 @@ Link đăng ký nhận lượt tìm kiếm: {{LINK}}`,
           {/* Detailed Tabbed Tables */}
           <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-5 sm:p-7 shadow-xl">
             <Tabs defaultValue="commissions" className="w-full">
-              <TabsList className="bg-slate-950 border border-slate-800 rounded-2xl p-1 mb-6 flex-wrap h-auto gap-1">
+              <TabsList className="bg-slate-950 border border-slate-800 rounded-2xl p-1.5 mb-6 flex-wrap h-auto gap-1.5 shadow-inner">
                 <TabsTrigger
                   value="commissions"
-                  className="rounded-xl px-4 py-2 text-xs font-bold data-[state=active]:bg-emerald-600 data-[state=active]:text-slate-950 cursor-pointer"
+                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/70 border border-transparent data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-md cursor-pointer transition-all"
                 >
                   <DollarSign className="mr-1.5 h-3.5 w-3.5" />
                   Lịch sử hoa hồng ({stats?.commissions?.length || 0})
                 </TabsTrigger>
                 <TabsTrigger
                   value="payouts"
-                  className="rounded-xl px-4 py-2 text-xs font-bold data-[state=active]:bg-emerald-600 data-[state=active]:text-slate-950 cursor-pointer"
+                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/70 border border-transparent data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-md cursor-pointer transition-all"
                 >
                   <Wallet className="mr-1.5 h-3.5 w-3.5" />
                   Lịch sử rút tiền ({stats?.payouts?.length || 0})
                 </TabsTrigger>
                 <TabsTrigger
                   value="swipes"
-                  className="rounded-xl px-4 py-2 text-xs font-bold data-[state=active]:bg-emerald-600 data-[state=active]:text-slate-950 cursor-pointer"
+                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/70 border border-transparent data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-md cursor-pointer transition-all"
                 >
                   <FileText className="mr-1.5 h-3.5 w-3.5" />
                   Kịch bản bài viết mẫu (Swipe Files)

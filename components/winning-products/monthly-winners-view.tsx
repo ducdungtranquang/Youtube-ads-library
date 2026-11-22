@@ -148,6 +148,7 @@ export function MonthlyWinnersView({ onSelectProduct }: MonthlyWinnersViewProps)
                   key={dateStr}
                   onClick={() =>
                     onSelectProduct({
+                      id: item.product_key || item.domain || dateStr,
                       domain: item.domain,
                       title: item.title,
                       product_score: item.product_score,
@@ -250,6 +251,7 @@ export function MonthlyWinnersView({ onSelectProduct }: MonthlyWinnersViewProps)
                             className="text-sm font-bold text-slate-900 truncate hover:text-indigo-600 cursor-pointer"
                             onClick={() =>
                               onSelectProduct({
+                                id: item.product_key || item.domain || `top-${rank}`,
                                 domain: item.domain,
                                 title: item.title,
                                 product_score: item.latest_score,
@@ -310,6 +312,7 @@ export function MonthlyWinnersView({ onSelectProduct }: MonthlyWinnersViewProps)
                       size="sm"
                       onClick={() =>
                         onSelectProduct({
+                          id: item.product_key || item.domain || `top-ads-${item.domain}`,
                           domain: item.domain,
                           title: item.title,
                           product_score: item.latest_score,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Flame, Clock, Store, Tag, ArrowUpRight, ShoppingBag } from "lucide-react";
+import { Flame, Clock, Store, Tag, ArrowUpRight, ShoppingBag, Globe, MessageCircle, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { WinningProduct } from "@/types/winning-product";
@@ -85,7 +85,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
           ) : null}
         </div>
 
-        {/* Page / Brand Row */}
+        {/* Page / Brand & Platform Row */}
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
             <Store className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
@@ -97,15 +97,46 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
             </span>
           </div>
 
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-              product.market_type === "VN"
-                ? "bg-rose-50 text-rose-700 border border-rose-200"
-                : "bg-sky-50 text-sky-700 border border-sky-200"
-            }`}
-          >
-            {product.market_type === "VN" ? "Việt Nam" : "Quốc tế"}
-          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Nền tảng / Dạng chạy (Landing vs Messenger vs WhatsApp) */}
+            {product.platform_type === "LANDING" && (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs"
+                title="Dạng chạy: Landing Page chuyển đổi"
+              >
+                <Globe className="h-3 w-3 text-indigo-600" />
+                <span>Landing</span>
+              </span>
+            )}
+            {product.platform_type === "MESSENGER" && (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs"
+                title="Dạng chạy: Mess tin nhắn Messenger"
+              >
+                <MessageCircle className="h-3 w-3 text-blue-600" />
+                <span>Mess</span>
+              </span>
+            )}
+            {product.platform_type === "WHATSAPP" && (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs"
+                title="Dạng chạy: Mess WhatsApp"
+              >
+                <MessageSquare className="h-3 w-3 text-emerald-600" />
+                <span>WhatsApp</span>
+              </span>
+            )}
+
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                product.market_type === "VN"
+                  ? "bg-rose-50 text-rose-700 border border-rose-200"
+                  : "bg-sky-50 text-sky-700 border border-sky-200"
+              }`}
+            >
+              {product.market_type === "VN" ? "Việt Nam" : "Quốc tế"}
+            </span>
+          </div>
         </div>
 
         {/* Product Title */}
