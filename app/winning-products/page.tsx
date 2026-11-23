@@ -16,6 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Flame,
   Trophy,
   Sparkles,
@@ -30,9 +37,10 @@ import {
   ArrowRight,
   MessageCircle,
   MessageSquare,
+  ArrowUpDown,
 } from "lucide-react";
 import { VideoTutorialModal } from "@/components/tutorials/video-tutorial-modal";
-import type { WinningProduct } from "@/types/winning-product";
+import type { WinningProduct, WinningProductSortOption } from "@/types/winning-product";
 
 function WinningProductsContent() {
   const router = useRouter();
@@ -60,6 +68,15 @@ function WinningProductsContent() {
   const [platformFilter, setPlatformFilter] = useState<"ALL" | "LANDING" | "MESSENGER" | "WHATSAPP">(() => {
     const raw = searchParams.get("platform")?.toUpperCase();
     return raw === "LANDING" || raw === "MESSENGER" || raw === "WHATSAPP" ? raw : "ALL";
+  });
+  const [sortBy, setSortBy] = useState<WinningProductSortOption>(() => {
+    const raw = searchParams.get("sort");
+    return raw === "date_asc" ||
+      raw === "price_desc" ||
+      raw === "price_asc" ||
+      raw === "ads_desc"
+      ? (raw as WinningProductSortOption)
+      : "date_desc";
   });
   const [page, setPage] = useState(() => parseInt(searchParams.get("page") || "1", 10) || 1);
 
@@ -98,6 +115,7 @@ function WinningProductsContent() {
     qVal: string,
     mVal: "ALL" | "VN" | "GLOBAL",
     pVal: "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP",
+    sortVal: WinningProductSortOption,
     pageVal: number
   ) => {
     setLoading(true);
@@ -106,6 +124,7 @@ function WinningProductsContent() {
       if (qVal.trim()) params.set("q", qVal.trim());
       if (mVal !== "ALL") params.set("market", mVal);
       if (pVal !== "ALL") params.set("platform", pVal);
+      if (sortVal !== "date_desc") params.set("sort", sortVal);
       if (pageVal > 1) params.set("page", String(pageVal));
       params.set("limit", "24");
 
@@ -136,17 +155,18 @@ function WinningProductsContent() {
 
   // Sync state to URL and fetch on change
   useEffect(() => {
-    fetchProducts(searchQuery, marketFilter, platformFilter, page);
+    fetchProducts(searchQuery, marketFilter, platformFilter, sortBy, page);
 
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     if (marketFilter !== "ALL") params.set("market", marketFilter);
     if (platformFilter !== "ALL") params.set("platform", platformFilter);
+    if (sortBy !== "date_desc") params.set("sort", sortBy);
     if (page > 1) params.set("page", String(page));
 
     const newUrl = params.toString() ? `/winning-products?${params.toString()}` : `/winning-products`;
     window.history.replaceState(null, "", newUrl);
-  }, [searchQuery, marketFilter, platformFilter, page, fetchProducts]);
+  }, [searchQuery, marketFilter, platformFilter, sortBy, page, fetchProducts]);
 
   const handleSelectProduct = (product: WinningProduct) => {
     setSelectedProduct(product);
@@ -176,6 +196,7 @@ function WinningProductsContent() {
     setSearchQuery("");
     setMarketFilter("ALL");
     setPlatformFilter("ALL");
+    setSortBy("date_desc");
     setPage(1);
   };
 
@@ -404,7 +425,7 @@ function WinningProductsContent() {
                         </span>
                       </button>
                     )}
-                    {(searchQuery || marketFilter !== "ALL" || platformFilter !== "ALL") && (
+                    {(searchQuery || marketFilter !== "ALL" || platformFilter !== "ALL" || sortBy !== "date_desc") && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -499,26 +520,63 @@ function WinningProductsContent() {
                   )}
                 </div>
 
-                {/* Search Bar Input */}
-                <form onSubmit={handleSearchSubmit} className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                  <Input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Tìm kiếm theo tên sản phẩm, tên Fanpage..."
-                    className="w-full h-11 pl-11 pr-10 rounded-2xl border-slate-200 bg-slate-50/60 focus:bg-white text-sm shadow-2xs transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                {/* Search Bar Input & Sort Dropdown */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <form onSubmit={handleSearchSubmit} className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <Input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Tìm kiếm theo tên sản phẩm, tên Fanpage..."
+                      className="w-full h-11 pl-11 pr-10 rounded-2xl border-slate-200 bg-slate-50/60 focus:bg-white text-sm shadow-2xs transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </form>
+
+                  {/* Sort Selector */}
+                  <div className="shrink-0">
+                    <Select
+                      value={sortBy}
+                      onValueChange={(val) => {
+                        startTransition(() => {
+                          setSortBy(val as WinningProductSortOption);
+                          setPage(1);
+                        });
+                      }}
                     >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </form>
+                      <SelectTrigger className="h-11 px-3.5 rounded-2xl border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 text-xs sm:text-sm font-semibold text-slate-800 shadow-2xs gap-2 w-full sm:w-[220px] cursor-pointer">
+                        <ArrowUpDown className="h-4 w-4 text-indigo-600 shrink-0" />
+                        <SelectValue placeholder="Sắp xếp theo" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-slate-200 shadow-lg bg-white z-50">
+                        <SelectItem value="date_desc" className="rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+                          📅 Ngày quét: Mới nhất
+                        </SelectItem>
+                        <SelectItem value="date_asc" className="rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+                          📅 Ngày quét: Cũ nhất
+                        </SelectItem>
+                        <SelectItem value="price_desc" className="rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+                          💎 Giá: Cao đến thấp
+                        </SelectItem>
+                        <SelectItem value="price_asc" className="rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+                          🏷️ Giá: Thấp đến cao
+                        </SelectItem>
+                        <SelectItem value="ads_desc" className="rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+                          🔥 Ads chạy: Nhiều nhất
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
               {/* Product Grid / Loading / Empty */}

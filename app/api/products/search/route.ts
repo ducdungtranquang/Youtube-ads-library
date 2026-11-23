@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWinningProductsList, getAllSheetWinningProducts } from "@/lib/services/winning-products-sheet";
+import { WinningProductSortOption } from "@/types/winning-product";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,17 @@ export async function GET(request: NextRequest) {
     const market = rawMarket.toUpperCase() as "ALL" | "VN" | "GLOBAL";
     const rawPlatform = searchParams.get("platform") || "ALL";
     const platform = rawPlatform.toUpperCase() as "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP";
+    const rawSort = searchParams.get("sort") || "date_desc";
+    const sort: WinningProductSortOption = [
+      "date_desc",
+      "date_asc",
+      "price_desc",
+      "price_asc",
+      "ads_desc",
+    ].includes(rawSort)
+      ? (rawSort as WinningProductSortOption)
+      : "date_desc";
+
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "24", 10);
 
@@ -21,6 +33,7 @@ export async function GET(request: NextRequest) {
       q,
       market: ["ALL", "VN", "GLOBAL"].includes(market) ? market : "ALL",
       platform: ["ALL", "LANDING", "MESSENGER", "WHATSAPP"].includes(platform) ? platform : "ALL",
+      sort,
       page: isNaN(page) ? 1 : page,
       limit: isNaN(limit) ? 24 : limit,
     });

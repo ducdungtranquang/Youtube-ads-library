@@ -1,5 +1,11 @@
 export type ProductPlatformType = "LANDING" | "MESSENGER" | "WHATSAPP" | "OTHER";
 export type ProductPlatformFilter = "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP";
+export type WinningProductSortOption =
+  | "date_desc"
+  | "date_asc"
+  | "price_desc"
+  | "price_asc"
+  | "ads_desc";
 
 export interface WinningProduct {
   id: string;
@@ -85,6 +91,8 @@ export interface ProductSearchParams {
   q?: string;
   domain?: string;
   market?: "ALL" | "VN" | "GLOBAL";
+  platform?: ProductPlatformFilter;
+  sort?: WinningProductSortOption;
   min_product_score?: number | string;
   min_winning_ads?: number | string;
   min_total_ads?: number | string;

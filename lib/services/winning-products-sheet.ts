@@ -1,3 +1,5 @@
+import { WinningProductSortOption } from "@/types/winning-product";
+
 /**
  * Service trích xuất và tối ưu hóa dữ liệu Winning Products từ Google Sheets
  * URL: https://docs.google.com/spreadsheets/d/1caTdmpu0CdJ6xVMJjDq3WtRrFDCzBp4MwvluayokQhM/edit
@@ -122,6 +124,70 @@ export function resolvePlatformType(
   }
 
   return { type: "OTHER", label: raw || "Chưa rõ", raw: raw || "Chưa rõ" };
+}
+
+/**
+ * Chuyển đổi chuỗi ngày quét (định dạng DD/MM/YYYY) sang timestamp mili-giây
+ */
+export function parseScanDate(dateStr?: string): number {
+  if (!dateStr || typeof dateStr !== "string") return 0;
+  const parts = dateStr.trim().split(/[/.-]/);
+  if (parts.length >= 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      return new Date(year, month - 1, day).getTime();
+    }
+  }
+  const parsed = Date.parse(dateStr);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * Trích xuất giá trị số chuẩn hóa (quy đổi ra VND tương đương) từ chuỗi giá sản phẩm để so sánh
+ */
+export function parsePriceValue(priceStr?: string): number {
+  if (!priceStr || typeof priceStr !== "string") return 0;
+  const raw = priceStr.trim().toLowerCase();
+
+  // Bỏ qua các trường hợp không có giá hợp lệ
+  if (
+    raw.includes("không lấy được") ||
+    raw.includes("không rõ") ||
+    raw.includes("liên hệ") ||
+    raw.includes("n/a")
+  ) {
+    return 0;
+  }
+
+  // Nếu là ngoại tệ USD, CAD ($19.99, $35 CAD, ...)
+  if (raw.includes("$") || raw.includes("usd") || raw.includes("cad")) {
+    const match = raw.match(/[\d]+(?:[.,]\d+)?/);
+    if (match) {
+      const val = parseFloat(match[0].replace(",", "."));
+      if (!isNaN(val)) {
+        // Quy đổi ước tính 1 USD ~ 25,400 VND để so sánh tương quan cùng giá VND
+        return Math.round(val * 25400);
+      }
+    }
+  }
+
+  // Nếu là định dạng K (ví dụ: 99K, 150k)
+  const kMatch = raw.match(/(\d+(?:[.,]\d+)?)\s*k\b/);
+  if (kMatch) {
+    const val = parseFloat(kMatch[1].replace(",", "."));
+    if (!isNaN(val)) return Math.round(val * 1000);
+  }
+
+  // Định dạng số tiền VND chuẩn (ví dụ: 365.000đ, 1.200.000, 250000)
+  const cleanDigits = raw.replace(/[^\d]/g, "");
+  if (cleanDigits) {
+    const val = parseInt(cleanDigits, 10);
+    return isNaN(val) ? 0 : val;
+  }
+
+  return 0;
 }
 
 // Hàm parse CSV chuẩn RFC 4180 xử lý chuỗi nhiều dòng và dấu ngoặc kép
@@ -347,6 +413,7 @@ export async function getWinningProductsList(params: {
   q?: string;
   market?: "ALL" | "VN" | "GLOBAL";
   platform?: "ALL" | "LANDING" | "MESSENGER" | "WHATSAPP";
+  sort?: WinningProductSortOption;
   page?: number;
   limit?: number;
 }): Promise<{
@@ -417,12 +484,44 @@ export async function getWinningProductsList(params: {
     });
   }
 
-  const total = filtered.length;
+  // 4. Sắp xếp danh sách (Mặc định: ngày quét mới nhất trước)
+  const sort = params.sort || "date_desc";
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === "date_desc") {
+      const diff = parseScanDate(b.scan_date) - parseScanDate(a.scan_date);
+      if (diff !== 0) return diff;
+      return (Number(b.id) || 0) - (Number(a.id) || 0);
+    }
+    if (sort === "date_asc") {
+      const diff = parseScanDate(a.scan_date) - parseScanDate(b.scan_date);
+      if (diff !== 0) return diff;
+      return (Number(a.id) || 0) - (Number(b.id) || 0);
+    }
+    if (sort === "price_desc") {
+      const priceB = parsePriceValue(b.price);
+      const priceA = parsePriceValue(a.price);
+      return priceB - priceA;
+    }
+    if (sort === "price_asc") {
+      const priceA = parsePriceValue(a.price);
+      const priceB = parsePriceValue(b.price);
+      if (priceA > 0 && priceB > 0) return priceA - priceB;
+      if (priceA > 0 && priceB === 0) return -1;
+      if (priceA === 0 && priceB > 0) return 1;
+      return 0;
+    }
+    if (sort === "ads_desc") {
+      return (b.ads_running_count || 0) - (a.ads_running_count || 0);
+    }
+    return 0;
+  });
+
+  const total = sorted.length;
   const page = Math.max(Number(params.page) || 1, 1);
   const limit = Math.min(Math.max(Number(params.limit) || 24, 1), 100);
   const pages = Math.ceil(total / limit) || 1;
   const startIndex = (page - 1) * limit;
-  const paginated = filtered.slice(startIndex, startIndex + limit);
+  const paginated = sorted.slice(startIndex, startIndex + limit);
 
   // Chỉ trả về các trường cơ bản cho card
   const basicItems = paginated.map((item) => ({
