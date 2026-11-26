@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -32,9 +32,26 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
   const [selectedCycle, setSelectedCycle] = useState<BillingCycle>('quarterly')
   const [isProcessing, setIsProcessing] = useState(false)
 
-  if (!isOpen) return null
-
   const activeCycle = BILLING_CYCLES[selectedCycle]
+
+  // Khóa cuộn trang nền và hỗ trợ đóng modal bằng phím ESC
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose])
 
   const handleCheckout = async () => {
     if (!user) {
@@ -79,42 +96,52 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
     return new Intl.NumberFormat('vi-VN').format(val) + '₫'
   }
 
+  if (!isOpen) return null
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200 p-3 sm:p-4 md:p-6 flex items-center justify-center min-h-screen"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
       <div
-        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
       >
         {/* Glow ambient header */}
-        <div className="relative bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 px-6 py-7 text-white text-center overflow-hidden">
+        <div className="relative shrink-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 px-5 py-5 sm:px-6 sm:py-6 text-white text-center overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
 
           {/* Close button */}
           <button
+            type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 p-2 rounded-full text-slate-300 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-md transition-all cursor-pointer border border-white/10 shadow-sm"
             aria-label="Đóng"
           >
             <X className="h-5 w-5" />
           </button>
 
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <ShieldAlert className="h-4 w-4 text-rose-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />
             Đã đạt giới hạn tìm kiếm hôm nay (3 lượt)
           </div>
 
-          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white">
             Nâng Cấp Gói Không Giới Hạn (Unlimited)
           </h2>
 
-          <p className="mt-2 text-xs md:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+          <p className="mt-1.5 text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
             Tài khoản <span className="font-bold text-amber-400">Miễn phí</span> vẫn xem được Full thông tin quảng cáo nhưng giới hạn 3 lượt tìm kiếm/ngày và không xem được Winning Products. Nâng cấp ngay để tìm kiếm không giới hạn, xem Winning Products và nhận 3–5 sản phẩm tiềm năng mỗi tuần!
           </p>
         </div>
 
         {/* Content & Billing Cycle Selector */}
-        <div className="p-6 md:p-8 space-y-6">
+        <div className="p-5 sm:p-6 md:p-8 space-y-5 sm:space-y-6 overflow-y-auto overscroll-contain flex-1">
           {/* Cycle Options */}
           <div>
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">

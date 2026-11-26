@@ -865,7 +865,7 @@ function FacebookAdsSearchContent() {
       dateTo?: string;
     }
   ) => {
-    if (!isInitialLoad && !checkCanSearch()) {
+    if (!checkCanSearch()) {
       return;
     }
 
@@ -939,7 +939,7 @@ function FacebookAdsSearchContent() {
       if (result?.success) {
         const adsData = Array.isArray(result.data) ? result.data : [];
         setResults(adsData);
-        if (!isInitialLoad && adsData.length > 0) {
+        if (adsData.length > 0) {
           consumeSearch();
         }
         if (result.pagination) {
