@@ -101,7 +101,7 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold uppercase tracking-wider mb-2">
             <ShieldAlert className="h-4 w-4 text-rose-400" />
-            Đã đạt giới hạn tìm kiếm hôm nay (5 lượt)
+            Đã đạt giới hạn tìm kiếm hôm nay (3 lượt)
           </div>
 
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
@@ -109,7 +109,7 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
           </h2>
 
           <p className="mt-2 text-xs md:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-            Tài khoản <span className="font-bold text-amber-400">Miễn phí</span> vẫn xem được Full thông tin quảng cáo nhưng giới hạn 5 lượt tìm kiếm/ngày và không xem được Winning Products. Nâng cấp ngay để tìm kiếm không giới hạn, xem Winning Products và nhận 3–5 sản phẩm tiềm năng mỗi tuần!
+            Tài khoản <span className="font-bold text-amber-400">Miễn phí</span> vẫn xem được Full thông tin quảng cáo nhưng giới hạn 3 lượt tìm kiếm/ngày và không xem được Winning Products. Nâng cấp ngay để tìm kiếm không giới hạn, xem Winning Products và nhận 3–5 sản phẩm tiềm năng mỗi tuần!
           </p>
         </div>
 

@@ -107,7 +107,7 @@ export async function sendSlackNewUserNotification(payload: UserRegistrationPayl
         elements: [
           {
             type: 'mrkdwn',
-            text: '💡 *Hệ thống Spy Ads QuickBlack* • Tự động kích hoạt gói dùng thử Miễn phí 5 lượt/ngày',
+            text: '💡 *Hệ thống Spy Ads QuickBlack* • Tự động kích hoạt gói dùng thử Miễn phí 3 lượt/ngày',
           },
         ],
       },

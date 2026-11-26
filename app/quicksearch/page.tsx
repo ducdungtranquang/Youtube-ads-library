@@ -199,7 +199,7 @@ function QuickSearchPage() {
 
             <p className="mx-auto mb-8 max-w-2xl text-sm md:text-base text-slate-600 leading-relaxed">
               Tìm kiếm trực tiếp kho video quảng cáo YouTube triệu view từ các thương hiệu hàng đầu.
-              Miễn phí <span className="text-emerald-700 font-bold">5 lượt/ngày</span>. Nâng cấp gói <Link href="/pricing" className="text-indigo-600 font-bold hover:underline">Không giới hạn (chỉ từ 79k/tháng)</Link> để Nghiên cứu toàn diện không giới hạn.
+              Miễn phí <span className="text-emerald-700 font-bold">3 lượt/ngày</span>. Nâng cấp gói <Link href="/pricing" className="text-indigo-600 font-bold hover:underline">Không giới hạn (chỉ từ 79k/tháng)</Link> để Nghiên cứu toàn diện không giới hạn.
             </p>
 
             {/* Search Input Bar */}

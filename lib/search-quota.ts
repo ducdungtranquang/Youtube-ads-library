@@ -73,7 +73,7 @@ export class SearchQuotaManager {
 
   /**
    * Get search limit for a plan
-   * Free: 5 searches/day (for YT and FB)
+   * Free: 3 searches/day (for YT and FB)
    * Unlimited: Unlimited (-1)
    */
   static getLimit(plan: PlanType): number {
@@ -84,7 +84,7 @@ export class SearchQuotaManager {
       case 'personal':
         return -1
       default:
-        return 5
+        return 3
     }
   }
 
@@ -125,14 +125,14 @@ export class SearchQuotaManager {
     const today = getTodayKey()
     const { featureUsed, totalUsed } = this.getLocalUsage(feature, user?.id)
 
-    // For free plan, 5 searches/day applies per feature. Unlimited plan has limit -1.
+    // For free plan, 3 searches/day applies per feature. Unlimited plan has limit -1.
     const used = featureUsed
     const remaining = isUnlimited ? -1 : Math.max(0, limit - used)
     const canSearch = isUnlimited || remaining > 0
 
     let message: string | undefined
     if (!canSearch) {
-      message = `Bạn đã sử dụng hết 5 lượt tìm kiếm miễn phí ${feature === 'yt' ? 'YouTube Ads' : 'Facebook Ads'} hôm nay. Nâng cấp gói Không giới hạn (chỉ từ 79k/tháng) để tìm kiếm không giới hạn!`
+      message = `Bạn đã sử dụng hết 3 lượt tìm kiếm miễn phí ${feature === 'yt' ? 'YouTube Ads' : 'Facebook Ads'} hôm nay. Nâng cấp gói Không giới hạn (chỉ từ 79k/tháng) để tìm kiếm không giới hạn!`
     }
 
     return {

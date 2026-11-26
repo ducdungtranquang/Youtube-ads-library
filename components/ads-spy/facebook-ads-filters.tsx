@@ -298,29 +298,6 @@ export function FacebookAdsFilters(props: FacebookAdsFiltersProps) {
           </div>
         </div>
 
-        {/* Mức độ Scaling */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Mức độ Scaling</span>
-          </label>
-          <Select
-            value={props.scalingLevel || "ALL"}
-            onValueChange={(val) => props.setScalingLevel(val === "ALL" ? "" : val)}
-          >
-            <SelectTrigger className="w-full h-8.5 text-xs bg-white border-slate-200 text-slate-800 shadow-2xs hover:bg-slate-50 rounded-lg">
-              <SelectValue placeholder="Tất cả mức độ" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 text-slate-800 shadow-lg text-xs">
-              {scalingOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value} className="focus:bg-slate-100 cursor-pointer text-xs">
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Mức chi tiêu ước tính (Spend USD) */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">

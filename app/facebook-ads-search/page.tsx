@@ -54,7 +54,6 @@ import { getIndustryLabel } from "@/lib/constants/industries";
 const SORT_OPTIONS = [
   { value: "start_date", label: "📅 Mới xuất bản nhất" },
   { value: "scaling_score", label: "🚀 Điểm Scaling (Vít mạnh)" },
-  { value: "duration_days", label: "⏳ Chạy lâu nhất (Duration)" },
   { value: "estimated_spend_usd", label: "💰 Chi tiêu ước tính cao nhất" },
   { value: "estimated_reach", label: "👁️ Lượt tiếp cận ước tính" },
 ];

@@ -237,7 +237,7 @@ export default function PricingPage() {
 
               <CardContent className="space-y-6 pt-6 px-6 sm:px-8">
                 <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-xs text-amber-900 font-medium leading-relaxed">
-                  ⚡ <strong>5 lượt tìm kiếm/ngày:</strong> Giới hạn 5 lượt tra cứu mỗi ngày cho toàn bộ YouTube Ads & Facebook Ads. Vẫn xem được Full chi tiết quảng cáo.
+                  ⚡ <strong>3 lượt tìm kiếm/ngày:</strong> Giới hạn 3 lượt tra cứu mỗi ngày cho toàn bộ YouTube Ads & Facebook Ads. Vẫn xem được Full chi tiết quảng cáo.
                 </div>
 
                 <ul className="space-y-3.5 text-sm text-slate-700">
@@ -245,7 +245,7 @@ export default function PricingPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
                       <Check className="h-3.5 w-3.5 font-bold" />
                     </div>
-                    <span><strong>5 lượt tìm kiếm/ngày</strong> (YouTube & FB Ads)</span>
+                    <span><strong>3 lượt tìm kiếm/ngày</strong> (YouTube & FB Ads)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mt-0.5 shrink-0">
@@ -496,7 +496,7 @@ export default function PricingPage() {
               <tbody className="divide-y divide-slate-100 text-slate-600">
                 <tr>
                   <td className="py-4 px-6 font-semibold text-slate-900">Lượt tìm kiếm mỗi ngày</td>
-                  <td className="py-4 px-6 text-center font-bold text-amber-600">5 lượt / ngày</td>
+                  <td className="py-4 px-6 text-center font-bold text-amber-600">3 lượt / ngày</td>
                   <td className="py-4 px-6 text-center font-black text-indigo-600 bg-indigo-50/30">Không giới hạn (∞)</td>
                 </tr>
                 <tr>

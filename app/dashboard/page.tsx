@@ -24,7 +24,7 @@ interface UserProfile {
 
 function DashboardPage() {
   const SUBSCRIPTION_MAP: Record<string, { label: string; color: string; limitText: string }> = {
-    free: { label: "Miễn phí", color: "text-slate-700 font-bold", limitText: "5 lượt/ngày" },
+    free: { label: "Miễn phí", color: "text-slate-700 font-bold", limitText: "3 lượt/ngày" },
     unlimited: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
     personal: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
     business: { label: "Không giới hạn", color: "text-indigo-600 font-bold", limitText: "Không giới hạn (∞)" },
@@ -106,7 +106,7 @@ function DashboardPage() {
   const normalizedPlan = SearchQuotaManager.getPlan(user, dbProfile);
   const planInfo = SUBSCRIPTION_MAP[normalizedPlan] || SUBSCRIPTION_MAP.free;
   const isUnlimited = normalizedPlan === 'unlimited';
-  const planLimit = isUnlimited ? -1 : 5;
+  const planLimit = isUnlimited ? -1 : 3;
   const today = new Date().toISOString().split('T')[0];
   const lastSearchDate = dbProfile?.last_search_date ? new Date(dbProfile.last_search_date).toISOString().split('T')[0] : null;
   const localUsage = SearchQuotaManager.getLocalUsage('yt', user?.id);

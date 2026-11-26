@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
     if (!userId || !supabaseAdmin) {
       return NextResponse.json({
         plan: 'free',
-        limit: 5,
+        limit: 3,
         used: 0,
-        remaining: 5,
+        remaining: 3,
         isUnlimited: false,
       })
     }
@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
     if (!userProfile) {
       return NextResponse.json({
         plan: 'free',
-        limit: 5,
+        limit: 3,
         used: 0,
-        remaining: 5,
+        remaining: 3,
         isUnlimited: false,
       })
     }
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
         console.warn('Pending payment auto-recovery check error:', recoveryErr)
       }
     }
-    let limit = 5
+    let limit = 3
     if (plan === 'unlimited' || plan === 'business' || plan === 'company' || plan === 'personal') {
       limit = -1
     }
@@ -150,9 +150,9 @@ export async function GET(request: NextRequest) {
     console.warn('Get search quota error:', error)
     return NextResponse.json({
       plan: 'free',
-      limit: 5,
+      limit: 3,
       used: 0,
-      remaining: 5,
+      remaining: 3,
       isUnlimited: false,
     })
   }
