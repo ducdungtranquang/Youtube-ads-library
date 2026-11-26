@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Flame, Clock, Store, Tag, ArrowUpRight, ShoppingBag, Globe, MessageCircle, MessageSquare } from "lucide-react";
+import {
+  Flame,
+  Clock,
+  Store,
+  Tag,
+  ArrowUpRight,
+  ShoppingBag,
+  Globe,
+  MessageCircle,
+  MessageSquare,
+  Lock,
+  ExternalLink,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { WinningProduct } from "@/types/winning-product";
@@ -10,14 +22,22 @@ import type { WinningProduct } from "@/types/winning-product";
 interface ProductCardProps {
   product: WinningProduct;
   onSelect: (product: WinningProduct) => void;
+  isUnlimited?: boolean;
+  onUpgrade?: () => void;
 }
 
-export function ProductCard({ product, onSelect }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onSelect,
+  isUnlimited = true,
+  onUpgrade,
+}: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const [flagError, setFlagError] = useState(false);
 
-  const thumbnail = (product.thumbnail || product.thumbnail_r2) && !imageError
-    ? (product.thumbnail || product.thumbnail_r2)
+  const rawThumbnail = product.thumbnail || product.thumbnail_r2;
+  const thumbnail = rawThumbnail && !imageError && !rawThumbnail.toLowerCase().includes("không lấy được")
+    ? rawThumbnail
     : null;
 
   // Xử lý icon cờ quốc gia: CHỈ hiển thị nếu xác định được mã quốc gia rõ ràng (country_code)
@@ -40,6 +60,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
               onError={() => setImageError(true)}
+              referrerPolicy="no-referrer"
               unoptimized
             />
           ) : (
@@ -149,13 +170,28 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
           </h3>
         </div>
 
-        {/* Price Tag if available */}
-        {product.price && (
-          <div className="flex items-start gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-            <Tag className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
-            <p className="text-[11px] font-semibold text-slate-700 line-clamp-1 leading-snug">
+        {/* Price Tag Prominent */}
+        {product.price && !product.price.toLowerCase().includes("không lấy được") && !product.price.toLowerCase().includes("n/a") ? (
+          <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-emerald-50/90 border border-emerald-200/90 text-xs shadow-2xs">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="p-1 rounded-md bg-emerald-500/15 text-emerald-700 shrink-0">
+                <Tag className="h-3.5 w-3.5" />
+              </div>
+              <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">
+                Giá bán:
+              </span>
+            </div>
+            <span
+              className="text-xs sm:text-sm font-black text-emerald-950 truncate pl-2"
+              title={product.price}
+            >
               {product.price}
-            </p>
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+            <span className="text-[10px] text-slate-400 font-medium">Giá bán:</span>
+            <span className="text-[11px] text-slate-500 italic">Liên hệ Fanpage</span>
           </div>
         )}
 
@@ -183,15 +219,76 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Footer CTA Button */}
+      {/* Footer CTA: Landing Page Link & Detail Modal */}
       <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-slate-400 group-hover:text-indigo-600 transition-colors">
-          Bấm xem chi tiết
-        </span>
+        {product.landing_url ? (
+          isUnlimited ? (
+            <a
+              href={product.landing_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-bold text-xs transition-all border border-indigo-200/60 hover:border-indigo-600 shadow-2xs cursor-pointer group/btn"
+              title={
+                product.platform_type === "MESSENGER"
+                  ? "Mở Mess Fanpage (Tab mới)"
+                  : product.platform_type === "WHATSAPP"
+                  ? "Mở WhatsApp (Tab mới)"
+                  : "Mở Landing Page (Tab mới)"
+              }
+            >
+              {product.platform_type === "MESSENGER" ? (
+                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-blue-600 group-hover/btn:text-white" />
+              ) : product.platform_type === "WHATSAPP" ? (
+                <MessageSquare className="h-3.5 w-3.5 shrink-0 text-emerald-600 group-hover/btn:text-white" />
+              ) : (
+                <Globe className="h-3.5 w-3.5 shrink-0 text-indigo-600 group-hover/btn:text-white" />
+              )}
+              <span className="truncate">
+                {product.platform_type === "MESSENGER"
+                  ? "Mở Mess"
+                  : product.platform_type === "WHATSAPP"
+                  ? "Mở WhatsApp"
+                  : "Xem Landing"}
+              </span>
+              <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpgrade?.();
+              }}
+              className="flex-1 inline-flex items-center justify-between h-8 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors border border-dashed border-slate-300 shadow-2xs cursor-pointer group/btn"
+              title="Nâng cấp gói Unlimited để mở link này"
+            >
+              <div className="flex items-center gap-1.5 truncate">
+                <Lock className="h-3 w-3 text-amber-600 shrink-0 group-hover/btn:scale-110 transition-transform" />
+                <span className="truncate">
+                  {product.platform_type === "MESSENGER" ? "Mở Mess" : "Xem Landing"}
+                </span>
+              </div>
+              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0">
+                Khóa 🔒
+              </span>
+            </button>
+          )
+        ) : (
+          <span className="text-[11px] font-semibold text-slate-400 group-hover:text-indigo-600 transition-colors">
+            Bấm xem chi tiết
+          </span>
+        )}
 
-        <span className="h-7 w-7 rounded-lg bg-indigo-50 group-hover:bg-indigo-600 text-indigo-600 group-hover:text-white flex items-center justify-center transition-all shadow-2xs">
+        <button
+          type="button"
+          onClick={() => onSelect(product)}
+          className="h-8 w-8 rounded-xl bg-slate-100 hover:bg-indigo-600 text-slate-600 hover:text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+          title="Xem phân tích chi tiết sản phẩm"
+          aria-label="Xem chi tiết"
+        >
           <ArrowUpRight className="h-4 w-4" />
-        </span>
+        </button>
       </div>
     </Card>
   );

@@ -14,11 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   ExternalLink,
   Flame,
-  Trophy,
   Globe,
   Calendar,
   Clock,
@@ -61,9 +59,12 @@ export function ProductDetailModal({
   const productId = product?.id || "";
 
   useEffect(() => {
+    setImageError(false);
+    setFlagError(false);
+    setDetail(null);
+    setError(null);
+
     if (!open || !productId) {
-      setDetail(null);
-      setError(null);
       return;
     }
 
@@ -97,11 +98,16 @@ export function ProductDetailModal({
     };
   }, [open, productId]);
 
-  const display = detail || product;
-  if (!display) return null;
+  const display = {
+    ...product,
+    ...detail,
+    thumbnail: detail?.thumbnail || product?.thumbnail || detail?.thumbnail_r2 || product?.thumbnail_r2 || "",
+  };
+  if (!display || (!display.title && !display.id)) return null;
 
-  const thumbnail = (display.thumbnail || display.thumbnail_r2) && !imageError
-    ? (display.thumbnail || display.thumbnail_r2)
+  const rawThumbnail = display.thumbnail;
+  const thumbnail = rawThumbnail && !imageError && !rawThumbnail.toLowerCase().includes("không lấy được")
+    ? rawThumbnail
     : null;
 
   const countryCode = display.country_code;
@@ -229,11 +235,12 @@ export function ProductDetailModal({
                 {thumbnail ? (
                   <Image
                     src={thumbnail}
-                    alt={display.title}
+                    alt={display.title || "Winning Product Thumbnail"}
                     fill
                     sizes="(max-width: 768px) 100vw, 400px"
                     className="object-contain"
                     onError={() => setImageError(true)}
+                    referrerPolicy="no-referrer"
                     unoptimized
                   />
                 ) : (
@@ -295,7 +302,7 @@ export function ProductDetailModal({
               </div>
             </div>
 
-            {/* Cột phải (7 cột): Thông Số & Lý do WIN */}
+            {/* Cột phải (7 cột): Thông Số & Hành Động */}
             <div className="md:col-span-7 space-y-4">
               {/* Quick Specs Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -362,34 +369,6 @@ export function ProductDetailModal({
                   </div>
                 </div>
               )}
-
-              {/* Lý Do WIN - Trọng tâm phân tích */}
-              <div className="rounded-2xl border-2 border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/40 p-4 sm:p-5 shadow-xs space-y-2">
-                <div className="flex items-center gap-2 text-indigo-900">
-                  <div className="p-1.5 rounded-xl bg-indigo-600 text-white shadow-xs">
-                    <Trophy className="h-4 w-4" />
-                  </div>
-                  <h4 className="text-sm font-black uppercase tracking-wider">
-                    Lý do sản phẩm WIN
-                  </h4>
-                </div>
-
-                {loading ? (
-                  <div className="space-y-2 pt-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                    <Skeleton className="h-4 w-4/6" />
-                  </div>
-                ) : display.win_reason ? (
-                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-medium">
-                    {display.win_reason}
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">
-                    Đang nạp phân tích chi tiết cho sản phẩm này...
-                  </p>
-                )}
-              </div>
 
               {/* Action Buttons */}
               <div className="space-y-2.5 pt-1">

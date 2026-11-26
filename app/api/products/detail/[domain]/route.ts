@@ -10,8 +10,9 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { domain } = await params;
-    const queryId = request.nextUrl.searchParams.get("id");
-    const queryProductKey = request.nextUrl.searchParams.get("product_key");
+    const url = request.nextUrl || new URL(request.url);
+    const queryId = url.searchParams.get("id");
+    const queryProductKey = url.searchParams.get("product_key");
 
     let rawTarget = queryId?.trim() || queryProductKey?.trim() || domain?.trim();
     if (!rawTarget) {

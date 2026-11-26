@@ -568,6 +568,8 @@ export async function getWinningProductsList(params: {
  */
 export async function getWinningProductDetail(idOrSlug: string): Promise<SheetWinningProduct | null> {
   const allItems = await getAllSheetWinningProducts();
-  const found = allItems.find((item) => item.id === idOrSlug || item.title.toLowerCase() === idOrSlug.toLowerCase());
+  const cleanId = (idOrSlug || "").trim();
+  const lowerSlug = cleanId.toLowerCase();
+  const found = allItems.find((item) => item.id === cleanId || item.title.toLowerCase() === lowerSlug);
   return found || null;
 }

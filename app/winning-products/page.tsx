@@ -225,7 +225,7 @@ function WinningProductsContent() {
                 </h1>
 
                 <p className="text-sm md:text-base text-slate-300 leading-relaxed">
-                  Dữ liệu trích xuất từ Meta Ads Library, kèm giá bán, số ads chạy, thời gian chạy và phân tích chuyên sâu lý do sản phẩm chiến thắng.
+                  Dữ liệu trích xuất từ Meta Ads Library, kèm giá bán, số ads chạy, thời gian chạy và liên kết trực tiếp tới trang đích đối thủ.
                 </p>
               </div>
 
@@ -611,6 +611,8 @@ function WinningProductsContent() {
                         key={product.id || product.title}
                         product={product}
                         onSelect={handleSelectProduct}
+                        isUnlimited={isUnlimited}
+                        onUpgrade={() => handleLockedAction("Vui lòng nâng cấp gói Unlimited để mở link xem chi tiết!")}
                       />
                     ))
                   ) : (
@@ -621,6 +623,8 @@ function WinningProductsContent() {
                           key={products[0].id || products[0].title}
                           product={products[0]}
                           onSelect={handleSelectProduct}
+                          isUnlimited={isUnlimited}
+                          onUpgrade={() => handleLockedAction("Vui lòng nâng cấp gói Unlimited để mở link xem chi tiết!")}
                         />
                       )}
                       {/* Các ad còn lại hiển thị dạng Skeleton với biểu tượng khóa */}
@@ -701,6 +705,7 @@ function WinningProductsContent() {
 
       {/* Product Detail Modal */}
       <ProductDetailModal
+        key={selectedProduct?.id || "modal"}
         open={modalOpen}
         onOpenChange={setModalOpen}
         product={selectedProduct}
