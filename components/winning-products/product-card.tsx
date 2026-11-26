@@ -40,6 +40,11 @@ export function ProductCard({
     ? rawThumbnail
     : null;
 
+  // Nếu sản phẩm không có ảnh hoặc ảnh bị lỗi, tạm ẩn khỏi danh sách theo yêu cầu
+  if (!thumbnail || imageError) {
+    return null;
+  }
+
   // Xử lý icon cờ quốc gia: CHỈ hiển thị nếu xác định được mã quốc gia rõ ràng (country_code)
   // Các trường hợp ghi chung chung "Nước ngoài" / chưa rõ nước -> KHÔNG hiện icon cờ
   const hasCountryFlag = Boolean(product.country_code && !flagError);
@@ -172,26 +177,26 @@ export function ProductCard({
 
         {/* Price Tag Prominent */}
         {product.price && !product.price.toLowerCase().includes("không lấy được") && !product.price.toLowerCase().includes("n/a") ? (
-          <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-emerald-50/90 border border-emerald-200/90 text-xs shadow-2xs">
-            <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-emerald-50/90 border border-emerald-200/90 text-xs shadow-2xs min-w-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <div className="p-1 rounded-md bg-emerald-500/15 text-emerald-700 shrink-0">
                 <Tag className="h-3.5 w-3.5" />
               </div>
-              <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">
-                Giá bán:
+              <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider whitespace-nowrap">
+                Giá:
               </span>
             </div>
             <span
-              className="text-xs sm:text-sm font-black text-emerald-950 truncate pl-2"
+              className="min-w-0 flex-1 truncate text-right font-black text-xs sm:text-sm text-emerald-950"
               title={product.price}
             >
               {product.price}
             </span>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-            <span className="text-[10px] text-slate-400 font-medium">Giá bán:</span>
-            <span className="text-[11px] text-slate-500 italic">Liên hệ Fanpage</span>
+          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs min-w-0">
+            <span className="text-[10px] text-slate-400 font-medium shrink-0 whitespace-nowrap">Giá:</span>
+            <span className="text-[11px] text-slate-500 italic truncate text-right">Liên hệ Fanpage</span>
           </div>
         )}
 

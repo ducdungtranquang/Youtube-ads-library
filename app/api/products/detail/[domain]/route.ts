@@ -13,6 +13,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const url = request.nextUrl || new URL(request.url);
     const queryId = url.searchParams.get("id");
     const queryProductKey = url.searchParams.get("product_key");
+    const queryTitle = url.searchParams.get("title");
 
     let rawTarget = queryId?.trim() || queryProductKey?.trim() || domain?.trim();
     if (!rawTarget) {
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       rawTarget = decodeURIComponent(rawTarget).trim();
     } catch {}
 
-    const product = await getWinningProductDetail(rawTarget);
+    const product = await getWinningProductDetail(rawTarget, queryTitle || undefined);
 
     if (!product) {
       return NextResponse.json(
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=7200, stale-while-revalidate=14400",
+          "Cache-Control": "public, max-age=0, s-maxage=900, stale-while-revalidate=1800",
         },
       }
     );

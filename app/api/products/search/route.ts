@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWinningProductsList, getAllSheetWinningProducts } from "@/lib/services/winning-products-sheet";
+import { getWinningProductsList, getAllSheetWinningProducts, clearWinningProductsCache } from "@/lib/services/winning-products-sheet";
 import { WinningProductSortOption } from "@/types/winning-product";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const isRefresh = searchParams.get("refresh") === "1" || searchParams.get("refresh") === "true";
+    const isRefresh =
+      searchParams.get("refresh") === "1" ||
+      searchParams.get("refresh") === "true" ||
+      searchParams.get("clear") === "1" ||
+      searchParams.get("clear") === "true";
     if (isRefresh) {
+      clearWinningProductsCache();
       await getAllSheetWinningProducts({ forceRefresh: true });
     }
 
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=7200, stale-while-revalidate=14400",
+          "Cache-Control": "public, max-age=0, s-maxage=900, stale-while-revalidate=1800",
         },
       }
     );

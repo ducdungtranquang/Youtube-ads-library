@@ -127,6 +127,24 @@ export function resolvePlatformType(
 }
 
 /**
+ * Kiểm tra xem ảnh sản phẩm có hợp lệ không (có link url và không phải chuỗi rỗng/lỗi)
+ */
+export function isValidThumbnailUrl(url?: string): boolean {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim().toLowerCase();
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return false;
+  if (
+    trimmed.includes("không lấy được") ||
+    trimmed.includes("không rõ") ||
+    trimmed.includes("n/a") ||
+    trimmed.includes("placeholder")
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * Chuyển đổi chuỗi ngày quét (định dạng DD/MM/YYYY) sang timestamp mili-giây
  */
 export function parseScanDate(dateStr?: string): number {
@@ -255,7 +273,16 @@ const cache: CacheStore =
 
 const GOOGLE_SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1caTdmpu0CdJ6xVMJjDq3WtRrFDCzBp4MwvluayokQhM/export?format=csv";
-const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 tiếng (tối ưu giảm tải tối đa số lượt gọi đến Google Sheets)
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 phút (theo yêu cầu của user, Google Sheet cập nhật liên tục)
+
+/**
+ * Xóa toàn bộ bộ nhớ cache Winning Products ngay lập tức
+ */
+export function clearWinningProductsCache(): void {
+  cache.items = [];
+  cache.lastFetchedAt = 0;
+  cache.isFetching = false;
+}
 
 async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
   try {
@@ -264,7 +291,7 @@ async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AdsSpyTool/1.0",
       },
-      next: { revalidate: 7200 }, // Next.js ISR cache 2 tiếng (7200s)
+      next: { revalidate: 900 }, // Next.js ISR cache 15 phút (900s)
     });
 
     if (!res.ok) {
@@ -324,7 +351,7 @@ async function fetchAndParseSheet(): Promise<SheetWinningProduct[]> {
           platform_label: platform.label,
         };
       })
-      .filter((item) => item.title.length > 0);
+      .filter((item) => item.title.length > 0 && isValidThumbnailUrl(item.thumbnail));
 
     return items;
   } catch (error) {
@@ -417,7 +444,7 @@ export async function getWinningProductsList(params: {
   page?: number;
   limit?: number;
 }): Promise<{
-  items: Omit<SheetWinningProduct, "win_reason" | "library_url" | "ads_spy_url">[];
+  items: Omit<SheetWinningProduct, "win_reason" | "ads_spy_url">[];
   pagination: {
     total: number;
     page: number;
@@ -433,7 +460,8 @@ export async function getWinningProductsList(params: {
     whatsapp_count: number;
   };
 }> {
-  const allItems = await getAllSheetWinningProducts();
+  const allRawItems = await getAllSheetWinningProducts();
+  const allItems = allRawItems.filter((i) => isValidThumbnailUrl(i.thumbnail));
 
   // Đếm thống kê tổng
   const totalAll = allItems.length;
@@ -523,7 +551,7 @@ export async function getWinningProductsList(params: {
   const startIndex = (page - 1) * limit;
   const paginated = sorted.slice(startIndex, startIndex + limit);
 
-  // Chỉ trả về các trường cơ bản cho card
+  // Trả về đầy đủ các trường cho card và modal (kèm library_url)
   const basicItems = paginated.map((item) => ({
     id: item.id,
     title: item.title,
@@ -539,6 +567,7 @@ export async function getWinningProductsList(params: {
     country_flag: item.country_flag,
     page_name: item.page_name,
     landing_url: item.landing_url,
+    library_url: item.library_url,
     platform_raw: item.platform_raw,
     platform_type: item.platform_type,
     platform_label: item.platform_label,
@@ -565,11 +594,22 @@ export async function getWinningProductsList(params: {
 
 /**
  * Lấy chi tiết đầy đủ của một sản phẩm (gồm Lý do WIN, Link Library, Ads Spy Tool...)
+ * Hỗ trợ đối chiếu cả theo id hoặc titleHint để không bao giờ bị lệch sản phẩm
  */
-export async function getWinningProductDetail(idOrSlug: string): Promise<SheetWinningProduct | null> {
-  const allItems = await getAllSheetWinningProducts();
+export async function getWinningProductDetail(idOrSlug: string, titleHint?: string): Promise<SheetWinningProduct | null> {
+  const allRawItems = await getAllSheetWinningProducts();
+  const allItems = allRawItems.filter((i) => isValidThumbnailUrl(i.thumbnail));
   const cleanId = (idOrSlug || "").trim();
   const lowerSlug = cleanId.toLowerCase();
+  const cleanTitle = (titleHint || "").trim().toLowerCase();
+
+  // 1. Ưu tiên đối chiếu theo tên sản phẩm chính xác nếu có titleHint
+  if (cleanTitle) {
+    const foundByTitle = allItems.find((item) => item.title.toLowerCase() === cleanTitle);
+    if (foundByTitle) return foundByTitle;
+  }
+
+  // 2. Tìm theo id hoặc tên sản phẩm slug
   const found = allItems.find((item) => item.id === cleanId || item.title.toLowerCase() === lowerSlug);
   return found || null;
 }

@@ -64,7 +64,8 @@ export function ProductDetailModal({
     setDetail(null);
     setError(null);
 
-    if (!open || !productId) {
+    // Nếu product đã có library_url thì đã có đầy đủ 100% dữ liệu, không cần gọi fetch ngầm tránh rủi ro lệch cache
+    if (!open || !productId || product?.library_url) {
       return;
     }
 
@@ -73,7 +74,8 @@ export function ProductDetailModal({
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/products/detail/${encodeURIComponent(productId)}`);
+        const titleParam = product?.title ? `?title=${encodeURIComponent(product.title)}` : "";
+        const res = await fetch(`/api/products/detail/${encodeURIComponent(productId)}${titleParam}`);
         const json = await res.json();
         if (isMounted) {
           if (json?.success && json?.data) {
@@ -96,12 +98,15 @@ export function ProductDetailModal({
     return () => {
       isMounted = false;
     };
-  }, [open, productId]);
+  }, [open, productId, product]);
 
+  // Luôn ưu tiên dữ liệu từ product của card được click (chống lệch dữ liệu Product A thành Product B)
   const display = {
-    ...product,
     ...detail,
-    thumbnail: detail?.thumbnail || product?.thumbnail || detail?.thumbnail_r2 || product?.thumbnail_r2 || "",
+    ...product,
+    library_url: product?.library_url || detail?.library_url || "",
+    landing_url: product?.landing_url || detail?.landing_url || "",
+    thumbnail: product?.thumbnail || detail?.thumbnail || product?.thumbnail_r2 || detail?.thumbnail_r2 || "",
   };
   if (!display || (!display.title && !display.id)) return null;
 
