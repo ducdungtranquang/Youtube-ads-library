@@ -29,7 +29,7 @@ function setCachedProfile(userId: string, profileData: any) {
 }
 
 export function useSearchQuota(feature: SearchFeature = 'yt') {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<any>(() => getCachedProfile(user?.id))
   const [loading, setLoading] = useState<boolean>(true)
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
@@ -38,6 +38,7 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
   )
   const profileRef = useRef<any>(profile)
   profileRef.current = profile
+  const loadedUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -62,7 +63,12 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
     }
 
     async function loadProfile(silent = false) {
+      if (authLoading) {
+        return
+      }
+
       if (!user) {
+        loadedUserIdRef.current = null
         if (isMounted) {
           setProfile(null)
           setQuota(SearchQuotaManager.getQuotaStatus(feature, null, null))
@@ -116,6 +122,7 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
         }
 
         if (isMounted && userProfileData) {
+          loadedUserIdRef.current = user.id
           setCachedProfile(user.id, userProfileData)
           setProfile(userProfileData)
           const nextQuota = SearchQuotaManager.getQuotaStatus(feature, user, userProfileData)
@@ -168,7 +175,7 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
       window.removeEventListener('focus', handleVisibilityOrFocus)
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
     }
-  }, [user?.id, feature])
+  }, [user?.id, feature, authLoading])
 
   // Recalculate quota when user or profile changes
   const refreshQuota = useCallback(() => {
@@ -199,11 +206,16 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
    * If not, automatically opens the upgrade modal and returns false.
    */
   const checkCanSearch = useCallback((): boolean => {
-    if (loading) {
+    const cached = getCachedProfile(user?.id)
+    if (
+      authLoading ||
+      loading ||
+      (user?.id && loadedUserIdRef.current !== user.id && !cached)
+    ) {
       return true
     }
 
-    const activeProfile = profile || getCachedProfile(user?.id)
+    const activeProfile = profile || cached
     const currentStatus = SearchQuotaManager.getQuotaStatus(feature, user, activeProfile)
     setQuota(currentStatus)
 
@@ -212,7 +224,7 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
       return false
     }
     return true
-  }, [feature, user, profile, loading])
+  }, [feature, user, profile, loading, authLoading])
 
   /**
    * Record a search attempt and consume 1 quota
