@@ -7,6 +7,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from 'sonner'
 import { ReferralTracker } from '@/components/referral-tracker'
 import { SupportChatWidget } from '@/components/support/support-chat-widget'
+import { Wrench, Gift } from 'lucide-react'
+import Link from 'next/link'
 import './globals.css'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -218,6 +220,27 @@ export default function RootLayout({
       <body className={`font-sans ${plusJakartaSans.variable} ${jetbrainsMono.variable}`}>
         <AuthProvider>
           <ReferralTracker />
+          <div className="w-full relative z-50">
+            <div className="bg-indigo-600 text-white border-b border-indigo-700">
+              <div className="container px-4 md:px-6 lg:px-8 py-2 flex items-center justify-center gap-2 text-xs sm:text-sm text-center">
+                <Gift className="h-4 w-4 text-amber-300 shrink-0" />
+                <p className="leading-snug">
+                  <strong className="font-bold text-amber-300">Ưu đãi tuần này:</strong> Đăng ký tài khoản trong tuần này để được <strong className="font-bold">tặng thêm 1 tháng trải nghiệm</strong>! Giá gói sẽ tăng lên <strong className="font-bold text-amber-200">119K/tháng</strong> từ Thứ 2 tuần sau.{" "}
+                  <Link href="/register" className="underline underline-offset-2 font-bold text-white hover:text-amber-200 ml-1 whitespace-nowrap">
+                    Đăng ký ngay →
+                  </Link>
+                </p>
+              </div>
+            </div>
+            <div className="bg-amber-50 border-b border-amber-200 text-amber-950">
+              <div className="container px-4 md:px-6 lg:px-8 py-2 flex items-center justify-center gap-2 text-xs sm:text-sm text-center">
+                <Wrench className="h-4 w-4 text-amber-600 shrink-0" />
+                <p className="leading-snug">
+                  <strong className="font-bold text-amber-900">Lịch trình bảo trì:</strong> Toàn bộ hệ thống website sẽ tiến hành bảo trì &amp; nâng cấp vào <strong className="font-bold text-amber-900">Chủ nhật, ngày 29/11</strong>. Xin lỗi vì sự bất tiện này!
+                </p>
+              </div>
+            </div>
+          </div>
           {children}
           <Toaster />
           <Sonner />
