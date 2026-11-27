@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, memo, useCallback } from "react";
 import Link from "next/link";
 import {
   Video, Sparkles, Users, Zap, ArrowRight, ShieldCheck,
-  Search, Play, Pause, Volume2, VolumeX, Radio
+  Search, Play, Pause, Volume2, VolumeX, Radio, Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -185,9 +185,9 @@ export const HeroSlider = memo(() => {
               variant="outline"
               className="h-13 px-6 rounded-2xl font-semibold border-white/30 text-white bg-black/50 hover:bg-white hover:text-slate-950 cursor-pointer backdrop-blur-xl transition-all text-sm sm:text-base focus-visible:ring-2 focus-visible:ring-white shadow-xl shadow-black/40"
             >
-              <Link href="/quicksearch" title="Tìm kiếm quảng cáo đa kênh quốc tế">
-                <Search className="mr-2 h-4 w-4" />
-                Tìm Kiếm Đa Kênh Quốc Tế
+              <Link href="/winning-products" title="Khám phá Kho Sản Phẩm Win (Winning Products)">
+                <Trophy className="mr-2 h-4 w-4 text-amber-400" />
+                Kho Sản Phẩm Win (Winning Products)
               </Link>
             </Button>
           </div>

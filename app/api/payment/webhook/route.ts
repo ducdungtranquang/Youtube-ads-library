@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Xử lý tính hoa hồng 20% cho đối tác tiếp thị nếu có mã giới thiệu
-      if (payment.referral_code && !isAlreadyCompleted) {
+      if (payment?.referral_code && !isAlreadyCompleted) {
         try {
           const { data: partner } = await supabaseAdmin
             .from('affiliate_partners')

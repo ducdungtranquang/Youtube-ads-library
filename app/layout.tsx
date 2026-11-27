@@ -139,7 +139,7 @@ export default function RootLayout({
         "inLanguage": ["vi", "en"],
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://ads-spy-tool.tech/quicksearch?q={search_term_string}",
+          "target": "https://ads-spy-tool.tech/facebook-ads-search?text={search_term_string}",
           "query-input": "required name=search_term_string"
         }
       },

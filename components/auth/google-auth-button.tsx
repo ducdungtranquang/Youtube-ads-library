@@ -10,12 +10,10 @@ interface GoogleAuthButtonProps {
   mode?: 'login' | 'register'
   className?: string
   disabled?: boolean
-  prominent?: boolean
   onBeforeAuth?: () => boolean
 }
 
-// Reusable Google OAuth button for both Login and Register pages
-export function GoogleAuthButton({ mode = 'login', className, disabled, prominent = true, onBeforeAuth }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ mode = 'login', className, disabled, onBeforeAuth }: GoogleAuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { signInWithOAuth } = useAuth()
 
@@ -25,7 +23,6 @@ export function GoogleAuthButton({ mode = 'login', className, disabled, prominen
     }
     setIsLoading(true)
     try {
-      // Đảm bảo cookie mã giới thiệu được lưu trước khi trình duyệt chuyển hướng sang Google OAuth
       if (typeof window !== 'undefined') {
         const storedRef = localStorage.getItem('ads_spy_ref')
         if (storedRef) {
@@ -37,33 +34,31 @@ export function GoogleAuthButton({ mode = 'login', className, disabled, prominen
         toast.error(error.message || `${mode === 'login' ? 'Đăng nhập' : 'Đăng ký'} bằng Google thất bại`)
         setIsLoading(false)
       }
-      // If no error, browser will redirect to Google - keep loading state
     } catch {
       toast.error('Đã xảy ra lỗi không mong muốn')
       setIsLoading(false)
     }
   }
 
-  const label = mode === 'login' ? 'Đăng nhập nhanh bằng Google' : 'Đăng ký nhanh bằng Google'
+  const label = mode === 'login' ? 'Tiếp tục với Google' : 'Đăng ký với Google'
 
   return (
     <Button
       type="button"
       variant="outline"
-      className={`w-full h-12 font-semibold text-sm relative overflow-hidden group transition-all duration-200 bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50/20 text-slate-800 shadow-xs hover:shadow-md rounded-xl cursor-pointer active:scale-[0.99] flex items-center justify-center gap-3 ${className ?? ''}`}
+      className={`w-full h-11 font-semibold text-sm bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-800 shadow-xs transition-all duration-150 rounded-xl cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2.5 focus-visible:ring-2 focus-visible:ring-indigo-600/20 ${className ?? ''}`}
       onClick={handleGoogleAuth}
       disabled={disabled || isLoading}
     >
       {isLoading ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin text-slate-600" />
-          <span>Đang kết nối tài khoản Google...</span>
+          <span className="text-slate-700">Đang kết nối Google...</span>
         </>
       ) : (
         <>
-          {/* Official Google "G" logo SVG */}
           <svg
-            className="h-5 w-5 flex-shrink-0"
+            className="h-4 w-4 shrink-0"
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
@@ -84,12 +79,7 @@ export function GoogleAuthButton({ mode = 'login', className, disabled, prominen
               fill="#EA4335"
             />
           </svg>
-          <span className="font-bold text-slate-900 tracking-tight">{label}</span>
-          {prominent && (
-            <span className="ml-auto hidden sm:inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              Khuyên dùng
-            </span>
-          )}
+          <span className="font-semibold text-slate-800">{label}</span>
         </>
       )}
     </Button>

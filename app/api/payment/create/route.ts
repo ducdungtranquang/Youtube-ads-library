@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       yearly: 'Goi Unlimited 12T',
     }
 
-    // Create PayOS payment link using SDK v2 (thời hạn 24 giờ để tránh lỗi hết hạn khi user chuyển khoản sau)
-    const expiredAt = Math.floor(Date.now() / 1000) + 24 * 60 * 60 // 24 hours expiry
+    // Create PayOS payment link using SDK v2 (thời hạn 24 giờ để user giữ tab hoặc chuyển khoản sau vài tiếng vẫn nhận webhook & kích hoạt bình thường)
+    const expiredAt = Math.floor(Date.now() / 1000) + 24 * 60 * 60 // 24 giờ
     const paymentLink = await payos.paymentRequests.create({
       orderCode,
       amount,

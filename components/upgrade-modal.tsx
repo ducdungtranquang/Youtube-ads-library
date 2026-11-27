@@ -100,7 +100,7 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200 p-3 sm:p-4 md:p-6 flex items-center justify-center min-h-screen"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200 p-2 sm:p-4 flex justify-center items-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose()
@@ -108,40 +108,41 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
       }}
     >
       <div
-        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[min(94dvh,820px)] m-auto animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
       >
-        {/* Glow ambient header */}
-        <div className="relative shrink-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 px-5 py-5 sm:px-6 sm:py-6 text-white text-center overflow-hidden">
+        {/* Glow ambient header (Shrink-0: Luôn ghim ở đầu modal, không bị cuộn mất nút X) */}
+        <div className="relative shrink-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 px-4 py-3 sm:px-6 sm:py-4 text-white text-center overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
 
-          {/* Close button */}
+          {/* Close button - Luôn hiển thị rõ ràng và nổi bật */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 p-2 rounded-full text-slate-300 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-md transition-all cursor-pointer border border-white/10 shadow-sm"
-            aria-label="Đóng"
+            className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5 z-30 p-2 rounded-full text-white/90 hover:text-white bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-md transition-all cursor-pointer border border-white/20 shadow-md"
+            aria-label="Đóng modal"
+            title="Đóng (ESC)"
           >
             <X className="h-5 w-5" />
           </button>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-[11px] font-bold uppercase tracking-wider mb-1">
+            <ShieldAlert className="h-3 w-3 text-rose-400" />
             Đã đạt giới hạn tìm kiếm hôm nay (3 lượt)
           </div>
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-white pr-7 sm:pr-0">
             Nâng Cấp Gói Không Giới Hạn (Unlimited)
           </h2>
 
-          <p className="mt-1.5 text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+          <p className="mt-1 text-xs text-slate-300 max-w-lg mx-auto leading-relaxed line-clamp-2 sm:line-clamp-none">
             Tài khoản <span className="font-bold text-amber-400">Miễn phí</span> vẫn xem được Full thông tin quảng cáo nhưng giới hạn 3 lượt tìm kiếm/ngày và không xem được Winning Products. Nâng cấp ngay để tìm kiếm không giới hạn, xem Winning Products và nhận 3–5 sản phẩm tiềm năng mỗi tuần!
           </p>
         </div>
 
         {/* Content & Billing Cycle Selector */}
-        <div className="p-5 sm:p-6 md:p-8 space-y-5 sm:space-y-6 overflow-y-auto overscroll-contain flex-1">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Cycle Options */}
           <div>
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
@@ -254,11 +255,11 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
               <p className="font-bold text-amber-950 flex items-center gap-1.5">
                 <span>Lưu ý thanh toán VietQR:</span>
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 border border-amber-300">
-                  Quét &amp; Chuyển ngay
+                  Hiệu lực 24 giờ
                 </span>
               </p>
               <p className="text-amber-800 leading-relaxed text-[11px]">
-                Vui lòng mở ứng dụng ngân hàng và <strong>chuyển khoản ngay</strong> trên màn hình thanh toán. <strong>Không chụp màn hình để chuyển khoản sau</strong> vì đơn hàng sẽ hết hạn, dẫn đến việc tài khoản không thể kích hoạt tự động.
+                Mã VietQR có hiệu lực trong vòng <strong>24 giờ</strong> kể từ lúc khởi tạo. Vui lòng chuyển khoản đúng số tiền &amp; nội dung trên màn hình để hệ thống <strong>kích hoạt gói tự động ngay lập tức</strong>.
               </p>
             </div>
           </div>
@@ -315,9 +316,9 @@ export function UpgradeModal({ isOpen, onClose, quota }: UpgradeModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 font-bold transition-colors cursor-pointer text-xs"
               >
-                Để sau
+                Đóng / Để sau
               </button>
             </div>
           </div>

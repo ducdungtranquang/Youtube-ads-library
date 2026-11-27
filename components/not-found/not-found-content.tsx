@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Compass,
   HeartCrack,
+  Trophy,
 } from "lucide-react"
 
 const AUTO_REDIRECT_SECONDS = 10
@@ -32,11 +33,11 @@ const QUICK_LINKS = [
     color: "from-blue-500/20 to-cyan-500/20 border-blue-500/30 text-blue-400",
   },
   {
-    href: "/quicksearch",
-    title: "Quick Search",
-    desc: "Tìm nhanh quảng cáo theo từ khóa & brand",
-    icon: Sparkles,
-    badge: "Mới",
+    href: "/winning-products",
+    title: "Winning Products",
+    desc: "Kho sản phẩm win thị trường VN & Global",
+    icon: Trophy,
+    badge: "Hot",
     color: "from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400",
   },
   {
@@ -260,16 +261,16 @@ export function NotFoundContent() {
                     <span>Quay lại trang trước</span>
                   </Button>
 
-                  {/* Nút Tìm Kiếm Nhanh */}
+                  {/* Nút Tìm Kiếm Facebook Ads */}
                   <Button
                     asChild
                     variant="ghost"
                     size="lg"
                     className="text-slate-300 hover:text-pink-300 hover:bg-pink-500/10 px-4 py-3 rounded-xl transition-all duration-300"
                   >
-                    <Link href="/quicksearch">
+                    <Link href="/facebook-ads-search">
                       <Search className="w-4 h-4 mr-2 text-pink-400" />
-                      <span>Tìm quảng cáo</span>
+                      <span>Tìm Facebook Ads</span>
                     </Link>
                   </Button>
                 </div>

@@ -42,10 +42,14 @@ export async function GET(request: NextRequest) {
     }
 
     // A payment is considered successful if PayOS status is PAID
-    // OR if the user paid in full (amountPaid >= amount) - covers late transfers after 15m expiration
+    // OR if the user paid in full (amountPaid >= amount or transactions sum >= amount)
+    const totalTxAmount = Array.isArray(paymentInfo.transactions)
+      ? paymentInfo.transactions.reduce((sum: number, t: { amount?: number }) => sum + (Number(t.amount) || 0), 0)
+      : 0
     const isPaidInPayOS =
       paymentInfo.status === 'PAID' ||
-      (typeof paymentInfo.amountPaid === 'number' && paymentInfo.amountPaid >= paymentInfo.amount)
+      (typeof paymentInfo.amountPaid === 'number' && paymentInfo.amountPaid >= paymentInfo.amount) ||
+      (paymentInfo.amount > 0 && totalTxAmount >= paymentInfo.amount)
 
     // If payment is PAID or fully transferred in PayOS, but our DB not updated yet, update it
     if (isPaidInPayOS && payment?.status !== 'completed') {

@@ -41,8 +41,28 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
           .maybeSingle()
 
         if (!error && data && isMounted) {
-          setProfile(data)
-          setQuota(SearchQuotaManager.getQuotaStatus(feature, user, data))
+          let userProfileData = data;
+          const currentPlan = (data.subscription_plan || data.subscription_status || 'free').toLowerCase();
+
+          // Nếu tài khoản vẫn là free, tự động kiểm tra xem có đơn hàng nào vừa thanh toán thành công trên PayOS chưa được kích hoạt không
+          if (currentPlan === 'free') {
+            try {
+              const syncRes = await fetch(`/api/user/search-quota?userId=${encodeURIComponent(user.id)}`);
+              const syncJson = await syncRes.json();
+              if (syncJson?.plan === 'unlimited') {
+                userProfileData = {
+                  ...data,
+                  subscription_plan: 'unlimited',
+                  subscription_status: 'unlimited',
+                };
+              }
+            } catch (syncErr) {
+              console.warn('Auto-sync quota check failed:', syncErr);
+            }
+          }
+
+          setProfile(userProfileData)
+          setQuota(SearchQuotaManager.getQuotaStatus(feature, user, userProfileData))
         } else if (isMounted) {
           // Fallback user metadata nếu db chưa có profile
           setQuota(SearchQuotaManager.getQuotaStatus(feature, user, null))
@@ -61,8 +81,25 @@ export function useSearchQuota(feature: SearchFeature = 'yt') {
 
     loadProfile()
 
+    // Tự động đồng bộ lại gói khi user quay lại tab sau khi thanh toán ở tab PayOS (kể cả sau vài giờ)
+    let lastCheck = 0
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState && document.visibilityState !== 'visible') return
+      const now = Date.now()
+      if (now - lastCheck < 5000) return
+      lastCheck = now
+      if (user?.id) {
+        loadProfile()
+      }
+    }
+
+    window.addEventListener('focus', handleVisibilityOrFocus)
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+
     return () => {
       isMounted = false
+      window.removeEventListener('focus', handleVisibilityOrFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
     }
   }, [user?.id, feature])
 

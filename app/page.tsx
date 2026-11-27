@@ -21,7 +21,8 @@ import {
   FileCode2,
   ShieldCheck,
   Compass,
-  ArrowUpRight
+  ArrowUpRight,
+  Trophy
 } from "lucide-react";
 import { HeroSlider } from "@/components/home/hero-slider";
 import { HomepageIntroLoader } from "@/components/home/homepage-intro-loader";
@@ -91,18 +92,18 @@ export default function HomePage() {
         {/* Quick Access Floating Cards */}
         <section className="container py-6 mt-4 md:-mt-14 relative z-30 scroll-fade-section transition-all duration-700">
           <div className="grid gap-5 md:grid-cols-3">
-            <Link href="/quicksearch" className="group" title="Tìm kiếm nhanh quảng cáo" aria-label="Truy cập công cụ tìm kiếm nhanh">
-              <Card className="h-full border border-slate-200 bg-white shadow-lg shadow-slate-200/50 hover:border-indigo-400 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link href="/winning-products" className="group" title="Kho Sản Phẩm Win (Winning Products)" aria-label="Truy cập Kho Sản Phẩm Win">
+              <Card className="h-full border border-slate-200 bg-white shadow-lg shadow-slate-200/50 hover:border-amber-400 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer rounded-2xl overflow-hidden relative">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <CardContent className="flex items-center gap-4 p-6">
-                  <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100 group-hover:bg-indigo-600 transition-all duration-300">
-                    <Search className="h-6 w-6 text-indigo-600 group-hover:text-white transition-colors" />
+                  <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-amber-50 border border-amber-100 group-hover:bg-amber-500 transition-all duration-300">
+                    <Trophy className="h-6 w-6 text-amber-600 group-hover:text-white transition-colors" />
                   </div>
                   <div>
-                    <h2 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-indigo-600 transition-colors">Tìm kiếm đa quốc gia</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Truy xuất dữ liệu Mỹ, EU, Châu Á</p>
+                    <h2 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-amber-600 transition-colors">Kho Sản Phẩm Win</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">500+ sản phẩm win VN &amp; Global</p>
                   </div>
-                  <ArrowRight className="ml-auto h-5 w-5 text-slate-400 group-hover:translate-x-1.5 group-hover:text-indigo-600 transition-all" />
+                  <ArrowRight className="ml-auto h-5 w-5 text-slate-400 group-hover:translate-x-1.5 group-hover:text-amber-600 transition-all" />
                 </CardContent>
               </Card>
             </Link>
@@ -269,8 +270,8 @@ export default function HomePage() {
                     Nhập tên đối thủ, đường dẫn Fanpage, kênh YouTube, hoặc các từ khóa ngách. Áp dụng bộ lọc quốc gia (Geo), nền tảng store (Shopify) và thời gian chạy.
                   </p>
                 </div>
-                <Link href="/quicksearch" className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 pt-2 group">
-                  Mở công cụ QuickSearch <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                <Link href="/winning-products" className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 pt-2 group">
+                  Khám phá Winning Products <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
 

@@ -66,59 +66,70 @@ export async function GET(request: NextRequest) {
     // Auto-recovery: If user is on 'free' plan, check if they have any pending payment that was already transferred
     if (plan === 'free' && supabaseAdmin) {
       try {
-        const { data: pendingPayment } = await supabaseAdmin
+        const { data: pendingPayments } = await supabaseAdmin
           .from('payments')
-          .select('id, order_code, amount, user_email')
+          .select('id, order_code, amount, user_email, referral_code')
           .eq('user_id', userId)
-          .eq('status', 'pending')
+          .in('status', ['pending', 'expired'])
           .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
+          .limit(5)
 
-        if (pendingPayment && pendingPayment.order_code) {
+        if (pendingPayments && pendingPayments.length > 0) {
           const { payos } = await import('@/lib/payos')
-          const numOrderCode = Number(pendingPayment.order_code)
-          const paymentInfo = await payos.paymentRequests.get(numOrderCode)
-          const isPaidInPayOS =
-            paymentInfo.status === 'PAID' ||
-            (typeof paymentInfo.amountPaid === 'number' && paymentInfo.amountPaid >= paymentInfo.amount)
+          for (const pendingPayment of pendingPayments) {
+            if (!pendingPayment.order_code) continue
+            try {
+              const numOrderCode = Number(pendingPayment.order_code)
+              const paymentInfo = await payos.paymentRequests.get(numOrderCode)
+              const totalTxAmount = Array.isArray(paymentInfo.transactions)
+                ? paymentInfo.transactions.reduce((sum: number, t: { amount?: number }) => sum + (Number(t.amount) || 0), 0)
+                : 0
+              const isPaidInPayOS =
+                paymentInfo.status === 'PAID' ||
+                (typeof paymentInfo.amountPaid === 'number' && paymentInfo.amountPaid >= paymentInfo.amount) ||
+                (paymentInfo.amount > 0 && totalTxAmount >= paymentInfo.amount)
 
-          if (isPaidInPayOS) {
-            const paidAmount = Number(pendingPayment.amount || paymentInfo?.amountPaid || paymentInfo?.amount || 0)
-            const subscriptionStart = new Date()
-            const subscriptionEnd = new Date()
-            let durationMonths = 1
-            if (paidAmount >= 900000) {
-              durationMonths = 12
-            } else if (paidAmount >= 250000) {
-              durationMonths = 3
+              if (isPaidInPayOS) {
+                const paidAmount = Number(pendingPayment.amount || paymentInfo?.amountPaid || paymentInfo?.amount || 0)
+                const subscriptionStart = new Date()
+                const subscriptionEnd = new Date()
+                let durationMonths = 1
+                if (paidAmount >= 900000) {
+                  durationMonths = 12
+                } else if (paidAmount >= 250000) {
+                  durationMonths = 3
+                }
+                subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths)
+
+                // Auto-upgrade user profile
+                await supabaseAdmin
+                  .from('user_profiles')
+                  .upsert({
+                    id: userId,
+                    subscription_status: 'unlimited',
+                    subscription_plan: 'unlimited',
+                    subscription_start: subscriptionStart.toISOString(),
+                    subscription_end: subscriptionEnd.toISOString(),
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'id' })
+
+                // Mark payment as completed
+                await supabaseAdmin
+                  .from('payments')
+                  .update({
+                    status: 'completed',
+                    paid_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq('id', pendingPayment.id)
+
+                plan = 'unlimited'
+                userProfile.subscription_plan = 'unlimited'
+                break
+              }
+            } catch (errOne) {
+              console.warn('Check single payment failed:', errOne)
             }
-            subscriptionEnd.setMonth(subscriptionEnd.getMonth() + durationMonths)
-
-            // Auto-upgrade user profile
-            await supabaseAdmin
-              .from('user_profiles')
-              .upsert({
-                id: userId,
-                subscription_status: 'unlimited',
-                subscription_plan: 'unlimited',
-                subscription_start: subscriptionStart.toISOString(),
-                subscription_end: subscriptionEnd.toISOString(),
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'id' })
-
-            // Mark payment as completed
-            await supabaseAdmin
-              .from('payments')
-              .update({
-                status: 'completed',
-                paid_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', pendingPayment.id)
-
-            plan = 'unlimited'
-            userProfile.subscription_plan = 'unlimited'
           }
         }
       } catch (recoveryErr) {

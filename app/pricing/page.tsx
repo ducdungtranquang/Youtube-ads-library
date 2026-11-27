@@ -291,7 +291,7 @@ export default function PricingPage() {
 
             <div className="p-6 sm:p-8 pt-0 space-y-3">
               <Button asChild variant="outline" className="w-full h-14 rounded-2xl border-slate-300 hover:bg-slate-100 font-bold text-slate-800 cursor-pointer shadow-xs transition-all group px-4">
-                <Link href={hasMounted && user ? "/quicksearch" : "/register"} className="flex items-center justify-center gap-2">
+                <Link href={hasMounted && user ? "/facebook-ads-search" : "/register"} className="flex items-center justify-center gap-2">
                   <span>{hasMounted && user ? "Trải nghiệm ngay" : "Bắt đầu miễn phí"}</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 text-slate-500 group-hover:text-slate-900" />
                 </Link>
@@ -432,11 +432,11 @@ export default function PricingPage() {
                   <p className="font-bold text-amber-950 flex items-center gap-1.5">
                     <span>Lưu ý thanh toán VietQR:</span>
                     <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 border border-amber-300">
-                      Quét &amp; Chuyển ngay
+                      Hiệu lực 24 giờ
                     </span>
                   </p>
                   <p className="text-amber-800 leading-relaxed text-[11px]">
-                    Vui lòng mở ứng dụng ngân hàng và <strong>chuyển khoản ngay</strong> trên màn hình thanh toán. <strong>Không chụp màn hình để chuyển khoản sau</strong> vì mã QR có thể hết hạn, dẫn đến việc tài khoản không thể kích hoạt tự động.
+                    Mã VietQR có hiệu lực trong vòng <strong>24 giờ</strong> kể từ lúc khởi tạo. Vui lòng chuyển khoản đúng số tiền &amp; nội dung trên màn hình để hệ thống <strong>kích hoạt gói tự động ngay lập tức</strong>.
                   </p>
                 </div>
               </div>

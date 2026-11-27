@@ -113,8 +113,8 @@ export function LiveSpyDemo() {
                 </p>
                 <div className="flex items-center justify-between text-xs text-slate-300 pt-1 border-t border-white/10">
                   <span>Trang đích: trendstore-demo...</span>
-                  <Link href="/quicksearch" className="text-indigo-300 hover:text-white font-semibold flex items-center gap-1">
-                    Dùng thử QuickSearch <ArrowUpRight className="h-3 w-3" />
+                  <Link href="/winning-products" className="text-indigo-300 hover:text-white font-semibold flex items-center gap-1">
+                    Xem Winning Products <ArrowUpRight className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
@@ -123,8 +123,8 @@ export function LiveSpyDemo() {
             {/* Direct Tool Action Buttons trỏ đến các trang thật */}
             <div className="grid grid-cols-2 gap-2 pt-1 max-w-sm mx-auto">
               <Button asChild size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs h-10 shadow-md shadow-indigo-600/20 cursor-pointer">
-                <Link href="/quicksearch">
-                  Dùng thử QuickSearch
+                <Link href="/winning-products">
+                  Kho Sản Phẩm Win
                   <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
@@ -321,8 +321,8 @@ export function LiveSpyDemo() {
               </span>
               <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                 <Button asChild size="sm" className="w-full sm:w-auto h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white shadow-xs cursor-pointer">
-                  <Link href="/quicksearch">
-                    Trải Nghiệm QuickSearch
+                  <Link href="/facebook-ads-search">
+                    Thư Viện Facebook Ads
                   </Link>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="w-full sm:w-auto h-9 px-4 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-2xs">

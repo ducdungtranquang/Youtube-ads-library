@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, ArrowRight, Sparkles, Video, Target, BookOpen, Star, Zap, Gift, Check } from "lucide-react"
+import { Heart, Mail, BadgeCheck, Loader2, Search, TrendingUp, DollarSign, ArrowRight, Sparkles, Video, Target, BookOpen, Star, Zap, Gift, Check, Trophy } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useEffect, useState } from "react"
 import { useFavorites } from '@/hooks/use-favorites'
@@ -64,9 +64,24 @@ function DashboardPage() {
         .maybeSingle()
 
       if (profile) {
-        setDbProfile(profile)
+        let activeProfile = profile;
+        const currentPlan = (profile.subscription_plan || profile.subscription_status || 'free').toLowerCase();
+        if (currentPlan === 'free') {
+          try {
+            const syncRes = await fetch(`/api/user/search-quota?userId=${encodeURIComponent(user.id)}`);
+            const syncJson = await syncRes.json();
+            if (syncJson?.plan === 'unlimited') {
+              activeProfile = {
+                ...profile,
+                subscription_plan: 'unlimited',
+                subscription_status: 'unlimited',
+              };
+            }
+          } catch {}
+        }
+        setDbProfile(activeProfile)
         try {
-          localStorage.setItem("user_profile_cache", JSON.stringify(profile));
+          localStorage.setItem("user_profile_cache", JSON.stringify(activeProfile));
         } catch {}
       }
       setLoading(false)
@@ -304,16 +319,16 @@ function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Link href="/quicksearch" className="block">
-                  <div className="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 group-hover:bg-indigo-600 transition-colors">
-                      <Search className="h-5 w-5 text-indigo-600 group-hover:text-white transition-colors" />
+                <Link href="/winning-products" className="block">
+                  <div className="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-amber-300 hover:shadow-md transition-all cursor-pointer group">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 border border-amber-100 group-hover:bg-amber-500 transition-colors">
+                      <Trophy className="h-5 w-5 text-amber-600 group-hover:text-white transition-colors" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-sm">Tìm kiếm nhanh (Quick Search)</p>
-                      <p className="text-xs text-slate-500">Tra cứu nhanh video không cần đăng nhập</p>
+                      <p className="font-bold text-slate-900 group-hover:text-amber-600 transition-colors text-sm">Kho Sản Phẩm Win (Winning Products)</p>
+                      <p className="text-xs text-slate-500">500+ Sản phẩm win thị trường VN &amp; Global, kèm link ads &amp; landing</p>
                     </div>
-                    <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
                   </div>
                 </Link>
 
