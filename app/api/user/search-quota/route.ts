@@ -31,10 +31,18 @@ export async function GET(request: NextRequest) {
       .eq('id', userId)
       .maybeSingle()
 
+    if (error) {
+      console.error('Error fetching user profile for search-quota:', error)
+      return NextResponse.json(
+        { error: 'Database temporarily unavailable' },
+        { status: 500, headers: { 'Cache-Control': 'no-store' } }
+      )
+    }
+
     let userProfile = profile
     if (!userProfile) {
-      // Auto-create missing user profile with free plan
-      const { data: createdProfile } = await supabaseAdmin
+      // Only auto-create missing user profile when query succeeded and row truly does not exist
+      const { data: createdProfile, error: createError } = await supabaseAdmin
         .from('user_profiles')
         .upsert({
           id: userId,
@@ -47,6 +55,14 @@ export async function GET(request: NextRequest) {
         }, { onConflict: 'id' })
         .select('subscription_plan, subscription_status, daily_search_count, last_search_date')
         .maybeSingle()
+
+      if (createError) {
+        console.error('Error creating missing user profile:', createError)
+        return NextResponse.json(
+          { error: 'Failed to initialize profile' },
+          { status: 500, headers: { 'Cache-Control': 'no-store' } }
+        )
+      }
 
       userProfile = createdProfile
     }
