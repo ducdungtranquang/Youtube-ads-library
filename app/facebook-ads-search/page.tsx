@@ -32,6 +32,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
+  Wrench,
 } from "lucide-react";
 import { AdsSpyFilterPanel } from "@/components/ads-spy/ads-spy-filter-panel";
 import { AdsSpyResultsToolbar } from "@/components/ads-spy/ads-spy-results-toolbar";
@@ -984,10 +985,22 @@ function FacebookAdsSearchContent() {
     );
   }
 
+  const maintenanceBanner = (
+    <div className="bg-amber-50 border-b border-amber-200 text-amber-950 relative z-30">
+      <div className="container px-4 md:px-6 lg:px-8 py-3 flex items-center justify-center gap-2.5 text-xs sm:text-sm text-center">
+        <Wrench className="h-4 w-4 text-amber-600 shrink-0" />
+        <p className="leading-snug">
+          <strong className="font-bold text-amber-900">Thông báo bảo trì:</strong> Hệ thống Facebook Ads đang được bảo trì &amp; nâng cấp dữ liệu đến <strong className="font-bold text-amber-900">13h30 ngày 27/11</strong>. Xin lỗi vì sự bất tiện này!
+        </p>
+      </div>
+    </div>
+  );
+
   if (!authLoading && !user) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900">
         <Header />
+        {maintenanceBanner}
         <main className="container py-12">
           <Card className="max-w-md mx-auto border border-slate-200 bg-white shadow-xl rounded-2xl">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -1016,6 +1029,7 @@ function FacebookAdsSearchContent() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
       <Header />
+      {maintenanceBanner}
 
       {/* Hero Banner Slider */}
       <HeroSlider />
