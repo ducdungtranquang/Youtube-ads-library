@@ -50,6 +50,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { getIndustryLabel } from "@/lib/constants/industries";
+import { COUNTRIES } from "@/components/ads-spy/country-select";
 
 const SORT_OPTIONS = [
   { value: "start_date", label: "📅 Mới xuất bản nhất" },
@@ -517,12 +518,10 @@ function FacebookAdsSearchContent() {
       });
     }
     if (selectedCountry) {
-      const countryLabel =
-        selectedCountry.toUpperCase() === "VN"
-          ? "🇻🇳 Việt Nam (VN)"
-          : selectedCountry.toUpperCase() === "OTHER"
-          ? "🌐 Các nước khác"
-          : selectedCountry;
+      const matchedCountry = COUNTRIES.find((c) => c.code === selectedCountry.toUpperCase());
+      const countryLabel = matchedCountry
+        ? `${matchedCountry.flag} ${matchedCountry.name}${matchedCountry.code !== "OTHER" ? ` (${matchedCountry.code})` : ""}`
+        : selectedCountry;
       chips.push({
         id: "country",
         label: `Quốc gia: ${countryLabel}`,

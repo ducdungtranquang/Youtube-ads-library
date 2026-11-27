@@ -20,11 +20,17 @@ export interface CountryItem {
 
 export const COUNTRIES: CountryItem[] = [
   { code: "VN", name: "Việt Nam", enName: "Vietnam", flag: "🇻🇳" },
+  { code: "TH", name: "Thái Lan", enName: "Thailand", flag: "🇹🇭" },
+  { code: "LA", name: "Lào", enName: "Laos", flag: "🇱🇦" },
+  { code: "KH", name: "Campuchia", enName: "Cambodia", flag: "🇰🇭" },
   { code: "OTHER", name: "Các nước khác", enName: "Other countries", flag: "🌐" },
 ];
 
 export const POPULAR_PRESET_COUNTRIES = [
   { code: "VN", label: "Việt Nam", flag: "🇻🇳", isPriority: true },
+  { code: "TH", label: "Thái Lan", flag: "🇹🇭" },
+  { code: "LA", label: "Lào", flag: "🇱🇦" },
+  { code: "KH", label: "Campuchia", flag: "🇰🇭" },
   { code: "OTHER", label: "Các nước khác", flag: "🌐" },
 ];
 
@@ -40,12 +46,8 @@ export function CountrySelect({ value, onChange, className }: CountrySelectProps
   const selectedCountry = useMemo(() => {
     if (!value) return null;
     const upper = value.toUpperCase();
-    if (upper === "VN") {
-      return { code: "VN", name: "Việt Nam", enName: "Vietnam", flag: "🇻🇳" };
-    }
-    if (upper === "OTHER") {
-      return { code: "OTHER", name: "Các nước khác", enName: "Other countries", flag: "🌐" };
-    }
+    const matched = COUNTRIES.find((c) => c.code === upper);
+    if (matched) return matched;
     return {
       code: upper,
       name: upper,
@@ -161,53 +163,48 @@ export function CountrySelect({ value, onChange, className }: CountrySelectProps
 
           <div className="my-1 border-t border-slate-100" />
 
-          {/* 1. Việt Nam */}
-          <button
-            type="button"
-            onClick={() => {
-              onChange("VN");
-              setOpen(false);
-            }}
-            className={cn(
-              "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer",
-              value.toUpperCase() === "VN"
-                ? "bg-rose-50 text-rose-800 font-bold"
-                : "hover:bg-rose-50/50 text-slate-800 font-medium"
-            )}
-          >
-            <div className="flex items-center gap-2 truncate">
-              <span className="text-base leading-none">🇻🇳</span>
-              <span className="font-bold text-slate-900">Việt Nam</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-mono font-bold">
-                VN
-              </span>
-            </div>
-            {value.toUpperCase() === "VN" && <Check className="h-4 w-4 text-rose-600" />}
-          </button>
-
-          {/* 2. Các nước khác */}
-          <button
-            type="button"
-            onClick={() => {
-              onChange("OTHER");
-              setOpen(false);
-            }}
-            className={cn(
-              "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer",
-              value.toUpperCase() === "OTHER"
-                ? "bg-indigo-50 text-indigo-700 font-bold"
-                : "hover:bg-slate-50 text-slate-800 font-medium"
-            )}
-          >
-            <div className="flex items-center gap-2 truncate">
-              <span className="text-base leading-none">🌐</span>
-              <span className="font-semibold text-slate-900">Các nước khác</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono font-bold">
-                OTHER
-              </span>
-            </div>
-            {value.toUpperCase() === "OTHER" && <Check className="h-4 w-4 text-indigo-600" />}
-          </button>
+          {COUNTRIES.map((country) => {
+            const isSelected = value.toUpperCase() === country.code;
+            const isVN = country.code === "VN";
+            return (
+              <button
+                key={country.code}
+                type="button"
+                onClick={() => {
+                  onChange(country.code);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer",
+                  isVN
+                    ? isSelected
+                      ? "bg-rose-50 text-rose-800 font-bold"
+                      : "hover:bg-rose-50/50 text-slate-800 font-medium"
+                    : isSelected
+                      ? "bg-indigo-50 text-indigo-700 font-bold"
+                      : "hover:bg-slate-50 text-slate-800 font-medium"
+                )}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <span className="text-base leading-none">{country.flag}</span>
+                  <span className={cn("text-slate-900", isVN ? "font-bold" : "font-semibold")}>
+                    {country.name}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[10px] px-1.5 py-0.5 rounded font-mono font-bold",
+                      isVN ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-600"
+                    )}
+                  >
+                    {country.code}
+                  </span>
+                </div>
+                {isSelected && (
+                  <Check className={cn("h-4 w-4", isVN ? "text-rose-600" : "text-indigo-600")} />
+                )}
+              </button>
+            );
+          })}
         </PopoverContent>
       </Popover>
     </div>

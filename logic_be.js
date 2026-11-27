@@ -39,11 +39,11 @@ const FILTER_DEFAULTS = {
     scale_max_days: 7,
     scale_min_duplicates: 2,    // ... + creative đã bị duplicate (đang nhân bản)
     scale_min_scaling_score: 0, // 0 = không ràng buộc scaling_score (chỉ sort theo nó)
-    winner_min_days: 7,         // Weekly Winner: chạy 7-9 ngày không tắt (cửa sổ FE đang ép)
-    winner_max_days: 9,         // 9 = khớp route FE (winner_min_days=7&winner_max_days=9); 0 = không giới hạn trên
+    winner_min_days: 7,         // Weekly Winner: chạy 7-14 ngày không tắt (nới cửa sổ từ 7-9; FE hiện vẫn ép 9)
+    winner_max_days: 14,        // 14 = nới từ 9, khớp PRESET_THRESHOLDS analyzer.js; FE hiện vẫn ép 9 nên cần đổi FE để có hiệu lực trên web; 0 = không giới hạn trên
     winner_min_duplicates: 2,   // ... + có duplicate (duplicates_count tính cả chính ad)
-    winner_min_score: 15,       // ... + (score cao HOẶC trending cao) — nới từ 20/8
-    winner_min_trending: 6,
+    winner_min_score: 12,       // ... + (score cao HOẶC trending cao) — nới từ 15/6
+    winner_min_trending: 5,
     winner_max_seen_age_days: 14, // ... + còn thấy trong 14 ngày qua (nới từ 7; 0 = không ràng buộc)
 };
 
@@ -95,6 +95,8 @@ const COUNTRY_NAME_MAP = {
     'hoa ky': 'us', 'united states': 'us', usa: 'us', 'us': 'us', 'my': 'us',
     'nhat ban': 'jp', japan: 'jp', 'jp': 'jp',
     'thai lan': 'th', thailand: 'th', 'th': 'th',
+    'campuchia': 'kh', cambodia: 'kh', 'kh': 'kh',
+    'lao': 'la', laos: 'la', 'la': 'la',
     'philippines': 'ph', 'phi lip pin': 'ph', 'ph': 'ph',
     'malaysia': 'my', 'ma lai xi a': 'my',
     'indonesia': 'id', 'in do ne xi a': 'id', 'id': 'id',
@@ -118,7 +120,11 @@ const COUNTRY_NAME_MAP = {
     'nga': 'ru', russia: 'ru', 'ru': 'ru',
     'tho nhi ky': 'tr', turkey: 'tr', 'tr': 'tr',
 };
-const COUNTRY_CODE_TO_NAME = { vn: 'vietnam', us: 'united states', jp: 'japan', th: 'thailand', ph: 'philippines', my: 'malaysia', id: 'indonesia', sg: 'singapore', kr: 'korea', gb: 'united kingdom', de: 'germany', fr: 'france', ca: 'canada', au: 'australia', br: 'brazil', mx: 'mexico', ae: 'uae', tw: 'taiwan', hk: 'hong kong', cn: 'china', in: 'india', es: 'spain', it: 'italy', nl: 'netherlands', ru: 'russia', tr: 'turkey' };
+const COUNTRY_CODE_TO_NAME = { vn: 'vietnam', us: 'united states', jp: 'japan', th: 'thailand', kh: 'cambodia', la: 'laos', ph: 'philippines', my: 'malaysia', id: 'indonesia', sg: 'singapore', kr: 'korea', gb: 'united kingdom', de: 'germany', fr: 'france', ca: 'canada', au: 'australia', br: 'brazil', mx: 'mexico', ae: 'uae', tw: 'taiwan', hk: 'hong kong', cn: 'china', in: 'india', es: 'spain', it: 'italy', nl: 'netherlands', ru: 'russia', tr: 'turkey' };
+
+// Các nước có bộ lọc riêng (27/11/2026) — OTHER = phần còn lại (gồm
+// EU/Mỹ). Đồng bộ SPECIFIC_COUNTRY_CODES trong analyzer.js.
+const SPECIFIC_COUNTRY_CODES = ['vn', 'th', 'kh', 'la'];
 
 // Các dạng tên/bí danh có thể đã lưu trong countries_lower của doc cũ
 // (analyzer cũ ghi nguyên giá trị thô, vd 'usa', 'united states') — đảo
@@ -261,11 +267,13 @@ const ACTIVE_WINDOW_MS = 7 * 24 * 3600 * 1000;
 // thừa ad cũ cũng đúng vì ad cũ không còn "đang" vít nữa).
 const SCALING_HARD_MAX_RUN_DAYS = 35;
 
-// Ad chết cũ (không thấy > 30 ngày) là vô giá trị: ẩn khỏi mọi list
+// Ad chết cũ (không thấy > 45 ngày) là vô giá trị: ẩn khỏi mọi list
 // (search, similar, page ads) + số đếm preset. Dùng last_seen thay vì cờ
 // is_active vì cờ có thể cũ; last_seen mới là sự thật (analyzer/crawler
 // luôn ghi last_seen cho mọi doc — đã kiểm chứng missing = 0).
-const STALE_AD_MAX_AGE_DAYS = 30;
+// Nới từ 30 ngày lên 45 ngày ngày 19/11/2026 theo yêu cầu Bryan để hiện
+// nhiều ad hơn (ad chỉ bị ẩn khi last_seen quá 45 ngày).
+const STALE_AD_MAX_AGE_DAYS = 45;
 const STALE_AD_MAX_AGE_MS = STALE_AD_MAX_AGE_DAYS * 24 * 3600 * 1000;
 function buildFreshAdCondition(nowMs = Date.now()) {
     return { last_seen: { $gte: nowMs - STALE_AD_MAX_AGE_MS } };
@@ -274,6 +282,39 @@ function buildActiveCondition(activeBool) {
     const cutoff = Date.now() - ACTIVE_WINDOW_MS;
     if (activeBool === true) return { last_seen: { $gte: cutoff } };
     return { last_seen: { $lt: cutoff } };
+}
+
+// Bug 5 (26/11): nhãn Active/Paused trên card phải khớp điều kiện lọc.
+// Bộ lọc dùng last_seen (buildActiveCondition) nhưng doc trả về mang
+// is_active do analyzer ghi tại thời điểm FULL — cờ cũ dần theo ngày,
+// nên lọc "Đã tắt" (is_active=false) vẫn hiện toàn nhãn Active.
+// Tính lại is_active từ last_seen ngay trước khi trả response để nhãn
+// luôn đúng quy tắc 7 ngày, bất kể FULL chạy lúc nào. Doc thiếu
+// last_seen dạng số thì giữ nguyên is_active đã lưu.
+function computeIsActive(lastSeenMs, nowMs = Date.now()) {
+    if (typeof lastSeenMs !== 'number' || !Number.isFinite(lastSeenMs)) return undefined;
+    return lastSeenMs >= nowMs - ACTIVE_WINDOW_MS;
+}
+function refreshIsActive(docs, nowMs = Date.now()) {
+    if (!Array.isArray(docs)) return docs;
+    for (const doc of docs) {
+        if (!doc || typeof doc !== 'object') continue;
+        const v = computeIsActive(doc.last_seen, nowMs);
+        if (v !== undefined) doc.is_active = v;
+    }
+    return docs;
+}
+
+// Bug 6 (26/11): strip thumbnail video tạm (.mp4) đã hết hạn token oe
+// trước khi trả về — FE hiện placeholder thay vì khung đen. Trước đây
+// chỉ search list strip; similar + page ads trả thẳng URL hết hạn.
+function stripExpiredVideoThumbs(docs, nowSec = Math.floor(Date.now() / 1000)) {
+    if (!Array.isArray(docs)) return docs;
+    for (const doc of docs) {
+        const t = doc && doc.thumbnail_r2;
+        if (typeof t === 'string' && /\.mp4/i.test(t) && !videoUrlFresh(t, nowSec)) doc.thumbnail_r2 = null;
+    }
+    return docs;
 }
 
 // Ngày: nhận ISO (2026-10-27), MM/DD/YYYY, hoặc epoch giây/ms (số thuần).
@@ -297,21 +338,29 @@ const SORT_FIELD_ALIASES = {
     trending_score: 'trending_score', trendingscore: 'trending_score', trending: 'trending_score',
     start_date: 'start_date', startdate: 'start_date', newest: 'start_date', 'moi nhat': 'start_date',
     published: 'start_date', 'moi xuat ban nhat': 'start_date',
-    duplicates_count: 'duplicates_count', duplicates: 'duplicates_count', copies: 'duplicates_count',
-    'nhieu ban sao nhat': 'duplicates_count', 'ban sao': 'duplicates_count',
-    duration_days: 'duration_days', duration: 'duration_days', 'chay lau nhat': 'duration_days',
     estimated_spend_usd: 'estimated_spend_usd', spend: 'estimated_spend_usd',
     'chi tieu uoc tinh cao nhat': 'estimated_spend_usd', 'chi tieu': 'estimated_spend_usd',
     estimated_reach: 'estimated_reach', reach: 'estimated_reach',
     'luot tiep can uoc tinh': 'estimated_reach',
     last_seen: 'last_seen', seen_count: 'seen_count', 'luot quet thay': 'last_seen',
     analyzed_at: 'analyzed_at', first_seen: 'first_seen',
+    relevance: 'relevance', 'lien quan nhat': 'relevance',
 };
 function normalizeSortField(sortBy) {
     const key = normKey(sortBy);
     if (ALLOWED_SORT_FIELDS.has(String(sortBy))) return String(sortBy);
     return SORT_FIELD_ALIASES[key] || null;
 }
+
+// Clamp limit phân trang: parseInt||fallback (0/NaN -> fallback), chặn
+// dưới 1, chặn trên max. Dùng cho /api/pages/:page_name/ads (trước đây
+// không chặn dưới: limit=-5 -> Mongo limit(-5)).
+function normalizePageLimit(value, fallback, max) {
+    const n = parseInt(value, 10);
+    const base = Number.isFinite(n) && n !== 0 ? n : fallback;
+    return Math.min(Math.max(base, 1), max);
+}
+
 function normalizeSortOrder(sortOrder) {
     if (sortOrder === undefined || sortOrder === null || sortOrder === '') return -1;
     const raw = String(sortOrder).trim();
@@ -368,12 +417,12 @@ function normalizeQueryParams(raw) {
     if (maxSpend !== undefined) q.max_spend_usd = maxSpend;
     const funnel = firstParam(raw, ['funnel', 'funnel_stage']);
     if (funnel !== undefined) q.funnel = funnel;
-    const scaling = firstParam(raw, ['scaling_level', 'scaling', 'scalingLevel']);
-    if (scaling !== undefined) q.scaling_level = scaling;
     const filter = firstParam(raw, ['filter', 'preset', 'strategy', 'filter_type']);
     if (filter !== undefined) q.filter = filter;
     const industry = firstParam(raw, ['industry', 'category', 'nganh']);
     if (industry !== undefined) q.industry = industry;
+    const hideEnt = firstParam(raw, ['hide_entertainment', 'hideEntertainment', 'no_entertainment', 'exclude_entertainment']);
+    if (hideEnt !== undefined) q.hide_entertainment = hideEnt;
     const sortBy = firstParam(raw, ['sort_by', 'sort', 'order_by', 'sortBy']);
     if (sortBy !== undefined) q.sort_by = sortBy;
     const sortOrder = firstParam(raw, ['sort_order', 'order', 'sortOrder', 'direction']);
@@ -408,7 +457,7 @@ function normalizePresetNames(filterParam) {
 // builder; gọi trực tiếp (test/unit) không truyền schema thì mặc định
 // đường nhanh như cũ để không vỡ test cũ.
 const SCHEMA_PROBE_TTL_MS = 5 * 60 * 1000;
-let schemaProbeCache = { at: 0, probe: { lower: true, country: true, industry: true, rank: true, flags: true } };
+let schemaProbeCache = { at: 0, probe: { lower: true, country: true, industry: true, rank: true, flags: true, otherFlag: true } };
 let schemaProbeInFlight = null;
 async function refreshSchemaProbe(adsCol) {
     const now = Date.now();
@@ -418,24 +467,30 @@ async function refreshSchemaProbe(adsCol) {
         try {
             const docs = await adsCol.find({})
                 .project({ page_name_lower: 1, domain_lower: 1, countries_lower: 1, industry: 1, creative_rank: 1, filter_signals: 1, is_group_rep: 1, preset_priority: 1 })
-                .sort({ last_seen: -1 }).limit(3).toArray();
-            const probe = { lower: true, country: true, industry: true, rank: true, flags: true, groupRep: true, priority: true };
+                .sort({ last_seen: -1 }).limit(10).toArray();
+            const probe = { lower: true, country: true, industry: true, rank: true, flags: true, groupRep: true, priority: true, otherFlag: true };
             if (!docs.length) {
-                Object.assign(probe, { lower: false, country: false, industry: false, rank: false, flags: false, groupRep: false, priority: false });
+                Object.assign(probe, { lower: false, country: false, industry: false, rank: false, flags: false, groupRep: false, priority: false, otherFlag: false });
             } else {
-                probe.lower = docs.every(d => typeof d.page_name_lower === 'string' && typeof d.domain_lower === 'string');
-                probe.country = docs.every(d => Array.isArray(d.countries_lower));
-                probe.industry = docs.every(d => typeof d.industry === 'string' && d.industry.length > 0);
-                probe.rank = docs.every(d => typeof d.creative_rank === 'number');
-                probe.flags = docs.every(d => d.filter_signals && typeof d.filter_signals.is_new_ad === 'boolean');
-                probe.groupRep = docs.every(d => typeof d.is_group_rep === 'boolean');
-                probe.priority = docs.every(d => typeof d.preset_priority === 'number');
+                // Đa số thay vì .every(): 1 doc mới nhất thiếu field không
+                // lật cả probe về fallback chậm ($ne/regex). Lấy tối đa 10 doc
+                // mới nhất, cần >= 8 doc có field (mẫu < 8 doc thì cần tất cả).
+                const need = Math.min(8, docs.length);
+                const has = (fn) => docs.filter(fn).length >= need;
+                probe.lower = has(d => typeof d.page_name_lower === 'string' && typeof d.domain_lower === 'string');
+                probe.country = has(d => Array.isArray(d.countries_lower));
+                probe.industry = has(d => typeof d.industry === 'string' && d.industry.length > 0);
+                probe.rank = has(d => typeof d.creative_rank === 'number');
+                probe.flags = has(d => d.filter_signals && typeof d.filter_signals.is_new_ad === 'boolean');
+                probe.otherFlag = has(d => d.filter_signals && typeof d.filter_signals.is_other === 'boolean');
+                probe.groupRep = has(d => typeof d.is_group_rep === 'boolean');
+                probe.priority = has(d => typeof d.preset_priority === 'number');
             }
             schemaProbeCache = { at: Date.now(), probe };
             return probe;
         } catch (e) {
             console.warn('[Search API] Schema probe lỗi, dùng fallback an toàn:', e.message);
-            const probe = { lower: false, country: false, industry: false, rank: false, flags: false, groupRep: false, priority: false };
+            const probe = { lower: false, country: false, industry: false, rank: false, flags: false, groupRep: false, priority: false, otherFlag: false };
             schemaProbeCache = { at: Date.now(), probe };
             return probe;
         } finally {
@@ -520,12 +575,20 @@ function buildIndustryCondition(industryParam, schema) {
 function buildCountryCondition(countryParam, schema) {
     const codes = normalizeCountryCodes(countryParam);
     if (!codes.length) return null;
-    // 'other' = không phải Việt Nam: {countries_lower: {$ne: 'vn'}} khớp
+    // 'other' = ngoài VN/Thái/Campuchia/Lào (chốt 27/11/2026): fallback
+    // {countries_lower: {$nin: [vn, th, kh, la + bí danh]}} khớp
     // cả doc có nhãn nước khác VN lẫn doc chưa có nhãn nước (field rỗng
     // hoặc thiếu — $ne khớp cả trường vắng mặt). Giả định: countries_lower
     // đã chuẩn hóa ISO (migrate PR #7 + analyzer ghi ISO).
     if (codes.includes('other')) {
-        const otherCond = { countries_lower: { $ne: 'vn' } };
+        // Cờ filter_signals.is_other (analyzer ghi sẵn, có index riêng):
+        // equality boolean nên COUNT_SCAN được, nhanh hơn $ne 'vn' (vốn
+        // không dùng được index -> đếm >25s -> FE route timeout 25s rồi
+        // trả 0 — gốc lỗi OTHER=0 ngày 11/11). Khi probe chưa thấy cờ
+        // (analyzer chưa FULL bản mới) thì fallback $ne cũ.
+        const otherCond = (schema && schema.otherFlag)
+            ? { 'filter_signals.is_other': true }
+            : { countries_lower: { $nin: SPECIFIC_COUNTRY_CODES.flatMap(countryMatchValues) } };
         const rest = codes.filter((c) => c !== 'other');
         if (!rest.length) return otherCond;
         return { $or: [otherCond, { countries_lower: { $in: rest.flatMap(countryMatchValues) } }] };
@@ -710,37 +773,64 @@ function textSearchLimit(page, limit, multiplier) {
 // Query text search cho ES. strict=true: match_phrase (cụm đúng thứ tự) +
 // match operator AND (đủ mọi token) — loại kết quả trúng 1 token lẻ
 // ("Đà Nẵng", "Đa năng" khi tìm "Thực phẩm chức năng").
-// strict=false: OR như cũ, chỉ dùng fallback khi strict trả về 0 hit.
+// strict=false (fallback khi strict 0 hit): token-AND — mỗi token phải khớp
+// ở ít nhất 1 field, và phải đủ tối thiểu max(2, ceil(2/3 số token)) token
+// (1 token thì giữ OR như cũ). Test 20/11: OR cũ (minimum_should_match 1)
+// trả "tài xỉu" -> "Cute xỉu", "đồng hồ nam" -> VinFast/du học — vì chỉ cần
+// trúng 1 token lẻ. Token-AND vẫn cho phép token nằm khác field nhau
+// (vd "tài" trong page_name, "xỉu" trong text) nên lỏng hơn match AND
+// trong 1 field nhưng chặt hơn OR. 0 hit thì handler rơi tiếp sang regex
+// Mongo khớp đúng cụm.
 function buildTextSearchQuery(keyword, strict, dedupeEs) {
     const kw = String(keyword).trim();
     const kwAscii = stripViDiacritics(kw);
     const variants = kwAscii !== kw ? [kw, kwAscii] : [kw];
-    const should = [];
-    for (const v of variants) {
-        if (strict) {
+    // Lọc đại diện nhóm ngay trong ES (chỉ khi probe mapping ES đã có field
+    // này): total + thứ hạng + phân trang giữ chính xác.
+    const filter = dedupeEs ? [{ term: { is_group_rep: true } }] : null;
+    const wrap = (should, minimum_should_match) => filter
+        ? { bool: { filter, should, minimum_should_match } }
+        : { bool: { should, minimum_should_match } };
+    if (strict) {
+        const should = [];
+        for (const v of variants) {
             should.push(
                 { match_phrase: { full_text_search: { query: v, boost: 10 } } },
-                { match_phrase: { normalized_text: { query: v, boost: 8 } } },
                 { match: { full_text_search: { query: v, operator: 'and', boost: 5 } } },
-                { match: { normalized_text: { query: v, operator: 'and', boost: 4 } } },
                 { match: { text: { query: v, operator: 'and', boost: 3 } } },
                 { match: { page_name: { query: v, operator: 'and', boost: 2 } } },
             );
-        } else {
+        }
+        return wrap(should, 1);
+    }
+    // Non-strict: tách keyword thành token, mỗi token 1 nhóm should
+    // (khớp ở field nào cũng được, kể cả biến thể không dấu).
+    const tokens = [...new Set(kw.split(/\s+/).filter(Boolean))];
+    if (tokens.length <= 1) {
+        const should = [];
+        for (const v of variants) {
             should.push(
                 { match: { full_text_search: { query: v, boost: 5 } } },
-                { match: { normalized_text: { query: v, boost: 4 } } },
                 { match: { text: { query: v, boost: 3 } } },
                 { match: { page_name: { query: v, boost: 2 } } },
             );
         }
+        return wrap(should, 1);
     }
-    if (dedupeEs) {
-        // Lọc đại diện nhóm ngay trong ES: total + thứ hạng + phân trang
-        // giữ chính xác. Chỉ bật khi probe mapping ES đã có field này.
-        return { bool: { filter: [{ term: { is_group_rep: true } }], should, minimum_should_match: 1 } };
-    }
-    return { bool: { should, minimum_should_match: 1 } };
+    const required = Math.max(2, Math.ceil(tokens.length * 2 / 3));
+    const groups = tokens.map((tok) => {
+        const vs = [...new Set([tok, stripViDiacritics(tok)])];
+        const should = [];
+        for (const v of vs) {
+            should.push(
+                { match: { full_text_search: { query: v, boost: 5 } } },
+                { match: { text: { query: v, boost: 3 } } },
+                { match: { page_name: { query: v, boost: 2 } } },
+            );
+        }
+        return { bool: { should, minimum_should_match: 1 } };
+    });
+    return wrap(groups, required);
 }
 
 // Dedupe list: mặc định BẬT — list chỉ hiện 1 ad gốc mỗi nhóm duplicate
@@ -785,7 +875,7 @@ async function refreshEsDedupeProbe(esClient) {
 }
 
 // Các field sort được phép (dùng chung cho handler + resolveSearchSort).
-const ALLOWED_SORT_FIELDS = new Set(['score', 'trending_score', 'start_date', 'seen_count', 'analyzed_at', 'first_seen', 'last_seen', 'scaling_score', 'estimated_spend_usd', 'duplicates_count', 'duration_days', 'estimated_spend_max_usd', 'estimated_spend_min_usd', 'estimated_reach']);
+const ALLOWED_SORT_FIELDS = new Set(['score', 'trending_score', 'start_date', 'seen_count', 'analyzed_at', 'first_seen', 'last_seen', 'scaling_score', 'estimated_spend_usd', 'estimated_spend_max_usd', 'estimated_spend_min_usd', 'estimated_reach']);
 
 // Param tinh chỉnh theo từng preset. Một preset dùng đường nhanh cờ khi
 // user không truyền param nào, HOẶC mọi param đã truyền đều BẰNG đúng giá
@@ -805,6 +895,35 @@ function presetUsesFlag(presetName, q) {
     const canonical = PRESET_ALIASES[presetName] || presetName;
     const keys = PRESET_TUNING_KEYS[canonical] || [];
     return keys.every((k) => q[k] === undefined || Number(q[k]) === FILTER_DEFAULTS[k]);
+}
+
+// Ẩn ad giải trí/phim khỏi kết quả (mặc định BẬT; tắt bằng
+// ?hide_entertainment=0, hoặc tự tắt khi user chọn ngành Giải trí &
+// Game). Chỉ loại theo creative_rank=2 (creative_kind=entertainment/credit —
+// bắt cả ad truyện/phim/tín dụng bị gán nhầm ngành khác, vd truyện ngôn tình
+// gán beauty_health, ad vay gán fashion) mà KHÔNG loại theo industry: ad sản phẩm bị gán
+// nhầm industry=entertainment (vd TV 'Full HD', 'phim cách nhiệt'
+// nếu không có veto) vẫn ở lại vì rank của nó là 0/1. $ne khớp cả
+// doc thiếu field nên doc cũ không bị loại oan — NHƯNG 16/11 chứng minh
+// $ne làm planner bỏ index tốt, chọn index hẹp + FETCH ~459k doc rồi
+// timeout 30s (site ra 0 cả ngày 16/11). Đổi sang $in: [0, 1] để Mongo
+// bound được rank; đã kiểm chứng live: đếm $ne và $in đều ra 321.448
+// (ép hint trên DB), nên 2 cách tương đương trên dữ liệu thật.
+function hideEntertainmentEnabled(q, industryValues) {
+    const v = q.hide_entertainment;
+    if (v !== undefined && (v === '0' || v === 'false' || v === 'no' || v === 'off')) return false;
+    if (Array.isArray(industryValues) && industryValues.includes('entertainment')) return false;
+    return true;
+}
+function buildHideEntertainmentCondition() {
+    return { creative_rank: { $in: [0, 1] } };
+}
+// Chặn cứng cờ bạc/lừa đảo (creative_rank 3/4, xem analyzer 17/11):
+// KHÔNG BAO GIỜ hiện, kể cả khi tắt ẩn phim (?hide_entertainment=0).
+// Dùng $in [0,1,2] (không dùng $ne) để Mongo bound được rank bằng index,
+// cùng lý do như buildHideEntertainmentCondition (vụ $ne timeout 16/11).
+function buildHideGamblingCondition() {
+    return { creative_rank: { $in: [0, 1, 2] } };
 }
 
 // Ưu tiên ad mua sắm/bán sản phẩm (creative_rank 0) lên trước, ad thuần
@@ -831,6 +950,9 @@ function resolveSearchSort(presets, q, opts) {
     const hasPresetPriority = opts && opts.hasPresetPriority === true;
     const presetSort = resolvePresetSort(presets, q.sort_by !== undefined);
     const normalizedField = q.sort_by !== undefined ? normalizeSortField(q.sort_by) : null;
+    // sort_by=relevance: Mongo vẫn sort theo score (ổn định), thứ hạng ES
+    // được áp lại ở handler bằng esRank (xem sortInfo.relevance).
+    const relevanceRequested = normalizedField === 'relevance';
     const requestedSort = presetSort ? presetSort.field : (normalizedField || 'score');
     const requestedOrder = presetSort ? presetSort.order : normalizeSortOrder(q.sort_order);
     const safeSortField = ALLOWED_SORT_FIELDS.has(String(requestedSort)) ? String(requestedSort) : 'score';
@@ -843,9 +965,22 @@ function resolveSearchSort(presets, q, opts) {
         if (hasPresetPriority) sortOptions.preset_priority = 1;
         if (hasCreativeRank) sortOptions.creative_rank = 1;
         sortOptions[safeSortField] = requestedOrder;
-        return { sortOptions, rankFirst: true };
+        return { sortOptions, rankFirst: true, relevance: relevanceRequested };
     }
-    return { sortOptions: { [safeSortField]: requestedOrder }, rankFirst: false };
+    return { sortOptions: { [safeSortField]: requestedOrder }, rankFirst: false, relevance: relevanceRequested };
+}
+
+// Bug 4 (26/11): sort "Điểm Scaling" thuần (không preset) không qua
+// buildPresetConditions nên không có REAL_THUMBNAIL_COND — điểm scaling
+// tích lũy theo thời gian đẩy ad cũ/Paused/ảnh hết hạn lên top (retest
+// 26/11: 0/10 ảnh thật, 20/20 trang 1 placeholder). Khi sort cuối cùng
+// là scaling_score mà KHÔNG có preset nào, ép thêm điều kiện ảnh thật
+// như preset ready_to_scale. Có preset thì giữ nguyên ngữ nghĩa preset
+// (ready_to_scale/weekly_winner đã tự ép ảnh; new_ads không ép).
+function shouldForceThumbnailForScalingSort(sortInfo, presetList) {
+    if (!sortInfo || !sortInfo.sortOptions || typeof sortInfo.sortOptions !== 'object') return false;
+    if (Array.isArray(presetList) && presetList.length) return false;
+    return Object.prototype.hasOwnProperty.call(sortInfo.sortOptions, 'scaling_score');
 }
 
 // Query ĐẾM: bỏ điều kiện $exists trên field rank (preset_priority /
@@ -885,6 +1020,258 @@ function stripCountExistsConditions(query, sortOptions) {
     return changed ? out : query;
 }
 
+// Đếm tổng cho /api/ads/search: giới hạn 30s như cũ.
+const COUNT_MAX_TIME_MS = 30000;
+// List search: chặn find() tối đa 20s (FE timeout 25s) — từ vô nghĩa rơi sang
+// regex Mongo COLLSCAN từng kẹt >30s (test 20/11: xyzabc123). Hết giờ thì
+// handler trả 500 có giới hạn thay vì treo vô hạn.
+const SEARCH_FIND_MAX_TIME_MS = 20000;
+// Index phục vụ đếm khi lọc đúng 1 nước (xem isCountryAloneCount).
+const COUNTRY_ALONE_COUNT_INDEX = 'idx_countries_rep_start';
+// Index phục vụ đếm khi lọc đúng 1 ngành (xem isIndustryAloneCount).
+const INDUSTRY_ALONE_COUNT_INDEX = 'idx_industry_rep_start';
+// Index phục vụ đếm khi lọc OTHER + mức chi tiêu (xem isOtherSpendCount).
+const OTHER_SPEND_COUNT_INDEX = 'idx_other_rep_start';
+
+function isNonEmptyParam(v) {
+    if (v === undefined || v === null) return false;
+    if (typeof v === 'string') return v.trim() !== '';
+    if (Array.isArray(v)) return v.some((x) => isNonEmptyParam(x));
+    return true;
+}
+function isFiniteNumberParam(v) {
+    return v !== undefined && v !== null && Number.isFinite(Number(v));
+}
+
+// Đếm VN một mình (18/11): planner chọn SAI index cho câu đếm lọc 1 nước
+// (explain live: idx_other_rep_start, FETCH 355.817 doc, 203 giây) thay vì
+// idx_countries_rep_start (COUNT_SCAN ~2,4s cho 140.429 ad VN) — xóa plan
+// cache rồi vẫn chọn sai nên phải hint. Chỉ hint khi query lọc ĐÚNG 1 nước
+// và không kèm filter nào khác. Scope hẹp là cố ý: combo nước+spend
+// (idx_country_spend_tier_rep_start), nước+ngành
+// (idx_country_industry_rep_start), preset (idx_winner_rep_combo, ...) có
+// index riêng và planner đang chọn đúng cho chúng — hint bừa sẽ làm chậm
+// chúng. Country='other' không có countries_lower nên tự loại (OTHER dùng
+// idx_other_rep_start, đúng index của nó).
+// Kiểm tra 2 lớp: (1) param q — không filter nào khác có hiệu lực;
+// (2) cấu trúc countQuery — top-level chỉ có countries_lower (+ $and mặc
+// định) và mọi nhánh $and đều là điều kiện mặc định (rep / tươi / ẩn rank),
+// để một filter lạ nào đó lọt qua lớp (1) cũng không hint sai.
+function isCountryAloneCount(q, countQuery) {
+    if (!q || typeof q !== 'object') return false;
+    if (!countQuery || typeof countQuery !== 'object' || Array.isArray(countQuery)) return false;
+    // (1a) Đúng 1 mã nước, không phải 'other'.
+    const codes = normalizeCountryCodes(q.country);
+    if (codes.length !== 1 || codes[0] === 'other') return false;
+    // (1b) Không filter nào khác có hiệu lực. min/max_spend_usd cũng chặn:
+    // buildSpendCondition tạo điều kiện chỉ từ 2 số này (không cần tier).
+    if (isNonEmptyParam(q.text)) return false;
+    if (isNonEmptyParam(q.date_from) || isNonEmptyParam(q.date_to)) return false;
+    if (isNonEmptyParam(q.level)) return false;
+    if (normalizeSpendTiers(q.estimated_spend).length) return false;
+    if (isFiniteNumberParam(q.min_spend_usd) || isFiniteNumberParam(q.max_spend_usd)) return false;
+    if (isFiniteNumberParam(q.min_score) || isFiniteNumberParam(q.max_score)) return false;
+    if (isFiniteNumberParam(q.min_trending_score)) return false;
+    if (normalizeFunnelValues(q.funnel).length) return false;
+    if (isNonEmptyParam(q.scaling_level)) return false;
+    if (isNonEmptyParam(q.page_name)) return false;
+    if (isNonEmptyParam(q.domain)) return false;
+    if (q.is_active !== undefined) return false;
+    if (normalizePresetNames(q.filter).length) return false;
+    if (normalizeIndustryValues(q.industry).length) return false;
+    // (2a) countQuery phải có countries_lower dạng object ($in các bí danh).
+    const cl = countQuery.countries_lower;
+    if (!cl || typeof cl !== 'object' || Array.isArray(cl)) return false;
+    // (2b) Top-level chỉ được có countries_lower và $and.
+    for (const k of Object.keys(countQuery)) {
+        if (k !== 'countries_lower' && k !== '$and') return false;
+    }
+    // (2c) Mọi nhánh $and phải là điều kiện mặc định của search list:
+    // is_group_rep, last_seen tươi, hoặc creative_rank $in (ẩn phim/cờ bạc).
+    const ands = countQuery.$and;
+    if (!Array.isArray(ands) || !ands.length) return false;
+    for (const c of ands) {
+        if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+        const keys = Object.keys(c);
+        if (keys.length !== 1) return false;
+        if (keys[0] === 'is_group_rep') { if (c.is_group_rep !== true) return false; continue; }
+        if (keys[0] === 'last_seen') {
+            const v = c.last_seen;
+            if (!v || typeof v !== 'object' || !Number.isFinite(v.$gte)) return false;
+            continue;
+        }
+        if (keys[0] === 'creative_rank') {
+            const v = c.creative_rank;
+            if (!v || typeof v !== 'object' || !Array.isArray(v.$in) || !v.$in.length) return false;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// Đếm ngành một mình (20/11): cùng shape lỗi như đếm VN 18/11 — câu đếm lọc
+// 1 ngành là $and {industry, is_group_rep, last_seen tươi, creative_rank $in}
+// nhưng idx_industry_rep_start cũ không có creative_rank nên planner phải
+// FETCH từng doc để lọc rank (Làm đẹp 36.516 ad tải 15-30s, Thời trang 24.885
+// ad tải 10-25s ngày 20/11; hôm 19/11 Thời trang còn <5s — tập ad tươi nở
+// thêm sau #51 + bot quét căng 100k+ ad nên chi phí FETCH vượt ngưỡng).
+// Sau khi redefine index (creative_rank thứ 3) thì hint ép planner dùng đúng
+// index đó cho COUNT. Scope hẹp như VN: chỉ hint khi lọc ĐÚNG 1 ngành và
+// không kèm filter nào khác (combo ngành+nước có idx_country_industry_rep_start
+// riêng, preset có index riêng, planner đang chọn đúng cho chúng).
+// Kiểm tra 2 lớp như isCountryAloneCount: (1) param q, (2) cấu trúc countQuery.
+function isIndustryAloneCount(q, countQuery) {
+    if (!q || typeof q !== 'object') return false;
+    if (!countQuery || typeof countQuery !== 'object' || Array.isArray(countQuery)) return false;
+    // (1a) Đúng 1 giá trị ngành.
+    const values = normalizeIndustryValues(q.industry);
+    if (values.length !== 1) return false;
+    // (1b) Không filter nào khác có hiệu lực.
+    if (isNonEmptyParam(q.text)) return false;
+    if (isNonEmptyParam(q.date_from) || isNonEmptyParam(q.date_to)) return false;
+    if (isNonEmptyParam(q.level)) return false;
+    if (normalizeSpendTiers(q.estimated_spend).length) return false;
+    if (isFiniteNumberParam(q.min_spend_usd) || isFiniteNumberParam(q.max_spend_usd)) return false;
+    if (isFiniteNumberParam(q.min_score) || isFiniteNumberParam(q.max_score)) return false;
+    if (isFiniteNumberParam(q.min_trending_score)) return false;
+    if (normalizeFunnelValues(q.funnel).length) return false;
+    if (isNonEmptyParam(q.scaling_level)) return false;
+    if (isNonEmptyParam(q.page_name)) return false;
+    if (isNonEmptyParam(q.domain)) return false;
+    if (q.is_active !== undefined) return false;
+    if (normalizePresetNames(q.filter).length) return false;
+    if (normalizeCountryCodes(q.country).length) return false;
+    // (2a) countQuery phải có industry dạng object ($in các giá trị).
+    const ind = countQuery.industry;
+    if (!ind || typeof ind !== 'object' || Array.isArray(ind)) return false;
+    // (2b) Top-level chỉ được có industry và $and.
+    for (const k of Object.keys(countQuery)) {
+        if (k !== 'industry' && k !== '$and') return false;
+    }
+    // (2c) Mọi nhánh $and phải là điều kiện mặc định của search list:
+    // is_group_rep, last_seen tươi, hoặc creative_rank $in (ẩn phim/cờ bạc).
+    const ands = countQuery.$and;
+    if (!Array.isArray(ands) || !ands.length) return false;
+    for (const c of ands) {
+        if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+        const keys = Object.keys(c);
+        if (keys.length !== 1) return false;
+        if (keys[0] === 'is_group_rep') { if (c.is_group_rep !== true) return false; continue; }
+        if (keys[0] === 'last_seen') {
+            const v = c.last_seen;
+            if (!v || typeof v !== 'object' || !Number.isFinite(v.$gte)) return false;
+            continue;
+        }
+        if (keys[0] === 'creative_rank') {
+            const v = c.creative_rank;
+            if (!v || typeof v !== 'object' || !Array.isArray(v.$in) || !v.$in.length) return false;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// Đếm OTHER + mức chi tiêu (bug 2, retest 26/11 vẫn kẹt "Đang đếm..."):
+// câu đếm gồm {filter_signals.is_other: true, estimated_spend: {$in},
+// is_group_rep, last_seen tươi, creative_rank $in} — mọi field đều nằm
+// trong idx_other_rep_start {is_group_rep, is_other, creative_rank,
+// start_date, last_seen, estimated_spend} nên đếm covered được. Nhưng
+// planner có thể chọn idx_spend_tier_rep_start (estimated_spend đứng
+// đầu) rồi FETCH từng doc để kiểm tra is_other (field không có trong
+// index đó) — spend một mình nhanh, OTHER một mình nhanh, combo kẹt.
+// Ép hint idx_other_rep_start cho đúng combo này, cùng mẫu 2 lớp kiểm
+// tra như đếm VN/ngành một mình. CHỈ áp cho câu ĐẾM; list find() giữ
+// nguyên planner (đo lại bằng explain sau deploy trước khi đụng find).
+function isOtherSpendCount(q, countQuery) {
+    if (!q || typeof q !== 'object') return false;
+    if (!countQuery || typeof countQuery !== 'object' || Array.isArray(countQuery)) return false;
+    // (1a) Đúng nước 'other' và có ít nhất 1 mức chi tiêu (tier).
+    const codes = normalizeCountryCodes(q.country);
+    if (codes.length !== 1 || codes[0] !== 'other') return false;
+    if (!normalizeSpendTiers(q.estimated_spend).length) return false;
+    // (1b) Không filter nào khác có hiệu lực.
+    if (isNonEmptyParam(q.text)) return false;
+    if (isNonEmptyParam(q.date_from) || isNonEmptyParam(q.date_to)) return false;
+    if (isNonEmptyParam(q.level)) return false;
+    if (isFiniteNumberParam(q.min_spend_usd) || isFiniteNumberParam(q.max_spend_usd)) return false;
+    if (isFiniteNumberParam(q.min_score) || isFiniteNumberParam(q.max_score)) return false;
+    if (isFiniteNumberParam(q.min_trending_score)) return false;
+    if (normalizeFunnelValues(q.funnel).length) return false;
+    if (isNonEmptyParam(q.scaling_level)) return false;
+    if (isNonEmptyParam(q.page_name)) return false;
+    if (isNonEmptyParam(q.domain)) return false;
+    if (q.is_active !== undefined) return false;
+    if (normalizePresetNames(q.filter).length) return false;
+    if (normalizeIndustryValues(q.industry).length) return false;
+    // (2a) countQuery phải có cờ is_other=true và estimated_spend $in.
+    if (countQuery['filter_signals.is_other'] !== true) return false;
+    const spend = countQuery.estimated_spend;
+    if (!spend || typeof spend !== 'object' || Array.isArray(spend)) return false;
+    if (!Array.isArray(spend.$in) || !spend.$in.length) return false;
+    // (2b) Top-level chỉ được có is_other, estimated_spend và $and.
+    for (const k of Object.keys(countQuery)) {
+        if (k !== 'filter_signals.is_other' && k !== 'estimated_spend' && k !== '$and') return false;
+    }
+    // (2c) Mọi nhánh $and phải là điều kiện mặc định của search list.
+    const ands = countQuery.$and;
+    if (!Array.isArray(ands) || !ands.length) return false;
+    for (const c of ands) {
+        if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+        const keys = Object.keys(c);
+        if (keys.length !== 1) return false;
+        if (keys[0] === 'is_group_rep') { if (c.is_group_rep !== true) return false; continue; }
+        if (keys[0] === 'last_seen') {
+            const v = c.last_seen;
+            if (!v || typeof v !== 'object' || !Number.isFinite(v.$gte)) return false;
+            continue;
+        }
+        if (keys[0] === 'creative_rank') {
+            const v = c.creative_rank;
+            if (!v || typeof v !== 'object' || !Array.isArray(v.$in) || !v.$in.length) return false;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// Options cho countDocuments của /api/ads/search: luôn maxTimeMS 30s;
+// thêm hint idx_countries_rep_start chỉ khi đếm VN một mình,
+// hint idx_industry_rep_start chỉ khi đếm ngành một mình,
+// hint idx_other_rep_start chỉ khi đếm OTHER + mức chi tiêu.
+function resolveCountOptions(countQuery, q) {
+    const opts = { maxTimeMS: COUNT_MAX_TIME_MS };
+    if (isIndustryAloneCount(q, countQuery)) opts.hint = INDUSTRY_ALONE_COUNT_INDEX;
+    else if (isCountryAloneCount(q, countQuery)) opts.hint = COUNTRY_ALONE_COUNT_INDEX;
+    else if (isOtherSpendCount(q, countQuery)) opts.hint = OTHER_SPEND_COUNT_INDEX;
+    return opts;
+}
+
+function isCountTimeoutError(err) {
+    if (!err || typeof err !== 'object') return false;
+    if (err.code === 50) return true; // MaxTimeMSExpired
+    const msg = typeof err.message === 'string' ? err.message : '';
+    return /timed out|exceeded time limit|MaxTimeMS/i.test(msg);
+}
+
+// Đếm tổng cho /api/ads/search (thay cho countDocuments trực tiếp ở
+// handler). Nếu lần đếm có hint lỗi (vd index bị đổi tên/xóa) thì đếm lại
+// 1 lần KHÔNG hint; lỗi timeout thì không đếm lại (đếm lại cũng timeout,
+// chỉ tốn thêm 30s). Cả hai lần đều lỗi thì ném lỗi để handler đặt
+// countTimeout=true như cũ.
+async function countSearchTotal(col, countQuery, q) {
+    const opts = resolveCountOptions(countQuery, q);
+    try {
+        return await col.countDocuments(countQuery, opts);
+    } catch (err) {
+        if (!opts.hint || isCountTimeoutError(err)) throw err;
+        console.warn('[Search API] count hint lỗi, fallback không hint:', err && err.message);
+        return await col.countDocuments(countQuery, { maxTimeMS: COUNT_MAX_TIME_MS });
+    }
+}
+
 // Trả về mảng điều kiện Mongo cho preset (kết hợp AND với các filter khác).
 // presets: chuỗi 'new_ads,ready_to_scale' (chấp nhận alias new/scale/winner).
 // Đường nhanh: dùng cờ filter_signals.* tính sẵn bởi analyzer (1 field
@@ -895,6 +1282,18 @@ function stripCountExistsConditions(query, sortOptions) {
 function hasAnyParam(q, keys) {
     return keys.some(k => q[k] !== undefined);
 }
+
+// [THUMB-ONLY] Chi ad co anh THAT tren R2 moi vao bang winner/scale:
+// thumbnail_r2 ton tai, khac rong, va KHONG phai URL video tam .mp4
+// (token oe het han sau vai gio). Hai dieu kien tren cung field phai
+// nam trong 2 object rieng cua $and (Mongo cam 2 operator tren 1 field
+// trong 1 object).
+const REAL_THUMBNAIL_COND = {
+    $and: [
+        { thumbnail_r2: { $exists: true, $nin: [null, ''] } },
+        { thumbnail_r2: { $not: /\.mp4/i } },
+    ]
+};
 
 function buildPresetConditions(presets, q, opts) {
     const useFlags = !opts || opts.useFlags !== false;
@@ -912,6 +1311,7 @@ function buildPresetConditions(presets, q, opts) {
         } else if (p === 'ready_to_scale' || p === 'scale') {
             if (useFlags && presetUsesFlag(p, q)) {
                 conds.push({ 'filter_signals.is_ready_to_scale': true });
+                conds.push(REAL_THUMBNAIL_COND);
             } else {
                 // Dấu hiệu sắp scale: còn non (3-7 ngày) nhưng creative đã bị
                 // duplicate — nhà quảng cáo đang nhân bản. scaling_score chỉ dùng
@@ -927,10 +1327,12 @@ function buildPresetConditions(presets, q, opts) {
                 const minScaling = numParam(q.scale_min_scaling_score, FILTER_DEFAULTS.scale_min_scaling_score);
                 if (minScaling > 0) cond.scaling_score = { $gte: minScaling };
                 conds.push(cond);
+                conds.push(REAL_THUMBNAIL_COND);
             }
         } else if (p === 'weekly_winner' || p === 'winner') {
             if (useFlags && presetUsesFlag(p, q)) {
                 conds.push({ 'filter_signals.is_weekly_winner': true });
+                conds.push(REAL_THUMBNAIL_COND);
             } else {
                 // Winner kiểu Minea: sống lâu (>= 7 ngày không tắt) + còn chạy +
                 // bị duplicate + (điểm tổng cao HOẶC đà tăng mạnh). Dùng OR cho
@@ -960,6 +1362,7 @@ function buildPresetConditions(presets, q, opts) {
                         ]
                     });
                 }
+                parts.push(REAL_THUMBNAIL_COND);
                 conds.push({ $and: parts });
             }
         }
@@ -1087,7 +1490,7 @@ function buildSimilarTiers(sourceAd, adId, nowMs = Date.now()) {
     // rep của nó cũng là cùng 1 creative, không được hiện lại.
     const repOnly = { is_group_rep: { $ne: false } };
     const noOwnGroup = sourceAd.duplicate_group_key ? { duplicate_group_key: { $ne: sourceAd.duplicate_group_key } } : {};
-    // Ad chết cũ (last_seen > 30 ngày) không vào similar: ảnh hết hạn,
+    // Ad chết cũ (last_seen > 45 ngày) không vào similar: ảnh hết hạn,
     // vô giá trị dù điểm cao.
     const freshOnly = buildFreshAdCondition(nowMs);
     const tiers = [];
@@ -1203,8 +1606,6 @@ function initSearchServer(dbInstance) {
     const ELASTIC_INDEX = 'fb_ads_analyzer';
 
     const adsCol = dbInstance.collection('analyzed_ads');
-    const productsCol = dbInstance.collection('products');
-    const winnersCol = dbInstance.collection('product_winners_daily');
 
     const imageStoragePath = path.join(__dirname, '..', '..', 'storage', 'images');
     if (!fs.existsSync(imageStoragePath)) {
@@ -1246,6 +1647,9 @@ function initSearchServer(dbInstance) {
     async function fetchSimilarAds(sourceAd, adId, page, limit) {
         const tiers = buildSimilarTiers(sourceAd, adId);
         const similarAds = await fillSimilarAds(adsCol, tiers, page, limit, SIMILAR_PROJECTION, similarDupTextOf(sourceAd));
+        // Bug 6: thumbnail video tạm hết hạn -> null (placeholder thay
+        // vì khung đen), cùng cách search list đã làm.
+        stripExpiredVideoThumbs(similarAds);
         let total;
         if (similarAds.length < limit) {
             // Fill đã cạn mọi tầng (số đã lấy < need) -> total chính xác
@@ -1294,7 +1698,6 @@ function initSearchServer(dbInstance) {
                 estimated_spend,
                 min_trending_score,
                 funnel,
-                scaling_level,
                 page_name,     // Lọc theo tên Page
                 domain,        // Lọc theo tên miền
                 is_active,     // Lọc theo trạng thái quảng cáo (true/false)
@@ -1432,8 +1835,7 @@ function initSearchServer(dbInstance) {
             }
 
             // level: regex $in trên giá trị có prefix emoji (xem
-            // buildLevelCondition). scaling_level: map nhãn FE về 3 giá trị
-            // thật của DB (xem buildScalingCondition).
+            // buildLevelCondition).
             if (level) {
                 const levelCond = buildLevelCondition(level);
                 if (levelCond) Object.assign(query, levelCond);
@@ -1462,16 +1864,25 @@ function initSearchServer(dbInstance) {
                 if (schema.groupRep) andConds.push({ is_group_rep: true });
                 else dedupeFallback = 'schema';
             }
-            // Ad chết cũ (last_seen > 30 ngày) là vô giá trị: ẩn khỏi
+            // Ad chết cũ (last_seen > 45 ngày) là vô giá trị: ẩn khỏi
             // mọi list search + đếm (total khớp list). Dùng last_seen thay
             // vì cờ is_active vì cờ có thể cũ.
             andConds.push(buildFreshAdCondition());
             if (dedupeOn && esRank && !esDedupeAvailable && schema.groupRep) dedupeFallback = 'mongo';
             if (industryCond) andConds.push(industryCond);
-            if (scaling_level) {
-                const scalingCond = buildScalingCondition(scaling_level);
-                if (scalingCond) andConds.push(scalingCond);
-            }
+            // Ẩn phim/giải trí (mặc định BẬT, xem hideEntertainmentEnabled).
+            // Cờ bạc/lừa đảo (rank 3/4) không bao giờ hiện: ẩn phim BẬT thì
+            // [0,1] đã loại cả rank 3/4; ẩn phim TẮT thì dùng [0,1,2] thay
+            // vì bỏ hẳn điều kiện rank (xem fix 17/11).
+            if (hideEntertainmentEnabled(q, industryValues)) andConds.push(buildHideEntertainmentCondition());
+            else andConds.push(buildHideGamblingCondition());
+            // 26/11: lọc "Mức độ Scaling" (scaling_level) ĐÃ BỎ theo yêu
+            // cầu của Bryan — load chậm, kết hợp filter khác thì hỏng.
+            // Param scaling_level FE còn gửi sẽ bị bỏ qua (không lọc,
+            // không lỗi). buildScalingCondition giữ lại (export + test)
+            // để khôi phục nhanh nếu cần, nhưng handler không gọi nữa.
+            // Lưu ý: sort theo scaling_score ("Điểm Scaling") và preset
+            // ready_to_scale KHÔNG bị bỏ — đó là cơ chế khác.
             // Sort theo rank chỉ có nghĩa khi doc đã có creative_rank
             // (probe rank=false -> bỏ rank, không thêm điều kiện $exists
             // làm preset trả rỗng như bản cũ khi analyzer chưa chạy lại).
@@ -1480,6 +1891,10 @@ function initSearchServer(dbInstance) {
                 if ('preset_priority' in sortInfo.sortOptions) andConds.push({ preset_priority: { $exists: true } });
                 if ('creative_rank' in sortInfo.sortOptions) andConds.push({ creative_rank: { $exists: true } });
             }
+            // Bug 4: sort scaling_score thuần (không preset) ép ảnh thật
+            // như preset ready_to_scale — xem shouldForceThumbnailForScalingSort.
+            const scalingSortThumbOnly = shouldForceThumbnailForScalingSort(sortInfo, presetList);
+            if (scalingSortThumbOnly) andConds.push(REAL_THUMBNAIL_COND);
             if (andConds.length) query.$and = [...(query.$and || []), ...andConds];
 
             // Đếm: countDocuments trên query chậm (regex/$or) có thể vượt
@@ -1487,18 +1902,25 @@ function initSearchServer(dbInstance) {
             // với total=null để FE hiện kết quả thay vì lỗi 500 (FE phải
             // chịu được total=null, xem FE brief). Query đếm bỏ $exists
             // trên field rank (xem stripCountExistsConditions) để Mongo
-            // dùng COUNT_SCAN thay vì FETCH toàn bộ doc.
-            let total = null;
-            let countTimeout = false;
+            // dùng COUNT_SCAN thay vì FETCH toàn bộ doc. Đếm qua
+            // countSearchTotal để hint idx_countries_rep_start khi lọc
+            // đúng 1 nước (planner chọn sai index cho shape này, xem
+            // isCountryAloneCount); hint lỗi thì đếm lại không hint.
             const countQuery = stripCountExistsConditions(query, sortInfo.sortOptions);
-            try {
-                total = Object.keys(countQuery).length === 0
-                    ? await adsCol.estimatedDocumentCount()
-                    : await adsCol.countDocuments(countQuery, { maxTimeMS: 30000 });
-            } catch (countErr) {
-                console.warn('[Search API] countDocuments timeout/lỗi:', countErr.message);
-                countTimeout = true;
-            }
+            // 26/11: đếm và lấy list chạy SONG SONG (trước đây đếm xong mới
+            // find — tổng thời gian = count + find, dễ vượt timeout 25s của
+            // FE). Lỗi đếm vẫn nuốt như cũ: total=null + count_timeout.
+            const countPromise = (async () => {
+                try {
+                    const t = Object.keys(countQuery).length === 0
+                        ? await adsCol.estimatedDocumentCount()
+                        : await countSearchTotal(adsCol, countQuery, q);
+                    return { total: t, countTimeout: false };
+                } catch (countErr) {
+                    console.warn('[Search API] countDocuments timeout/lỗi:', countErr.message);
+                    return { total: null, countTimeout: true };
+                }
+            })();
 
             const sortOptions = sortInfo.sortOptions;
 
@@ -1508,15 +1930,18 @@ function initSearchServer(dbInstance) {
                     start_date: 1, seen_count: 1, score: 1, level: 1, trending_score: 1, scaling_score: 1,
                     estimated_spend_usd: 1, estimated_spend_min_usd: 1, estimated_spend_max_usd: 1,
                     estimated_spend: 1, estimated_spend_source: 1, estimated_spend_capped: 1, country_inferred: 1, estimated_reach: 1, estimated_reach_min: 1, estimated_reach_max: 1,
-                    duplicates_count: 1, duration_days: 1, cpm_used: 1, filter_signals: 1, industry: 1, creative_kind: 1, creative_rank: 1, thumbnail_r2: 1, duplicate_group_key: 1, duplicate_group_size: 1, is_group_rep: 1, preset_priority: 1,
+                    duplicates_count: 1, duration_days: 1, cpm_used: 1, spend_diversify: 1, spend_lang_mult: 1, ad_language: 1, filter_signals: 1, industry: 1, creative_kind: 1, creative_rank: 1, thumbnail_r2: 1, duplicate_group_key: 1, duplicate_group_size: 1, is_group_rep: 1, preset_priority: 1,
                     scaling_level: 1, funnel: 1, analyzed_at: 1,
                     thumbnail_local: 1, is_active: 1, images: { $slice: 1 }, videos: { $slice: 1 }
                 })
-                .sort(sortOptions).skip(skip).limit(limit).toArray();
+                .sort(sortOptions).skip(skip).limit(limit).maxTimeMS(SEARCH_FIND_MAX_TIME_MS).toArray();
 
-            // Khi search text mà user không chọn sort_by: giữ thứ hạng relevance
+            const { total, countTimeout } = await countPromise;
+
+            // Khi search text mà user không chọn sort_by, hoặc chọn
+            // sort_by=relevance ("Liên quan nhất"): giữ thứ hạng relevance
             // của ES thay vì để analyzer score quyết định thứ tự.
-            if (esRank && q.sort_by === undefined) {
+            if (esRank && (q.sort_by === undefined || sortInfo.relevance)) {
                 const priorityFirst = sortInfo.rankFirst && 'preset_priority' in sortInfo.sortOptions;
                 if (sortInfo.rankFirst) {
                     results.sort((a, b) => (priorityFirst ? (a.preset_priority ?? 1) - (b.preset_priority ?? 1) : 0) || ((a.creative_rank ?? 1) - (b.creative_rank ?? 1)) || ((esRank.get(String(a.ad_archive_id)) ?? Number.MAX_SAFE_INTEGER) - (esRank.get(String(b.ad_archive_id)) ?? Number.MAX_SAFE_INTEGER)));
@@ -1540,6 +1965,13 @@ function initSearchServer(dbInstance) {
                 });
             }
 
+            // Strip thumbnail video tạm đã hết hạn (token oe hết hạn sau
+            // vài giờ): trả null để FE hiện placeholder thay vì khung đen.
+            stripExpiredVideoThumbs(results);
+            // Bug 5: tính lại is_active từ last_seen để nhãn trên card
+            // khớp điều kiện lọc (cờ analyzer ghi lúc FULL đã cũ).
+            refreshIsActive(results);
+
             // Echo để FE debug: bộ lọc nào đã áp dụng thật, giá trị nào bị
             // bỏ (lạ), đường fallback nào đang chạy. Chỉ thêm field, không
             // đổi shape cũ (data/pagination giữ nguyên).
@@ -1557,7 +1989,9 @@ function initSearchServer(dbInstance) {
                     estimated_spend: normalizeSpendTiers(estimated_spend),
                     funnel: funnel ? normalizeFunnelValues(funnel) : [],
                     sort_by: sortInfo.sortOptions,
+                    scaling_sort_thumbnail_only: scalingSortThumbOnly,
                     product_first: productFirstEnabled(q),
+                    hide_entertainment: hideEntertainmentEnabled(q, industryValues),
                     dedupe: dedupeOn,
                 },
                 schema_fallback: {
@@ -1588,7 +2022,7 @@ function initSearchServer(dbInstance) {
     app.get('/api/ads/filter-stats', async (req, res) => {
         try {
             const schema = await refreshSchemaProbe(adsCol);
-            // Total + badge preset chỉ đếm ad tươi (last_seen <= 30 ngày)
+            // Total + badge preset chỉ đếm ad tươi (last_seen <= 45 ngày)
             // để khớp với list đã ẩn ad chết cũ; total cũ dùng
             // estimatedDocumentCount đếm cả ad chết nên lệch với list.
             const freshCond = buildFreshAdCondition();
@@ -1597,6 +2031,12 @@ function initSearchServer(dbInstance) {
             for (const name of ['new_ads', 'ready_to_scale', 'weekly_winner']) {
                 const conds = buildPresetConditions(name, {}, { useFlags: schema.flags });
                 const countQuery = conds.length ? { $and: [...conds, freshCond] } : { ...freshCond };
+                // Badge khớp list đã ẩn phim: cùng điều kiện loại giải trí.
+                // (Total chung giữ nguyên — đếm nó không có index cover
+                // creative_rank nên thêm $ne sẽ FETCH toàn bộ doc tươi.)
+                const hideCond = buildHideEntertainmentCondition();
+                if (countQuery.$and) countQuery.$and.push(hideCond);
+                else Object.assign(countQuery, hideCond);
                 // Badge khớp list đã dedupe: chỉ đếm ad đại diện khi field nhóm đã có.
                 if (schema.groupRep) countQuery.is_group_rep = true;
                 presets[name] = await adsCol.countDocuments(countQuery);
@@ -1741,7 +2181,7 @@ function initSearchServer(dbInstance) {
     app.get('/api/pages/:page_name/ads', async (req, res) => {
         try {
             const pageName = req.params.page_name;
-            const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+            const limit = normalizePageLimit(req.query.limit, 20, 100);
             const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
             const skip = (page - 1) * limit;
             // Dedupe mặc định BẬT (như search): 1 creative chỉ hiện 1 lần
@@ -1759,7 +2199,7 @@ function initSearchServer(dbInstance) {
                     ? { $nin: [excludeId, Number(excludeId)] }
                     : { $ne: excludeId };
             }
-            // Ad chết cũ (last_seen > 30 ngày) không hiện trong list page
+            // Ad chết cũ (last_seen > 45 ngày) không hiện trong list page
             // nữa (ảnh hết hạn, vô giá trị) — cả count lẫn list dùng chung
             // query này nên total khớp số creative tươi thật.
             Object.assign(query, buildFreshAdCondition());
@@ -1768,7 +2208,12 @@ function initSearchServer(dbInstance) {
             const ads = await adsCol.find(query)
                 .project({
                     ad_archive_id: 1, ad_library_url: 1, text: { $substrCP: ["$text", 0, 150] }, score: 1, level: 1,
-                    is_active: 1, start_date: 1, estimated_spend_usd: 1, estimated_reach: 1,
+                    // Bug 6 (26/11): trước đây projection THIẾU thumbnail_r2
+                    // nên mục "cùng Fanpage" chỉ có URL fbcdn gốc đã hết
+                    // hạn -> 20/20 mất ảnh. Trả thêm thumbnail R2 bền +
+                    // last_seen để tính lại is_active (bug 5).
+                    is_active: 1, last_seen: 1, start_date: 1, estimated_spend_usd: 1, estimated_reach: 1,
+                    thumbnail_r2: 1, thumbnail_local: 1,
                     images: { $slice: 1 }, videos: { $slice: 1 }
                 })
                 // Active lên trước (ad đã dừng/không còn trong Library
@@ -1780,110 +2225,17 @@ function initSearchServer(dbInstance) {
                 .limit(limit)
                 .toArray();
 
+            // Bug 6 + bug 5: strip video tạm hết hạn, tính lại is_active
+            // từ last_seen (sort ở trên vẫn theo cờ đã lưu — chỉ nhãn
+            // hiển thị được làm tươi, thứ tự list không đổi).
+            stripExpiredVideoThumbs(ads);
+            refreshIsActive(ads);
+
             return res.json({
                 success: true,
                 pagination: { total, page, limit, pages: Math.ceil(total / limit), dedupe: dedupeOn },
                 data: ads
             });
-        } catch (error) {
-            return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-        }
-    });
-
-    /**
-     * 🟢 API 5: TÌM KIẾM SẢN PHẨM/DOMAIN
-     */
-    app.get('/api/products/search', async (req, res) => {
-        try {
-            const { sort_by = 'product_score', sort_order = -1 } = req.query;
-            const query = buildProductsSearchQuery(req.query);
-
-            const page = parseInt(req.query.page, 10) || 1;
-            const limit = parseInt(req.query.limit, 10) || 50;
-            const skip = (page - 1) * limit;
-
-            const total = await productsCol.countDocuments(query);
-            const results = await productsCol.find(query)
-                .sort({ [sort_by]: parseInt(sort_order, 10) })
-                .skip(skip).limit(limit).toArray();
-
-            return res.json({ success: true, pagination: { total, page, limit, pages: Math.ceil(total / limit) }, data: results });
-        } catch (error) {
-            return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-        }
-    });
-
-    /**
-     * 🟢 API 5b: MONTHLY WINNERS — sản phẩm thắng của tháng (xếp theo số
-     * ngày thắng rồi tổng product_score) + top 1 mỗi ngày trong tháng.
-     * Snapshot hàng ngày do analyzer ghi vào product_winners_daily (top 30
-     * product/ngày, chạy lần đầu ở lượt FULL sau deploy — trước đó trả rỗng).
-     * ?month=YYYY-MM (mặc định tháng hiện tại) hoặc ?day=YYYY-MM-DD để lấy
-     * winners của 1 ngày (theo rank).
-     */
-    app.get('/api/products/monthly-winners', async (req, res) => {
-        try {
-            const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-            const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 100);
-            const skip = (page - 1) * limit;
-
-            const day = String(req.query.day || '').trim();
-            // Filter chung cho ca day + month: ?platform=shopify|other, ?country=VN.
-            const pf = String(req.query.platform || '').trim().toLowerCase();
-            const cc = String(req.query.country || '').trim().toLowerCase();
-            const prodFilter = { domain: { $not: excludedProductDomainRegex() }, title: { $not: nonProductTitleRegex() }, category: { $nin: [...NON_PRODUCT_INDUSTRIES] }, $and: [{ $or: [{ winning_ads: { $gte: 1 } }, { winning_ads: { $exists: false } }] }, { $or: [{ buy_signal_ads: { $gte: 1 } }, { buy_signal_ads: { $exists: false } }] }] };
-            if (pf === 'shopify' || pf === 'other') prodFilter.platform = pf;
-            if (cc === 'vn' || cc === 'vietnam') prodFilter.is_vn = true;
-            if (day) {
-                if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ success: false, message: 'day phai co dang YYYY-MM-DD.' });
-                const total = await winnersCol.countDocuments({ date: day, ...prodFilter });
-                const results = await winnersCol.find({ date: day, ...prodFilter }).sort({ rank: 1 }).skip(skip).limit(limit).toArray();
-                return res.json({ success: true, mode: 'day', day, pagination: { total, page, limit, pages: Math.ceil(total / limit) }, data: results });
-            }
-
-            const month = parseMonthParam(req.query.month);
-            if (!month) return res.status(400).json({ success: false, message: 'month phai co dang YYYY-MM.' });
-            const all = await winnersCol.aggregate(buildMonthlyWinnersPipeline(month, { platform: req.query.platform, country: req.query.country })).toArray();
-            const total = all.length;
-            const data = all.slice(skip, skip + limit).map((d) => ({ product_key: d._id, domain: d.domain, landing_url: d.landing_url || null, category: d.category || null, title: d.title, platform: d.platform || 'other', is_vn: !!d.is_vn, days_won: d.days_won, total_product_score: Number(d.total_product_score.toFixed(1)), total_winning_ads: d.total_winning_ads, best_rank: d.best_rank, latest_score: d.latest_score }));
-            // Top 1 mỗi ngày trong tháng (để FE vẽ "hàng win mỗi ngày").
-            const { start, end } = monthRange(month);
-            const dailyTop = await winnersCol.find({ date: { $gte: start, $lt: end }, ...prodFilter }).sort({ date: 1, rank: 1 }).project({ date: 1, domain: 1, title: 1, product_score: 1, rank: 1 }).toArray();
-            const daily_top = {};
-            for (const d of dailyTop) if (!daily_top[d.date]) daily_top[d.date] = { product_key: d.product_key || d.domain, domain: d.domain, landing_url: d.landing_url || null, category: d.category || null, title: d.title, product_score: d.product_score };
-            return res.json({ success: true, mode: 'month', month, pagination: { total, page, limit, pages: Math.ceil(total / limit) }, data, daily_top });
-        } catch (error) {
-            return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
-        }
-    });
-
-    /**
-     * 🟢 API 6: LẤY CHI TIẾT SẢN PHẨM/DOMAIN
-     */
-    app.get('/api/products/detail/:domain', async (req, res) => {
-        try {
-            const { domain } = req.params;
-            if (!domain) return res.status(400).json({ success: false, message: 'Domain is required.' });
-            // Tham so nay gio la product_key (landing URL da encode) hoac
-            // domain cu (tuong thich nguoc): thu product_key truoc.
-            let rawKey = String(domain).trim();
-            try { rawKey = decodeURIComponent(rawKey); } catch { /* giu nguyen */ }
-            if (isExcludedProductDomain(rawKey)) return res.status(404).json({ success: false, message: `Product not found.` });
-
-            let productInfo = await productsCol.findOne({ product_key: rawKey });
-            if (!productInfo) productInfo = await productsCol.findOne({ domain: new RegExp(`^${escapeRegExp(rawKey)}$`, 'i') });
-            if (!productInfo) return res.status(404).json({ success: false, message: `Product not found.` });
-            if (isExcludedProductDomain(productInfo.domain)) return res.status(404).json({ success: false, message: `Product not found.` });
-
-            const topAdsQuery = (productInfo.product_key && productInfo.product_key.startsWith('http'))
-                ? { product_key: productInfo.product_key }
-                : { domain: productInfo.domain };
-            const topAds = await adsCol.find(topAdsQuery)
-                .sort({ score: -1 }).limit(20)
-                .project({ ad_archive_id: 1, ad_library_url: 1, text: { $substrCP: ["$text", 0, 150] }, score: 1, level: 1, estimated_spend_usd: 1, thumbnail_r2: 1, start_date: 1, last_seen: 1, product_key: 1, images: { $slice: 1 }, videos: { $slice: 1 } })
-                .toArray();
-
-            return res.json({ success: true, data: { ...productInfo, top_ads: topAds } });
         } catch (error) {
             return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
         }
@@ -1898,167 +2250,7 @@ function initSearchServer(dbInstance) {
     });
 }
 
-// Domain san TMDT / mang xa hoi / video — khong tinh la "san pham" de dua
-// len bang winning products. Gom theo domain thi ca san gom thanh 1 product
-// (vd shopee.vn gom hang trieu mat hang) va diem tong de be dan, nen bang
-// toan hien ten san thay vi san pham cu the. Muon them/bot: sua list nay.
-// Giu dong bo voi EXCLUDED_PRODUCT_DOMAINS trong searchApi.js (cung list).
-const EXCLUDED_PRODUCT_DOMAINS = [
-    // San TMDT
-    'shopee.vn', 'shopee.com', 'shopee.ph', 'shopee.sg', 'shopee.com.my', 'shopee.co.th', 'shopee.co.id', 'shopee.com.br', 'shopee.tw', 'shopee.com.mx', 'shopee.cl',
-    'lazada.vn', 'lazada.com', 'lazada.com.my', 'lazada.sg', 'lazada.co.th', 'lazada.co.id', 'lazada.ph',
-    'tiki.vn', 'sendo.vn',
-    'alibaba.com', 'aliexpress.com', 'aliexpress.us', '1688.com', 'taobao.com', 'tmall.com', 'jd.com', 'dhgate.com',
-    'amazon.com', 'amazon.ca', 'amazon.co.uk', 'amazon.de', 'amazon.fr', 'amazon.it', 'amazon.es', 'amazon.com.au', 'amazon.in', 'amazon.co.jp', 'amazon.com.mx', 'amazon.com.br',
-    'ebay.com', 'etsy.com', 'walmart.com',
-    // San TMDT moi
-    'temu.com', 'shein.com', 'wish.com',
-    // App store (app cai dat, khong phai san pham ban)
-    'play.google.com', 'itunes.apple.com', 'apps.apple.com',
-    // Link rut gon / redirect (khong phai landing that)
-    'fb.me', 'fb.watch', 'l.facebook.com',
-    // Mang quang cao (domain quang cao, khong phai san pham)
-    'doubleclick.net', 'googleadservices.com', 'googlesyndication.com',
-    // Mang xa hoi / nhan tin / video
-    'facebook.com', 'fb.com', 'instagram.com', 'tiktok.com', 'youtube.com', 'messenger.com', 'whatsapp.com', 'zalo.me', 'telegram.org', 'twitter.com', 'x.com', 'pinterest.com', 'linkedin.com', 'snapchat.com', 'threads.net',
-];
-// true neu domain la (hoac la subdomain cua) 1 domain trong blocklist.
-// Khong phan biet hoa thuong, bo 'www.' dau. 'notshopee.vn' hay
-// 'shopee.vn.fake.com' -> false (chi khop dung domain hoac '.domain').
-function isExcludedProductDomain(domain) {
-    if (!domain || typeof domain !== 'string') return false;
-    const d = domain.trim().toLowerCase().replace(/^www\./, '');
-    if (!d) return false;
-    for (const base of EXCLUDED_PRODUCT_DOMAINS) {
-        if (d === base || d.endsWith('.' + base)) return true;
-    }
-    return false;
-}
-// true neu domain la Shopify: *.myshopify.com (subdomain mac dinh).
-// Store dung domain rieng khong nhan duoc tu URL (can fetch HTML).
-function isShopifyDomain(domain) {
-    if (!domain || typeof domain !== 'string') return false;
-    const d = domain.trim().toLowerCase().replace(/^www\./, '');
-    return d === 'myshopify.com' || d.endsWith('.myshopify.com');
-}
-// --- Loc product KHONG phai san pham ban duoc (chi lay product that) ---
-// Cung bo cum tu nhu analyzer.js (phim, khoa hoc, game, app, tai chinh,
-// dich vu — Viet + Anh). Dung ca o tich luy (analyzer) va o doc (searchApi)
-// de an product xau da co san trong DB cho toi khi FULL rebuild.
-const NON_PRODUCT_PATTERNS = [
-    /xem phim|lồng tiếng|thuyết minh|vietsub|phim lẻ|phim bộ|phim chiếu rạp|rạp chiếu phim|phim hành động|phim tình cảm|phim hài|phim kinh dị|phim mới|tập \d+|diễn viên|phụ đề/i,
-    /watch (a |the )?movie|full movie|watch free|tv series|tv show|netflix|episode|season \d+|dubbed|subtitle|trailer|cinema|streaming/i,
-    /khóa học|lớp học|học online|học trực tuyến|đào tạo|giảng viên|khóa đào tạo|luyện thi|ôn thi|chứng chỉ|bằng cấp|trường học|đại học|cao đẳng|trung tâm|giáo dục|học phí|đăng ký học|học tiếng anh|học viên|khóa học miễn phí|lớp học đầu tư/i,
-    /online course|free course|learn english|masterclass|webinar|sign up (for|to) (the )?course|enroll(ment)?|certification|degree|academy|coaching/i,
-    /chơi game|tải game|game mobile|game online|giftcode|nạp game|game thủ|esport|liên quân|pubg|free fire|cờ bạc|cá cược|cá độ|sòng bạc|đánh bài|xóc đĩa|tài xỉu|lô đề|xổ số/i,
-    /play (a |the )?game|download (a |the )?game|mobile game|online game|gamer|esports|free spins|slots|casino|poker|betting|gambling|jackpot|lottery/i,
-    /tải app|tải ứng dụng|cài đặt app|download app|install app|get the app|app store|google play|download now|install now/i,
-    /đầu tư|chứng khoán|forex|tiền ảo|bitcoin|vay tiền|cho vay|tín dụng|bảo hiểm|kiếm tiền|làm giàu|thu nhập thụ động/i,
-    /invest(ment)?|trading|forex|crypto|bitcoin|stock market|loan|credit|insurance|make money|passive income|earn money|get rich/i,
-];
-const NON_PRODUCT_INDUSTRIES = new Set(['entertainment', 'gambling', 'real_estate']);
-function isNonProductAd(ad) {
-    if (!ad || typeof ad !== 'object') return false;
-    if (ad.industry && NON_PRODUCT_INDUSTRIES.has(String(ad.industry).toLowerCase())) return true;
-    const hay = [ad.headline, ad.text, ad.description].filter(Boolean).join(' ').toLowerCase();
-    if (!hay) return false;
-    for (const re of NON_PRODUCT_PATTERNS) if (re.test(hay)) return true;
-    return false;
-}
-// Regex gop de loc title product o query Mongo ($not): 1 regex duy nhat
-// OR het cac pattern (moi pattern boc trong (?:...)).
-function nonProductTitleRegex() {
-    return new RegExp(NON_PRODUCT_PATTERNS.map((re) => '(?:' + re.source + ')').join('|'), 'i');
-}
-// Regex dung cho query Mongo ($not): khop dung isExcludedProductDomain.
-function excludedProductDomainRegex() {
-    const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp('(^|\\.)(' + EXCLUDED_PRODUCT_DOMAINS.map(esc).join('|') + ')$', 'i');
-}
-
-// Query cho /api/products/search: q khớp title hoặc domain (substring,
-// không phân biệt hoa thường); domain khớp chính xác; các min_* lọc số.
-// products chỉ ~50k doc nên regex substring ở đây chấp nhận được.
-function buildProductsSearchQuery(params) {
-    const query = {};
-    const q = String(params.q || '').trim();
-    if (q) {
-        const re = new RegExp(escapeRegExp(q), 'i');
-        query.$or = [{ title: re }, { domain: re }, { landing_url: re }];
-    }
-    if (params.domain) query.domain = new RegExp(`^${escapeRegExp(String(params.domain).trim())}$`, 'i');
-    // Loc theo nganh hang: category tren doc product la industry code cua
-    // ad top score (beauty_health, electronics, fashion...). Gia tri la
-    // phai nam trong INDUSTRIES, neu khong thi bo qua (khong tra 0 oan).
-    if (params.industry) {
-        const ind = String(params.industry).trim().toLowerCase();
-        if (INDUSTRY_VALUES.has(ind)) query.category = ind;
-    }
-    // Loc theo nen tang: ?platform=shopify (chi store Shopify *.myshopify.com)
-    // hoac ?platform=other. Khong truyen thi hien tat ca.
-    if (params.platform) {
-        const pf = String(params.platform).trim().toLowerCase();
-        if (pf === 'shopify' || pf === 'other') query.platform = pf;
-    }
-    // Loc theo thi truong: ?country=VN (chi product co ad chay o VN).
-    // Doc cu chua co is_vn (ghi tu FULL moi) thi khong khop — can FULL sau PR.
-    if (params.country) {
-        const cc = String(params.country).trim().toLowerCase();
-        if (cc === 'vn' || cc === 'vietnam') query.is_vn = true;
-    }
-    if (params.min_product_score) query.product_score = { $gte: parseInt(params.min_product_score, 10) };
-    if (params.min_winning_ads) query.winning_ads = { $gte: parseInt(params.min_winning_ads, 10) };
-    if (params.min_total_ads) query.total_ads = { $gte: parseInt(params.min_total_ads, 10) };
-    // Loai san TMDT / mang xa hoi khoi ket qua (xem EXCLUDED_PRODUCT_DOMAINS).
-    // Loai luon product KHONG phai san pham ban duoc (phim, khoa hoc, game,
-    // app, tai chinh — Viet + Anh): title chua cum tu non-product, hoac
-    // category thuoc nganh loai tru. An product xau da co san trong DB cho
-    // toi khi FULL rebuild (analyzer loc tu luc tich luy).
-    // Chi product THAT (loc TICH CUC): co it nhat 1 ad thang + co tin hieu
-    // mua (Buy/Sale/Mua/Dat hang...). buy_signal_ads chi co tu FULL moi;
-    // doc cu chua co field thi khong loai bang dieu kien nay.
-    query.$and = [...(query.$and || []), { domain: { $not: excludedProductDomainRegex() } }, { title: { $not: nonProductTitleRegex() } }, { category: { $nin: [...NON_PRODUCT_INDUSTRIES] } }, { $or: [{ winning_ads: { $gte: 1 } }, { winning_ads: { $exists: false } }] }, { $or: [{ buy_signal_ads: { $gte: 1 } }, { buy_signal_ads: { $exists: false } }] }];
-    return query;
-}
-
-// Khoảng ngày của 1 tháng 'YYYY-MM': [ngày đầu tháng, ngày đầu tháng sau).
-function monthRange(month) {
-    const [y, mo] = month.split('-').map(Number);
-    const start = month + '-01';
-    const end = new Date(Date.UTC(y, mo, 1)).toISOString().slice(0, 10);
-    return { start, end };
-}
-
-// 'YYYY-MM'; mặc định tháng hiện tại (+07). Trả null nếu sai định dạng.
-function parseMonthParam(monthParam, nowMs = Date.now()) {
-    if (!monthParam) return new Date(nowMs + 7 * 60 * 60 * 1000).toISOString().slice(0, 7);
-    const m = String(monthParam).trim();
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(m)) return null;
-    return m;
-}
-
-// Pipeline gom monthly winners: theo domain, xếp theo số ngày thắng rồi
-// tổng product_score. $sort theo date trước $group để $last là snapshot
-// mới nhất của domain trong tháng.
-// filters (optional): { platform: 'shopify'|'other', country: 'VN' } — loc
-// theo nen tang / thi truong. Snapshot cu chua co platform/is_vn thi
-// khong khop filter (can FULL sau PR).
-function buildMonthlyWinnersPipeline(month, filters = {}) {
-    const { start, end } = monthRange(month);
-    const match = { date: { $gte: start, $lt: end }, domain: { $not: excludedProductDomainRegex() }, title: { $not: nonProductTitleRegex() }, category: { $nin: [...NON_PRODUCT_INDUSTRIES] }, $and: [{ $or: [{ winning_ads: { $gte: 1 } }, { winning_ads: { $exists: false } }] }, { $or: [{ buy_signal_ads: { $gte: 1 } }, { buy_signal_ads: { $exists: false } }] }] };
-    const pf = String(filters.platform || '').trim().toLowerCase();
-    if (pf === 'shopify' || pf === 'other') match.platform = pf;
-    const cc = String(filters.country || '').trim().toLowerCase();
-    if (cc === 'vn' || cc === 'vietnam') match.is_vn = true;
-    return [
-        { $match: match },
-        { $sort: { date: 1, rank: 1 } },
-        { $group: { _id: { $ifNull: ['$product_key', '$domain'] }, domain: { $last: '$domain' }, landing_url: { $last: '$landing_url' }, category: { $last: '$category' }, title: { $last: '$title' }, platform: { $last: '$platform' }, is_vn: { $max: '$is_vn' }, days_won: { $sum: 1 }, total_product_score: { $sum: '$product_score' }, total_winning_ads: { $sum: '$winning_ads' }, best_rank: { $min: '$rank' }, latest_score: { $last: '$product_score' } } },
-        { $sort: { days_won: -1, total_product_score: -1 } },
-    ];
-}
-
-module.exports = { initSearchServer, buildPresetConditions, resolvePresetSort, resolveSearchSort, presetUsesFlag, productFirstEnabled, FILTER_DEFAULTS, buildTextSearchQuery, textSearchLimit, stripViDiacritics, INDUSTRIES, buildIndustryCondition, buildCountryCondition, buildDomainCondition, prefixRegex, escapeRegExp, lowerPrefixRange, normalizeQueryParams, normalizeCountryCodes, countryMatchValues, normalizeIndustryValues, normalizeSpendTiers, normalizeFunnelValues, parseActiveParam, buildActiveCondition, parseDateParam, normalizeSortField, normalizeSortOrder, normalizePresetNames, buildLevelCondition, buildScalingCondition, buildSpendCondition, buildIndustryTextCondition, refreshSchemaProbe, dedupeEnabled, buildSimilarTiers, buildSimilarCountQuery, fillSimilarAds, SIMILAR_TEXT_PREFIX_LEN, countSimilarTotal, pickVideoUrl, videoUrlFresh, refreshEsDedupeProbe, stripCountExistsConditions, EXCLUDED_PRODUCT_DOMAINS, isExcludedProductDomain, excludedProductDomainRegex, isShopifyDomain, isNonProductAd, nonProductTitleRegex, NON_PRODUCT_PATTERNS, buildProductsSearchQuery, monthRange, parseMonthParam, buildMonthlyWinnersPipeline, countMediaUsage, buildFreshAdCondition, SCALING_HARD_MAX_RUN_DAYS, STALE_AD_MAX_AGE_DAYS, STALE_AD_MAX_AGE_MS };
+module.exports = { initSearchServer, buildPresetConditions, resolvePresetSort, resolveSearchSort, presetUsesFlag, productFirstEnabled, hideEntertainmentEnabled, buildHideEntertainmentCondition, buildHideGamblingCondition, FILTER_DEFAULTS, buildTextSearchQuery, textSearchLimit, stripViDiacritics, INDUSTRIES, buildIndustryCondition, buildCountryCondition, buildDomainCondition, prefixRegex, escapeRegExp, lowerPrefixRange, normalizeQueryParams, normalizeCountryCodes, countryMatchValues, normalizeIndustryValues, normalizeSpendTiers, normalizeFunnelValues, parseActiveParam, buildActiveCondition, parseDateParam, normalizeSortField, normalizeSortOrder, normalizePresetNames, buildLevelCondition, buildScalingCondition, buildSpendCondition, buildIndustryTextCondition, refreshSchemaProbe, dedupeEnabled, buildSimilarTiers, buildSimilarCountQuery, fillSimilarAds, SIMILAR_TEXT_PREFIX_LEN, countSimilarTotal, pickVideoUrl, videoUrlFresh, refreshEsDedupeProbe, stripCountExistsConditions, countMediaUsage, buildFreshAdCondition, SCALING_HARD_MAX_RUN_DAYS, STALE_AD_MAX_AGE_DAYS, STALE_AD_MAX_AGE_MS, isCountryAloneCount, isIndustryAloneCount, isOtherSpendCount, resolveCountOptions, countSearchTotal, COUNTRY_ALONE_COUNT_INDEX, INDUSTRY_ALONE_COUNT_INDEX, OTHER_SPEND_COUNT_INDEX, COUNT_MAX_TIME_MS, SEARCH_FIND_MAX_TIME_MS, normalizePageLimit, computeIsActive, refreshIsActive, stripExpiredVideoThumbs, shouldForceThumbnailForScalingSort, ACTIVE_WINDOW_MS };
 
 // ===== CHẠY ĐỘC LẬP: node searchApi.js (server search thường trực, pm2) =====
 // Analyzer KHÔNG gọi initSearchServer nữa — server tự kết nối Mongo, retry
